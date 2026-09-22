@@ -1,0 +1,11 @@
+[package]
+name = "dazzle"
+description = "A Sparkle-compatible software update framework"
+version = "0.0.1"
+edition = "2021"
+license = "MIT"
+build = "build.rs"
+links = "dazzle"
+
+[build-dependencies]
+cmake = "0.1"

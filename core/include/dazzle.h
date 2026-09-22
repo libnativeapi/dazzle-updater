@@ -1,0 +1,11 @@
+#pragma once
+
+#ifdef __cplusplus
+// C++ API
+#include "../src/updater.h"
+#endif
+
+// C API (usable from both C and C++)
+#include "../src/capi/common_c.h"
+#include "../src/capi/string_utils_c.h"
+#include "../src/capi/updater_c.h"

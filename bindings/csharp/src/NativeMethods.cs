@@ -1,0 +1,28 @@
+using System.Runtime.InteropServices;
+
+namespace Dazzle;
+
+/// <summary>
+/// Declarations of the dazzle C ABI (<c>core/src/capi/</c>).
+/// </summary>
+/// <remarks>
+/// Hand-written until the code generator is in place; keep every declaration in step
+/// with the C headers.
+/// </remarks>
+internal static partial class NativeMethods
+{
+    private const string Library = "dazzle";
+
+    // string_utils_c.h
+
+    [LibraryImport(Library)]
+    internal static partial void dazzle_free_c_str(nint str);
+
+    // updater_c.h
+
+    [LibraryImport(Library, StringMarshalling = StringMarshalling.Utf8)]
+    internal static partial void dazzle_updater_set_feed_url(string? feedUrl);
+
+    [LibraryImport(Library)]
+    internal static partial nint dazzle_updater_get_feed_url();
+}

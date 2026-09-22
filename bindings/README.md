@@ -1,0 +1,29 @@
+# bindings
+
+Language bindings over the C ABI in `core/src/capi/`. Each binding is a single package
+that builds `core/` from source with CMake, so a working C++17 toolchain and CMake are
+required.
+
+| Directory | Package | Status |
+| --- | --- | --- |
+| [rust/](rust/README.md) | crate `dazzle`; links the static library | ✅ |
+| [dart/](dart/README.md) | package `dazzle` (`dart:ffi`); a build hook bundles the shared library as a native asset | ✅ host OS only |
+| [csharp/](csharp/README.md) | NuGet package `Dazzle` (`LibraryImport`); MSBuild builds the shared library and copies it next to the assembly | ✅ host OS only |
+
+The C ABI declarations (`rust/src/ffi.rs`, `dart/lib/src/dazzle_bindings.dart`,
+`csharp/src/NativeMethods.cs`) are
+private to each package and hand-written until `tools/codegen/` is in place: when a C
+header in `core/src/capi/` changes, update them in the same commit.
+
+Examples sit where each language expects them, one per module:
+
+| Example | Rust | Dart | C# |
+| --- | --- | --- | --- |
+| Read and override the appcast feed URL | `rust/examples/updater_example.rs` | `dart/example/updater_example.dart` | `csharp/examples/UpdaterExample` |
+
+.NET needs a separate project per program, so the C# example and tests are their own
+projects under `csharp/examples/` and `csharp/tests/`, referencing `Dazzle.csproj`.
+
+Each binding's README covers installation, usage and development:
+[rust/README.md](rust/README.md), [dart/README.md](dart/README.md),
+[csharp/README.md](csharp/README.md).

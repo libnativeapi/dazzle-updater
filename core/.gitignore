@@ -1,0 +1,13 @@
+.idea/
+.vs/
+.vscode/
+build/
+build-android/
+build-ios/
+build-linux/
+build-macos/
+build-ohos/
+build-windows/
+cmake-build-debug/
+
+*.o

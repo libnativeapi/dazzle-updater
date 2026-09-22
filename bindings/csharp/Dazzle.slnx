@@ -1,0 +1,9 @@
+<Solution>
+  <Project Path="Dazzle.csproj" />
+  <Folder Name="/examples/">
+    <Project Path="examples/UpdaterExample/UpdaterExample.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Dazzle.Tests/Dazzle.Tests.csproj" />
+  </Folder>
+</Solution>

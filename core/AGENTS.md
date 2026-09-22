@@ -1,0 +1,43 @@
+# dazzle
+
+A Sparkle-compatible software update framework, C++17 with a C ABI. This directory is the
+`core/` of the dazzle workspace; the design specs live one directory up, in `../specs/` —
+read them before adding or reshaping public API.
+
+## Layout
+
+```
+include/dazzle.h       # single public include
+src/
+├── capi/              # C ABI — hand-written for now
+├── platform/          # windows, macos, linux, android, ios, ohos — one is built
+└── *.h, *.cpp         # cross-platform interface definitions
+examples/              # <module>_example (C++) and <module>_c_example (C)
+```
+
+## Rules
+
+1. **No platform types in public headers** — no `#ifdef` platform branches in `src/*.h`.
+2. **A cross-platform module is six platform files** — every directory under
+   `src/platform/` needs an implementation (a stub if unsupported), or that platform
+   fails to link. Platform files are named `<module>_<platform>.<ext>`.
+3. **PIMPL** — the public class declares `class Impl`, holds `std::unique_ptr<Impl> pimpl_`;
+   each platform file defines the `Impl` subclass, the constructor and the destructor.
+4. **Public API style** is in `../specs/README.md`: `SetX`/`GetX() const` pairs, strings in
+   as `const std::string&` and out by value, never throw across the public API, platform
+   differences in a `@note Platform availability:` block.
+5. **C ABI** — functions are `dazzle_<module>_<verb>`, files `<module>_c.h/.cpp`, every
+   entry point catches exceptions, returned strings are freed with `dazzle_free_c_str()`.
+   Every exported symbol carries the `dazzle_` prefix, so dazzle links cleanly next to
+   other native libraries.
+
+## Build
+
+```bash
+cmake -S . -B build && cmake --build build
+./build/examples/updater_example/updater_example
+```
+
+## Commits
+
+- Do not add Co-Authored-By trailers to commits.
