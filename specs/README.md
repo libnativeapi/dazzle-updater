@@ -2,6 +2,13 @@
 
 `core/` 的设计规范：新代码必须遵守什么。怎么用某个 API 看头文件的 Doxygen 注释。
 
+| 文档 | 内容 |
+|---|---|
+| [updater.md](updater.md) | Updater API 设计：Updater 与 source 的分工、签名、线程模型、平台可用性 |
+| [updater-ui.md](updater-ui.md) | 内置更新界面 UpdaterUI：窗口流程、跳过版本、自动下载、首次询问、用户偏好、错误文案、线程、退出应用、更新说明渲染、平台可用性 |
+| [release-index.md](release-index.md) | dazzle 自有的数据源格式 release index（`releases.json`）：字段、选择规则、版本比较、签名 |
+| [prototype-architecture.md](prototype-architecture.md) | 交互原型 `prototype/`（Storybook）的目录职责、命名、依赖边界、侧边栏分组与验证 |
+
 ## 分层
 
 ```
@@ -50,9 +57,12 @@ src/capi/           C ABI 层
 
 ## 与 Sparkle 的关系
 
-dazzle 是重新设计的更新框架，只在 feed 这一层兼容 Sparkle：读取 Sparkle 格式的 appcast
-（RSS 2.0 + `sparkle:` 扩展），已有的 appcast 无需修改。
+dazzle 是重新设计的更新框架，数据源是自有的 release index 格式（[release-index.md](release-index.md)）。
+Sparkle 兼容只存在于一个独立的 source 模块（`AppcastSource`，后续实现）：它读取 Sparkle 格式的
+appcast 并转换成 dazzle 的 `Release`，已有的 appcast 无需修改。
 
+- Updater 和其它模块不认识 appcast，也不出现 feed、`sparkle:` 等概念；Sparkle 的语义只存在于
+  `AppcastSource` 内部。
 - 不复刻 Sparkle / WinSparkle 的 API，API 按本规范自行设计。
 - 不读取它们的配置约定，例如 macOS Info.plist 的 `SUFeedURL`、WinSparkle 的 `FeedURL`
-  资源。配置一律通过 dazzle 自己的 API 完成（如 `Updater::SetFeedUrl()`）。
+  资源。配置一律通过 dazzle 自己的 API 完成（如 `ReleaseIndexSource::SetUrl()`）。
