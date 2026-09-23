@@ -1,6 +1,6 @@
 [package]
 name = "dazzle"
-description = "A Sparkle-compatible software update framework"
+description = "A cross-platform software update framework that reads Sparkle appcasts"
 version = "0.0.1"
 edition = "2021"
 license = "MIT"

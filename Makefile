@@ -1,4 +1,4 @@
-.PHONY: build examples rust dart csharp test clean
+.PHONY: build examples rust dart csharp flutter codegen check test clean
 
 BUILD_DIR := core/build
 
@@ -24,9 +24,22 @@ dart:
 csharp:
 	cd bindings/csharp && dotnet test Dazzle.slnx && dotnet run --project examples/UpdaterExample
 
-# Everything: core examples and every binding
-test: examples rust dart csharp
+# Build the Flutter example app (needs the Flutter SDK; not part of `test`)
+flutter:
+	cd examples/flutter_updater_example && flutter pub get && flutter analyze && flutter build macos --debug
+
+# Regenerate the C ABI and the bindings from the C++ headers
+codegen:
+	./codegen
+
+# Fail if a generated file is out of date
+check:
+	./codegen check
+
+# Everything: generated files, core examples and every binding
+test: check examples rust dart csharp
 
 clean:
 	rm -rf $(BUILD_DIR) bindings/rust/target bindings/dart/.dart_tool
+	rm -rf examples/flutter_updater_example/build examples/flutter_updater_example/.dart_tool
 	find bindings/csharp -type d \( -name bin -o -name obj \) -prune -exec rm -rf {} +

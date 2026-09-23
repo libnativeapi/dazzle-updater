@@ -10,7 +10,7 @@
 
     <PackageId>Dazzle</PackageId>
     <Version>0.0.1</Version>
-    <Description>A Sparkle-compatible software update framework.</Description>
+    <Description>A cross-platform software update framework that reads Sparkle appcasts.</Description>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>

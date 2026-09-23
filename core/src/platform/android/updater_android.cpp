@@ -3,11 +3,8 @@
 namespace dazzle {
 namespace {
 
-class AndroidUpdaterImpl final : public Updater::Impl {
- public:
-  // There is no standard configuration source on this platform.
-  std::string GetConfiguredFeedUrl() const override { return ""; }
-};
+// No platform-specific behavior yet.
+class AndroidUpdaterImpl final : public Updater::Impl {};
 
 }  // namespace
 

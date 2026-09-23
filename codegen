@@ -1,0 +1,11 @@
+#!/usr/bin/env python3
+"""Generates the dazzle C ABI and language bindings. See tools/codegen/README.md."""
+
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent / "tools" / "codegen"))
+
+from dazzle_codegen.main import main  # noqa: E402
+
+main()

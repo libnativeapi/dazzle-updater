@@ -1,11 +1,10 @@
 # dazzle
 
-A Sparkle-compatible software update framework for all major platforms. It reads the
-[Sparkle](https://sparkle-project.org) appcast format and honors the configuration keys
-Sparkle (macOS) and WinSparkle (Windows) established, so existing feeds and apps work
-unchanged. It is a C++17 library with a C ABI for bindings.
+A cross-platform software update framework. dazzle has its own API; its feed format is the
+[Sparkle](https://sparkle-project.org) appcast, so existing appcasts work unchanged. It is a
+C++17 library with a C ABI for bindings.
 
-🚧 **Work in Progress**: only feed URL configuration is implemented so far.
+🚧 **Work in Progress**: only the feed URL setting is implemented so far.
 
 ## Installation
 
@@ -23,9 +22,9 @@ target_link_libraries(your_app PRIVATE dazzle)
 #include "dazzle.h"
 
 int main() {
-  // Falls back to SUFeedURL (macOS Info.plist) or the FeedURL APPCAST
-  // resource (Windows) when no URL was set explicitly.
-  std::cout << dazzle::Updater::GetInstance().GetFeedUrl() << "\n";
+  auto& updater = dazzle::Updater::GetInstance();
+  updater.SetFeedUrl("https://example.com/appcast.xml");
+  std::cout << updater.GetFeedUrl() << "\n";
 }
 ```
 

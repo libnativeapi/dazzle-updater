@@ -1,11 +1,10 @@
 # dazzle for C#
 
-.NET bindings for [dazzle](../../README.md), a Sparkle-compatible software update
-framework. dazzle reads the [Sparkle](https://sparkle-project.org) appcast format and
-honors the configuration keys Sparkle (macOS) and WinSparkle (Windows) established, so
-existing feeds and apps work unchanged.
+.NET bindings for [dazzle](../../README.md), a cross-platform software
+update framework. dazzle has its own API; its feed format is the
+[Sparkle](https://sparkle-project.org) appcast, so existing appcasts work unchanged.
 
-🚧 **Work in Progress**: only feed URL configuration is implemented so far.
+🚧 **Work in Progress**: only the feed URL setting is implemented so far.
 
 ## Requirements
 
@@ -37,28 +36,17 @@ using Dazzle;
 
 var updater = Updater.Instance;
 
-// Falls back to the app's configuration when no URL was set.
-Console.WriteLine(updater.FeedUrl);
+Console.WriteLine(updater.FeedUrl ?? "(none)"); // (none)
 
 updater.FeedUrl = "https://example.com/appcast.xml";
 Console.WriteLine(updater.FeedUrl); // https://example.com/appcast.xml
 
-// null (or "") goes back to the app's configuration.
+// null (or "") clears it.
 updater.FeedUrl = null;
 ```
 
-`FeedUrl` is `null` when nothing is configured.
+`FeedUrl` is `null` when no URL has been set.
 
-## Configuration
-
-Without setting `FeedUrl`, the feed URL comes from the app's packaging, using the keys
-Sparkle and WinSparkle already defined:
-
-| Platform | Source |
-| --- | --- |
-| macOS | `SUFeedURL` in the app bundle's `Info.plist` |
-| Windows | `FeedURL` resource of type `APPCAST` in the executable |
-| Linux, Android, iOS, OHOS | none; only setting `FeedUrl` applies |
 
 ## Examples
 
@@ -68,7 +56,7 @@ dotnet run --project examples/UpdaterExample
 
 | Example | Shows |
 | --- | --- |
-| [UpdaterExample](examples/UpdaterExample/Program.cs) | Reading and overriding the appcast feed URL |
+| [UpdaterExample](examples/UpdaterExample/Program.cs) | Setting and reading the appcast feed URL |
 
 ## Development
 
@@ -79,9 +67,10 @@ dotnet test Dazzle.slnx
 
 The library targets `net8.0`; the example and tests target `net10.0`.
 
-The C ABI declarations in [src/NativeMethods.cs](src/NativeMethods.cs) are
-hand-written: when a header in [core/src/capi/](../../core/src/capi) changes, update
-them in the same commit.
+[src/NativeMethods.cs](src/NativeMethods.cs) and one `src/<Class>.cs` per class are
+generated from the C++ headers; do not edit them. Change the header in
+[core/src/](../../core/src) and run `./codegen` from the repository root. The string
+helpers ([src/CString.cs](src/CString.cs)) are hand-written.
 
 ## License
 

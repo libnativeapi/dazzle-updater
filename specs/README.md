@@ -42,13 +42,17 @@ src/capi/           C ABI 层
 - 所有导出符号都带 `dazzle_` 前缀，保证与其它原生库一起链接时不冲突。
 - 每个入口都捕获异常，不让异常穿过 C 边界。
 - 返回的字符串由调用方持有，用 `dazzle_free_c_str()` 释放；没有值时返回 `NULL`。
-- 目前手写；以后由 `tools/codegen/` 从 C++ 头文件生成。
+- 由 `tools/codegen/` 从 C++ 头文件生成（`./codegen`），不要手改；只有 `common_c.h` 和
+  `string_utils_c.*` 是手写的。生成器支持的类型和命名规则见
+  [tools/codegen/README.md](../tools/codegen/README.md)。
+- 公共 API 只用生成器支持的类型。用了不支持的类型，生成时会打印 `skipped` 警告，
+  该方法不会出现在任何 binding 里。
 
-## 兼容性约定
+## 与 Sparkle 的关系
 
-dazzle 的配置沿用 Sparkle（macOS）和 WinSparkle（Windows）已有的约定，已经在用它们的
-应用无需修改：
+dazzle 是重新设计的更新框架，只在 feed 这一层兼容 Sparkle：读取 Sparkle 格式的 appcast
+（RSS 2.0 + `sparkle:` 扩展），已有的 appcast 无需修改。
 
-| 配置 | macOS（Info.plist） | Windows（exe 资源） |
-|---|---|---|
-| appcast 地址 | `SUFeedURL` | `FeedURL`，类型 `APPCAST` |
+- 不复刻 Sparkle / WinSparkle 的 API，API 按本规范自行设计。
+- 不读取它们的配置约定，例如 macOS Info.plist 的 `SUFeedURL`、WinSparkle 的 `FeedURL`
+  资源。配置一律通过 dazzle 自己的 API 完成（如 `Updater::SetFeedUrl()`）。

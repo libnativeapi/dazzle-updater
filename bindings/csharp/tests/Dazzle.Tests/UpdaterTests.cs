@@ -5,14 +5,13 @@ namespace Dazzle.Tests;
 public class UpdaterTests
 {
     [Fact]
-    public void FeedUrlOverridesAndResets()
+    public void FeedUrlSetsAndClears()
     {
         var updater = Updater.Instance;
         updater.FeedUrl = "https://example.com/appcast.xml";
         Assert.Equal("https://example.com/appcast.xml", updater.FeedUrl);
 
         updater.FeedUrl = null;
-        // The test host has no SUFeedURL in its Info.plist, so nothing is configured.
         Assert.Null(updater.FeedUrl);
     }
 

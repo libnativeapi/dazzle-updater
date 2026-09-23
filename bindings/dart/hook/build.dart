@@ -62,8 +62,23 @@ void main(List<String> args) async {
         file: library,
       ),
     );
-    output.dependencies.add(coreDir);
+    // Every source file, not the directory: a directory's timestamp only changes when
+    // entries are added or removed, so editing a header would reuse a stale library.
+    output.dependencies.addAll(_coreSources(coreDir));
   });
+}
+
+Iterable<Uri> _coreSources(Uri coreDir) sync* {
+  yield coreDir.resolve('CMakeLists.txt');
+  for (final dir in ['src/', 'include/']) {
+    for (final entity in Directory.fromUri(
+      coreDir.resolve(dir),
+    ).listSync(recursive: true)) {
+      if (entity is File) {
+        yield entity.uri;
+      }
+    }
+  }
 }
 
 String _appleArch(Architecture architecture) => switch (architecture) {

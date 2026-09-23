@@ -9,19 +9,15 @@ namespace dazzle {
 /**
  * @brief The application's software updater.
  *
- * Updater checks an appcast feed in the Sparkle format (an RSS 2.0 document
- * with `sparkle:` extensions) and installs the updates it announces. One
- * instance serves the whole process.
- *
- * Configuration follows the conventions Sparkle and WinSparkle established,
- * so an app that already ships them works unchanged:
- * - macOS: the main bundle's Info.plist (`SUFeedURL`, ...)
- * - Windows: the executable's resources (`FeedURL` of type `APPCAST`, ...)
+ * Updater checks an appcast feed and installs the updates it announces. The
+ * feed format is the Sparkle appcast (an RSS 2.0 document with `sparkle:`
+ * extensions), so existing appcasts work unchanged; the API itself is
+ * dazzle's own. One instance serves the whole process.
  *
  * Typical usage:
  * @code
  * auto& updater = dazzle::Updater::GetInstance();
- * std::string feed_url = updater.GetFeedUrl();
+ * updater.SetFeedUrl("https://example.com/appcast.xml");
  * @endcode
  */
 class Updater {
@@ -34,31 +30,17 @@ class Updater {
   static Updater& GetInstance();
 
   /**
-   * @brief Set the URL of the appcast feed, overriding the app's
-   * configuration.
+   * @brief Set the URL of the appcast feed.
    *
-   * Pass "" to go back to the URL the app's configuration provides.
-   *
-   * @param feed_url The appcast URL, e.g. "https://example.com/appcast.xml"
+   * @param feed_url The appcast URL, e.g. "https://example.com/appcast.xml";
+   *   "" clears it.
    */
   void SetFeedUrl(const std::string& feed_url);
 
   /**
    * @brief Get the URL of the appcast feed.
    *
-   * Returns the URL set with SetFeedUrl(), falling back to the one the app's
-   * configuration provides.
-   *
-   * @return The appcast URL, or "" if none is configured.
-   *
-   * @note Platform availability:
-   * - macOS: ✅ Fully supported - Falls back to Info.plist `SUFeedURL`.
-   * - Windows: ✅ Fully supported - Falls back to the `FeedURL` resource of
-   *   type `APPCAST` (the WinSparkle convention).
-   * - Linux: ⚠️ Partial - No configuration source; only SetFeedUrl() applies.
-   * - Android: ⚠️ Partial - No configuration source; only SetFeedUrl() applies.
-   * - iOS: ⚠️ Partial - No configuration source; only SetFeedUrl() applies.
-   * - OHOS: ⚠️ Partial - No configuration source; only SetFeedUrl() applies.
+   * @return The URL set with SetFeedUrl(), or "" if none has been set.
    */
   std::string GetFeedUrl() const;
 
@@ -68,12 +50,11 @@ class Updater {
   Updater(Updater&&) = delete;
   Updater& operator=(Updater&&) = delete;
 
+  /// The platform seam: each src/platform/<os>/updater_<os> file defines the
+  /// subclass. It has no members yet; platform-specific behavior goes here.
   class Impl {
    public:
     virtual ~Impl() = default;
-
-    /// The feed URL the app's platform configuration provides, or "".
-    virtual std::string GetConfiguredFeedUrl() const = 0;
   };
 
  private:

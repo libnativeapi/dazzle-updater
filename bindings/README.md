@@ -10,16 +10,16 @@ required.
 | [dart/](dart/README.md) | package `dazzle` (`dart:ffi`); a build hook bundles the shared library as a native asset | ✅ host OS only |
 | [csharp/](csharp/README.md) | NuGet package `Dazzle` (`LibraryImport`); MSBuild builds the shared library and copies it next to the assembly | ✅ host OS only |
 
-The C ABI declarations (`rust/src/ffi.rs`, `dart/lib/src/dazzle_bindings.dart`,
-`csharp/src/NativeMethods.cs`) are
-private to each package and hand-written until `tools/codegen/` is in place: when a C
-header in `core/src/capi/` changes, update them in the same commit.
+Each binding's C ABI declarations (`rust/src/ffi.rs`, `dart/lib/src/dazzle_bindings.dart`,
+`csharp/src/NativeMethods.cs`) and wrapper classes are generated from the C++ headers by
+`./codegen` at the repository root; see [tools/codegen](../tools/codegen/README.md). The
+string helpers and each package's entry file are hand-written.
 
 Examples sit where each language expects them, one per module:
 
 | Example | Rust | Dart | C# |
 | --- | --- | --- | --- |
-| Read and override the appcast feed URL | `rust/examples/updater_example.rs` | `dart/example/updater_example.dart` | `csharp/examples/UpdaterExample` |
+| Set and read the appcast feed URL | `rust/examples/updater_example.rs` | `dart/example/updater_example.dart` | `csharp/examples/UpdaterExample` |
 
 .NET needs a separate project per program, so the C# example and tests are their own
 projects under `csharp/examples/` and `csharp/tests/`, referencing `Dazzle.csproj`.

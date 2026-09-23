@@ -1,11 +1,10 @@
 # dazzle for Rust
 
-Rust bindings for [dazzle](../../README.md), a Sparkle-compatible software update
-framework. dazzle reads the [Sparkle](https://sparkle-project.org) appcast format and
-honors the configuration keys Sparkle (macOS) and WinSparkle (Windows) established, so
-existing feeds and apps work unchanged.
+Rust bindings for [dazzle](../../README.md), a cross-platform software
+update framework. dazzle has its own API; its feed format is the
+[Sparkle](https://sparkle-project.org) appcast, so existing appcasts work unchanged.
 
-🚧 **Work in Progress**: only feed URL configuration is implemented so far.
+🚧 **Work in Progress**: only the feed URL setting is implemented so far.
 
 ## Requirements
 
@@ -32,8 +31,7 @@ use dazzle::Updater;
 fn main() {
     let updater = Updater::instance();
 
-    // Falls back to the app's configuration when no URL was set.
-    println!("{:?}", updater.feed_url());
+    assert_eq!(updater.feed_url(), None);
 
     updater.set_feed_url("https://example.com/appcast.xml");
     assert_eq!(
@@ -41,23 +39,13 @@ fn main() {
         Some("https://example.com/appcast.xml")
     );
 
-    // "" goes back to the app's configuration.
+    // "" clears it.
     updater.set_feed_url("");
 }
 ```
 
-`feed_url()` returns `None` when nothing is configured.
+`feed_url()` returns `None` when no URL has been set.
 
-## Configuration
-
-Without `set_feed_url`, the feed URL comes from the app's packaging, using the keys
-Sparkle and WinSparkle already defined:
-
-| Platform | Source |
-| --- | --- |
-| macOS | `SUFeedURL` in the app bundle's `Info.plist` |
-| Windows | `FeedURL` resource of type `APPCAST` in the executable |
-| Linux, Android, iOS, OHOS | none; only `set_feed_url` applies |
 
 ## Examples
 
@@ -67,7 +55,7 @@ cargo run --example updater_example
 
 | Example | Shows |
 | --- | --- |
-| [updater_example](examples/updater_example.rs) | Reading and overriding the appcast feed URL |
+| [updater_example](examples/updater_example.rs) | Setting and reading the appcast feed URL |
 
 ## Development
 
@@ -75,8 +63,11 @@ cargo run --example updater_example
 cargo test
 ```
 
-The C ABI declarations in [src/ffi.rs](src/ffi.rs) are hand-written: when a header in
-[core/src/capi/](../../core/src/capi) changes, update them in the same commit.
+[src/ffi.rs](src/ffi.rs), [src/modules.rs](src/modules.rs) and one `src/<module>.rs` per
+class are generated from the C++ headers; do not edit them. Change the header in
+[core/src/](../../core/src) and run `./codegen` from the repository root. The string
+helpers ([src/ffi_string.rs](src/ffi_string.rs)) and [src/lib.rs](src/lib.rs) are
+hand-written.
 
 ## License
 

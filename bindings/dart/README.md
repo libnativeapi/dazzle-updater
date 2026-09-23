@@ -1,11 +1,10 @@
 # dazzle for Dart
 
-Dart bindings for [dazzle](../../README.md), a Sparkle-compatible software update
-framework. dazzle reads the [Sparkle](https://sparkle-project.org) appcast format and
-honors the configuration keys Sparkle (macOS) and WinSparkle (Windows) established, so
-existing feeds and apps work unchanged.
+Dart bindings for [dazzle](../../README.md), a cross-platform software
+update framework. dazzle has its own API; its feed format is the
+[Sparkle](https://sparkle-project.org) appcast, so existing appcasts work unchanged.
 
-🚧 **Work in Progress**: only feed URL configuration is implemented so far.
+🚧 **Work in Progress**: only the feed URL setting is implemented so far.
 
 ## Requirements
 
@@ -40,29 +39,18 @@ import 'package:dazzle/dazzle.dart';
 void main() {
   final updater = Updater.instance;
 
-  // Falls back to the app's configuration when no URL was set.
-  print(updater.feedUrl);
+  print(updater.feedUrl); // null
 
   updater.feedUrl = 'https://example.com/appcast.xml';
   print(updater.feedUrl); // https://example.com/appcast.xml
 
-  // null (or '') goes back to the app's configuration.
+  // null (or '') clears it.
   updater.feedUrl = null;
 }
 ```
 
-`feedUrl` is `null` when nothing is configured.
+`feedUrl` is `null` when no URL has been set.
 
-## Configuration
-
-Without setting `feedUrl`, the feed URL comes from the app's packaging, using the keys
-Sparkle and WinSparkle already defined:
-
-| Platform | Source |
-| --- | --- |
-| macOS | `SUFeedURL` in the app bundle's `Info.plist` |
-| Windows | `FeedURL` resource of type `APPCAST` in the executable |
-| Linux, Android, iOS, OHOS | none; only setting `feedUrl` applies |
 
 ## Examples
 
@@ -72,7 +60,7 @@ dart run example/updater_example.dart
 
 | Example | Shows |
 | --- | --- |
-| [updater_example](example/updater_example.dart) | Reading and overriding the appcast feed URL |
+| [updater_example](example/updater_example.dart) | Setting and reading the appcast feed URL |
 
 ## Development
 
@@ -82,9 +70,12 @@ dart test
 dart analyze
 ```
 
-The C ABI declarations in
-[lib/src/dazzle_bindings.dart](lib/src/dazzle_bindings.dart) are hand-written: when a
-header in [core/src/capi/](../../core/src/capi) changes, update them in the same commit.
+[lib/dazzle.dart](lib/dazzle.dart),
+[lib/src/dazzle_bindings.dart](lib/src/dazzle_bindings.dart) and one
+`lib/src/<module>.dart` per class are generated from the C++ headers; do not edit them.
+Change the header in [core/src/](../../core/src) and run `./codegen` from the repository
+root. The string helpers ([lib/src/ffi_string.dart](lib/src/ffi_string.dart)) are
+hand-written.
 
 ## License
 

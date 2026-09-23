@@ -13,13 +13,8 @@ void Updater::SetFeedUrl(const std::string& feed_url) {
 }
 
 std::string Updater::GetFeedUrl() const {
-  {
-    std::lock_guard<std::mutex> lock(mutex_);
-    if (!feed_url_.empty()) {
-      return feed_url_;
-    }
-  }
-  return pimpl_->GetConfiguredFeedUrl();
+  std::lock_guard<std::mutex> lock(mutex_);
+  return feed_url_;
 }
 
 }  // namespace dazzle
