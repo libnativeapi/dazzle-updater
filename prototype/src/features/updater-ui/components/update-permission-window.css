@@ -1,0 +1,31 @@
+/* SUUpdatePermissionPrompt: the icon beside the question, the check box, the two buttons at the trailing edge. */
+.update-permission-window {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 4px 20px 20px;
+}
+
+.update-permission-window__body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+
+.update-permission-window__buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.update-permission-window__buttons > .button {
+  min-width: 100px;
+}
+
+/* Omarchy: no titlebar, so the window's own top inset replaces the 4pt under it. */
+:root[data-desktop='omarchy'] .update-permission-window {
+  padding-top: 0;
+}

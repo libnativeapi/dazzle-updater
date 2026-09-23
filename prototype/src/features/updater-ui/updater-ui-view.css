@@ -1,0 +1,52 @@
+/*
+ * The host app's window: its icon and version, its two entry points, what the
+ * last round left behind, and what UpdaterUI remembers for the user.
+ */
+.updater-ui-view__host {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 24px 24px;
+  text-align: center;
+}
+
+.updater-ui-view__host-title {
+  margin: 0;
+  font-weight: 700;
+}
+
+.updater-ui-view__host-note {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: var(--font-size-small);
+  line-height: var(--line-height-small);
+}
+
+.updater-ui-view__host-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.updater-ui-view__preferences {
+  display: grid;
+  grid-template-columns: auto auto;
+  gap: 2px 12px;
+  margin: 4px 0 0;
+  padding: 10px 14px;
+  font-size: var(--font-size-small);
+  line-height: var(--line-height-small);
+  text-align: start;
+  background: var(--text-bg);
+  border: 1px solid var(--separator);
+  border-radius: var(--notes-radius);
+}
+
+.updater-ui-view__preferences dt {
+  color: var(--text-secondary);
+}
+
+.updater-ui-view__preferences dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}

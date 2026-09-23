@@ -1,0 +1,89 @@
+/*
+ * The Available state: the heading beside the icon, the release notes box
+ * (Sparkle's `SUUpdateAlert.xib`: 6pt corners, a 1pt separator border, the
+ * text background) and Later · Install Update.
+ */
+
+.update-available-window {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+  padding: 0 20px 20px;
+}
+
+.update-available-window__title-view {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.update-available-window__title-view > .update-heading {
+  flex: 1;
+  min-width: 0;
+}
+
+/* NSBox, custom: 6pt corners, a 1pt separator border, the text background. */
+.update-available-window__notes-status {
+  display: grid;
+  place-items: center;
+  height: 100%;
+}
+
+.update-available-window__notes-failed {
+  margin: 0;
+  padding: 8px 10px;
+  color: var(--text-secondary);
+}
+
+.update-available-window__notes {
+  flex: 1;
+  min-height: 200px;
+  overflow: auto;
+  background: var(--text-bg);
+  border: 1px solid var(--separator);
+  border-radius: var(--notes-radius);
+}
+
+.update-available-window__notes-link {
+  align-self: flex-start;
+  margin-inline-start: 72px;
+  color: var(--link);
+  font-size: var(--font-size-small);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.update-available-window__notes-link:hover {
+  text-decoration: underline;
+}
+
+.update-available-window__options {
+  display: flex;
+  /* The check box sits closer to the buttons than to the notes: 8pt, not 12pt. */
+  margin-bottom: -4px;
+}
+
+.update-available-window__buttons {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.update-available-window__spacer {
+  flex: 1;
+}
+
+/* Later and Install Update share a width; the default is at least 120pt. */
+.update-available-window__paired {
+  flex-basis: 127px;
+}
+
+.update-available-window__primary {
+  min-width: 120px;
+}
+
+:root[data-platform='windows'] .update-available-window__buttons {
+  gap: 8px;
+}

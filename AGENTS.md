@@ -14,6 +14,7 @@ directories; each can be split into its own repository later
 core/               # the C++ core library (layers described in core/AGENTS.md)
 bindings/           # language bindings: rust/, dart/, csharp/
 examples/           # complete apps on a UI framework: <framework>_<module>_example
+prototype/          # Storybook prototypes of UpdaterUI (specs/updater-ui.md); pnpm, standalone
 specs/              # design rules for core/
 tools/codegen/      # the code generator, run through ./codegen
 Makefile            # make build | examples | rust | dart | csharp | flutter | codegen | check | test | clean

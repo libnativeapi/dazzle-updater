@@ -1,0 +1,27 @@
+/*
+ * The ground the windows stand on: the platform's desktop, and its type.
+ * Every value is a token from `native.css`.
+ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  color: var(--text);
+  background: var(--desktop) fixed;
+  font-family: var(--font);
+  font-size: var(--font-size);
+  line-height: var(--line-height);
+  -webkit-font-smoothing: antialiased;
+  cursor: default;
+  user-select: none;
+}

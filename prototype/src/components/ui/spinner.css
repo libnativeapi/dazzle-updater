@@ -1,0 +1,32 @@
+.spinner {
+  display: inline-grid;
+  width: 32px;
+  height: 32px;
+}
+
+.spinner > svg {
+  grid-area: 1 / 1;
+  width: 100%;
+  height: 100%;
+}
+
+.spinner__mac {
+  fill: var(--text-secondary);
+  animation: spinner-step 0.8s steps(12) infinite;
+}
+
+.spinner__ring {
+  display: none;
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-dasharray: 20 82;
+  animation: spinner-turn 1s linear infinite;
+}
+
+:root:not([data-platform='macos']) .spinner__mac { display: none; }
+:root:not([data-platform='macos']) .spinner__ring { display: block; }
+
+@keyframes spinner-step { to { transform: rotate(360deg); } }
+@keyframes spinner-turn { to { transform: rotate(360deg); } }

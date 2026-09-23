@@ -1,0 +1,59 @@
+.progress-bar {
+  position: relative;
+  width: 100%;
+  height: var(--progress-height);
+  overflow: hidden;
+  background: var(--progress-track);
+  border-radius: var(--progress-radius);
+  box-shadow: var(--progress-track-border);
+}
+
+.progress-bar__fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: var(--progress-radius);
+  transition: width 120ms linear;
+}
+
+.progress-bar[data-indeterminate] .progress-bar__fill {
+  position: absolute;
+  width: 30%;
+  animation: progress-bar-sweep 1.4s ease-in-out infinite;
+}
+
+@keyframes progress-bar-sweep {
+  from { left: -30%; }
+  to { left: 100%; }
+}
+
+/* Windows draws the track as a hairline under a thicker, rounded indicator. */
+:root[data-platform='windows'] .progress-bar {
+  overflow: visible;
+}
+
+:root[data-platform='windows'] .progress-bar[data-indeterminate] {
+  overflow: hidden;
+}
+
+/* Omarchy: PanelSlider.qml fills in the foreground, not the accent. */
+:root[data-desktop='omarchy'] .progress-bar__fill {
+  background: var(--omarchy-foreground);
+}
+
+/*
+ * macOS: an indeterminate NSProgressIndicator bar is filled end to end, with a
+ * lighter band sweeping across it — not a block travelling along the track.
+ */
+:root[data-platform='macos'] .progress-bar[data-indeterminate] .progress-bar__fill {
+  left: 0;
+  width: 100%;
+  background:
+    linear-gradient(90deg, transparent 0%, rgb(255 255 255 / 0.55) 50%, transparent 100%) -40% 0 / 40% 100% no-repeat,
+    var(--accent);
+  animation: progress-bar-shimmer 1.6s ease-in-out infinite;
+}
+
+@keyframes progress-bar-shimmer {
+  from { background-position: -40% 0, 0 0; }
+  to { background-position: 140% 0, 0 0; }
+}

@@ -1,0 +1,125 @@
+/*
+ * The box reads the button tokens, so it is the desktop's own control face;
+ * only its size and corner are its own, per desktop below.
+ */
+.checkbox {
+  --check-size: 14px;
+  --check-radius: 3.5px;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text);
+}
+
+.checkbox[data-size='small'] {
+  --check-size: 12px;
+  --check-radius: 3px;
+
+  gap: 5px;
+  font-size: var(--font-size-small);
+  line-height: var(--line-height-small);
+}
+
+.checkbox > input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.checkbox__box {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: var(--check-size);
+  height: var(--check-size);
+  background: var(--button-bg);
+  border-radius: var(--check-radius);
+  box-shadow: var(--button-shadow), inset 0 0 0 1px var(--separator);
+}
+
+.checkbox__box > svg {
+  width: 80%;
+  height: 80%;
+  fill: none;
+  stroke: var(--button-default-text);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  visibility: hidden;
+}
+
+.checkbox > input:checked + .checkbox__box {
+  background: var(--button-default-bg);
+  box-shadow: var(--button-default-shadow);
+}
+
+.checkbox > input:checked + .checkbox__box > svg {
+  visibility: visible;
+}
+
+.checkbox > input:focus-visible + .checkbox__box {
+  outline: 3px solid color-mix(in srgb, var(--accent) 50%, transparent);
+}
+
+:root[data-desktop='macos27'] .checkbox { --check-radius: 4.5px; }
+:root[data-desktop='macos27'] .checkbox[data-size='small'] { --check-radius: 4px; }
+
+/*
+ * Windows (CheckBox_themeresources.xaml): CheckBoxSize 20, ControlCornerRadius 4;
+ * unchecked, ControlAltFillColorSecondary inside a 1px ControlStrongStrokeColorDefault.
+ */
+:root[data-platform='windows'] .checkbox { --check-size: 20px; --check-radius: 4px; gap: 8px; }
+:root[data-platform='windows'] .checkbox[data-size='small'] { --check-size: 16px; --check-radius: 3px; }
+
+:root[data-platform='windows'] .checkbox__box {
+  background: rgb(0 0 0 / 0.024);
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.447);
+}
+
+:root[data-platform='windows'][data-appearance='dark'] .checkbox__box {
+  background: rgb(0 0 0 / 0.1);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.545);
+}
+
+/*
+ * GNOME (libadwaita _checks.scss): a 14px indicator with 3px padding, $check_radius
+ * 6px; unchecked, no fill and a 2px ring of $trough_color (the text colour at 15%).
+ */
+:root[data-platform='linux'] .checkbox { --check-size: 20px; --check-radius: 6px; gap: 8px; }
+:root[data-platform='linux'] .checkbox[data-size='small'] { --check-size: 20px; --check-radius: 6px; }
+
+:root[data-platform='linux'] .checkbox__box {
+  background: transparent;
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--text) 15%, transparent);
+}
+/* KDE (breezemetrics.h): CheckBox_Size 20, CheckBox_Radius Frame_FrameRadius - 1; a 1px frame outline on the view colour. */
+:root[data-desktop='kde'] .checkbox { --check-size: 20px; --check-radius: 4px; gap: 6px; }
+:root[data-desktop='kde'] .checkbox[data-size='small'] { --check-size: 20px; --check-radius: 4px; }
+
+:root[data-desktop='kde'] .checkbox__box {
+  background: var(--text-bg);
+  box-shadow: inset 0 0 0 1px #d0d1d2;
+}
+
+:root[data-desktop='kde'][data-appearance='dark'] .checkbox__box {
+  box-shadow: inset 0 0 0 1px #53565a;
+}
+
+/* Omarchy: a square box in the control hairline; checked, the selected state — accent border and mark. */
+:root[data-desktop='omarchy'] .checkbox { --check-size: 14px; --check-radius: 0; gap: 8px; }
+:root[data-desktop='omarchy'] .checkbox[data-size='small'] { --check-size: 12px; --check-radius: 0; }
+
+:root[data-desktop='omarchy'] .checkbox__box {
+  background: var(--omarchy-fill);
+  box-shadow: inset 0 0 0 1px var(--omarchy-hairline);
+}
+
+:root[data-desktop='omarchy'] .checkbox > input:checked + .checkbox__box {
+  background: var(--omarchy-fill-hover);
+  box-shadow: inset 0 0 0 1px var(--omarchy-accent);
+}
+
+:root[data-desktop='omarchy'] .checkbox__box > svg {
+  stroke: var(--omarchy-accent);
+}

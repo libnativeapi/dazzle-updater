@@ -1,0 +1,68 @@
+.button {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  height: var(--button-height);
+  padding: var(--button-padding);
+  color: var(--text);
+  background: var(--button-bg);
+  border: 0;
+  border-radius: var(--button-radius);
+  box-shadow: var(--button-shadow);
+  font: inherit;
+  font-size: var(--button-font-size);
+  font-weight: var(--button-font-weight);
+  white-space: nowrap;
+  cursor: default;
+}
+
+.button:active:not(:disabled) {
+  background: var(--button-bg-pressed);
+}
+
+.button[data-default] {
+  color: var(--button-default-text);
+  background: var(--button-default-bg);
+  box-shadow: var(--button-default-shadow);
+}
+
+.button[data-default]:active:not(:disabled) {
+  background: var(--accent-pressed);
+}
+
+.button:disabled {
+  color: var(--text-disabled);
+}
+
+.button[data-default]:disabled {
+  color: var(--text-disabled);
+  background: var(--button-bg);
+  box-shadow: var(--button-shadow);
+}
+
+:is(.window[data-inactive], [data-inactive] > .window) .button[data-default] {
+  color: var(--text);
+  background: var(--button-bg);
+  box-shadow: var(--button-shadow);
+}
+
+.button:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--accent) 50%, transparent);
+  outline-offset: 0;
+}
+
+/* KDE: Breeze buttons are at least Button_MinWidth (80) wide. */
+:root[data-desktop='kde'] .button {
+  min-width: 80px;
+}
+
+/* Omarchy: Button.qml's state fills — hover 8%, pressed 22% — for every button, the default one included. */
+:root[data-desktop='omarchy'] .button:hover:not(:disabled) {
+  background: var(--omarchy-fill-hover);
+}
+
+:root[data-desktop='omarchy'] .button:active:not(:disabled),
+:root[data-desktop='omarchy'] .button[data-default]:active:not(:disabled) {
+  background: var(--omarchy-fill-pressed);
+}

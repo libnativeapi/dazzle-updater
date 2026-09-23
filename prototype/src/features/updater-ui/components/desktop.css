@@ -1,0 +1,117 @@
+.desktop {
+  position: relative;
+  width: 100vw;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+.desktop__host {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+}
+
+/* Only the host's window takes pointer events, so the desktop around it stays clickable. */
+.desktop__host {
+  pointer-events: none;
+}
+
+.desktop__host > * {
+  pointer-events: auto;
+}
+
+/* Placed by its centre, so a window of another size opens on the same point. */
+.desktop__window {
+  position: absolute;
+  /* Its own size wherever it stands, rather than the room left to the screen's edge. */
+  width: max-content;
+  transform: translate(-50%, -50%);
+}
+
+.desktop__window > .window {
+  max-width: none;
+}
+
+.desktop__window[data-closing] {
+  pointer-events: none;
+  animation: desktop-close 160ms ease-in forwards;
+}
+
+@keyframes desktop-close {
+  to {
+    opacity: 0;
+  }
+}
+
+.desktop .window__titlebar {
+  touch-action: none;
+}
+
+/* A window opening fades in from just under its size, as the window server opens one. */
+.desktop__window:not([data-closing]) > .window {
+  animation: desktop-open 180ms ease-out;
+}
+
+@keyframes desktop-open {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .desktop__window:not([data-closing]) > .window,
+  .desktop__window[data-closing] {
+    animation-duration: 1ms;
+  }
+}
+
+/* The Dock (macOS only): a glass shelf at the foot of the screen. */
+.desktop__dock {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 6px 14px 4px;
+  background: rgb(255 255 255 / 0.28);
+  border-radius: 20px;
+  box-shadow: inset 0 0.5px 0 rgb(255 255 255 / 0.6), 0 0 0 0.5px rgb(0 0 0 / 0.12), 0 8px 24px rgb(0 0 0 / 0.15);
+  backdrop-filter: blur(24px) saturate(1.6);
+  transform: translateX(-50%);
+}
+
+:root[data-appearance='dark'] .desktop__dock {
+  background: rgb(40 40 44 / 0.45);
+}
+
+:root:not([data-platform='macos']) .desktop__dock {
+  display: none;
+}
+
+.desktop__dock-app {
+  display: block;
+}
+
+.desktop__dock-app[data-attention] {
+  animation: desktop-dock-bounce 1s cubic-bezier(0.3, 0, 0.3, 1) 2;
+}
+
+.desktop__dock-running {
+  width: 4px;
+  height: 4px;
+  margin-top: 2px;
+  background: var(--text);
+  border-radius: 50%;
+  opacity: 0.6;
+}
+
+@keyframes desktop-dock-bounce {
+  0%, 100% { transform: translateY(0); }
+  30% { transform: translateY(-22px); }
+  55% { transform: translateY(0); }
+  70% { transform: translateY(-6px); }
+  85% { transform: translateY(0); }
+}

@@ -1,0 +1,62 @@
+import { Meta } from '@storybook/addon-docs/blocks'
+
+<Meta title="Introduction" />
+
+# dazzle interaction prototypes
+
+`UpdaterUI` as `specs/updater-ui.md` describes it, drawn in native windows:
+**Update Available Window** for Available and Downloaded — the new version, its
+release notes, Skip This Version and the automatic-downloads check box —
+**Update Status Window** for Checking, Downloading, Ready, Installing, Up to
+Date and Error, and **Update Permission Window**, asked once before the first
+silent check. Its metrics follow
+Sparkle's windows, which are the platform's own.
+
+Start with **Examples / Host App / Check for Updates**, the round a
+"Check for Updates…" menu item starts; **Check in Background** is the silent
+check an app runs at launch. The host app's window stays behind the update
+windows with both entry points, so a round can be run again, and shows what
+UpdaterUI now remembers for the user — automatic checks, automatic downloads,
+the skipped version, an update kept downloaded — with a button to reset it.
+Each window's states, one at a time, are under **Components**.
+
+**Reference / Sparkle** holds what Sparkle does that the spec has not taken up —
+critical and information-only updates, release notes that load or fail,
+Version History, the updates this Mac cannot install, Update Installed, and the
+Dock bouncing when an update is ready. It is kept apart so none of it is taken
+for UpdaterUI's behaviour.
+
+Windows can be dragged by their titlebar. When the round moves from one window
+to the other, the new window opens on the old one's centre and the old one
+closes under it, as the spec requires; within one window only the content
+changes.
+
+All data and behavior are mocked. These stories do not reach a release index,
+download anything or install anything. Refresh to reset the state.
+
+The toolbar switches three things independently:
+
+- **Desktop** — whose native controls the windows are drawn with: macOS 27
+  Golden Gate (Liquid Glass: glass traffic lights that bounce, capsule buttons
+  at the large size, one standard corner radius, inactive windows set further
+  back) or macOS 15 Sequoia (the flat look before it), Windows 11, Ubuntu (Yaru),
+  Debian and Fedora (GNOME's Adwaita, with each distribution's wallpaper), KDE
+  Plasma (Breeze), or **Omarchy · *theme name***, one entry for each of Omarchy's 22
+  built-in themes. Under Omarchy the windows take Omarchy's own UI language, the
+  one its shell draws its dialogs and menus in: the monospace font, square
+  corners, the theme's background and foreground, controls drawn as faint fills
+  and foreground hairlines with the accent marking the default. Hyprland frames
+  them — no titlebar, no shadow, a 2px border in the theme's accent or gradient,
+  grey once the window loses focus.
+- **Appearance** — light or dark, on every desktop. An Omarchy theme shows as
+  shipped in its own mode; in the other mode — which Omarchy's themes do not
+  have — the prototype derives one from the theme's colours: the foreground
+  becomes the background, the background the text, the accent is pressed or
+  lifted to stay legible, and Hyprland's border stays as it is.
+- **Language** — English or Simplified Chinese. (The real window follows the
+  system's preferred language.)
+
+On macOS the windows behave as AppKit's do: the update window hides its title
+and moves by its background, it resizes from any edge down to its minimum and
+remembers the size for next time, the traffic lights show their glyphs on
+hover, and a click on the desktop takes key status away from the window.

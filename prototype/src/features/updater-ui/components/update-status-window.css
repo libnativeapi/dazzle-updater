@@ -1,0 +1,123 @@
+/*
+ * Every state but Available: Sparkle's `SUStatusController` layout. The icon
+ * 4pt from the top; the message or progress centred on it; the buttons 8pt
+ * under that, 20pt from the bottom and trailing edges, at least 100pt wide;
+ * the status text on the buttons' baseline in tabular digits.
+ */
+
+.update-status-window {
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  /* At least the icon's height; a long error message makes it taller rather than running under the buttons. */
+  grid-template-rows: minmax(64px, auto) auto;
+  column-gap: 8px;
+  min-height: 107px;
+  padding: 4px 20px 20px;
+}
+
+.update-status-window__icon {
+  grid-row: 1;
+  grid-column: 1;
+}
+
+.update-status-window__body {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  grid-row: 1;
+  grid-column: 2;
+  min-width: 0;
+}
+
+.update-status-window__footer {
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-end;
+  gap: 12px;
+  grid-row: 2;
+  /*
+   * Across both columns: Ready carries two buttons (Later · Install and
+   * Relaunch), which in a wide font — Omarchy's monospace, GNOME's bold — do
+   * not fit beside the icon and would run into the right inset. The status
+   * text still starts under the progress bar (64pt icon + 8pt gap).
+   */
+  grid-column: 1 / -1;
+  /* The stack ends 22pt under the icon's centre; the button starts 8pt below it. */
+  min-height: var(--button-height);
+  margin-top: -2px;
+}
+
+.update-status-window__footer > .button {
+  min-width: 100px;
+}
+
+/*
+ * A message (Up to Date, Error) starts 12pt under the icon's top edge whatever
+ * its length. Centred on the icon, a message longer than the icon would start
+ * flush with the window's top inset instead, and the title would sit higher
+ * than in every other state.
+ */
+.update-status-window[data-body='message'] .update-status-window__body {
+  justify-content: flex-start;
+  padding-top: 12px;
+}
+
+/*
+ * A message ends at its last line of text, not in a progress bar's frame, so
+ * the buttons keep the 12pt a group of controls keeps from the text above it.
+ */
+.update-status-window[data-body='message'] .update-status-window__footer {
+  margin-top: 12px;
+}
+
+.update-status-window__status {
+  flex: 1;
+  /* The status never wraps: SUStatusController makes it resist compression. */
+  white-space: nowrap;
+  margin-inline-start: 72px;
+  margin-inline-end: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.update-status-window__progress {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.update-status-window__progress > .update-heading__title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.update-status-window__bar {
+  display: flex;
+  align-items: center;
+  height: 20px;
+}
+
+:root[data-platform='windows'] .update-status-window__footer {
+  align-items: center;
+  gap: 8px;
+}
+
+:root[data-platform='windows'] .update-status-window[data-body='progress'] .update-status-window__footer {
+  margin-top: 8px;
+}
+
+/* GetErrorMessage(), under the text: selectable, so it can be copied into a report. */
+.update-status-window__message {
+  margin: 6px 0 0;
+  color: var(--text-secondary);
+  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  font-size: calc(var(--font-size-small) - 0.5px);
+  line-height: var(--line-height-small);
+  overflow-wrap: anywhere;
+  user-select: text;
+}
+
+/* Omarchy: no titlebar, so the window's own top inset replaces the 4pt under it. */
+:root[data-desktop='omarchy'] .update-status-window {
+  padding-top: 0;
+}

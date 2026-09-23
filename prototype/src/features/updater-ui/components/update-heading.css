@@ -1,0 +1,16 @@
+/*
+ * The heading both windows draw: a bold line over a small one. Metrics after
+ * Sparkle's windows, which are AppKit's own.
+ */
+
+.update-heading__title {
+  margin: 0;
+  font-weight: 700;
+}
+
+.update-heading__detail {
+  margin: 8px 0 0;
+  font-size: var(--font-size-small);
+  line-height: var(--line-height-small);
+  overflow-wrap: anywhere;
+}
