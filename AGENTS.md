@@ -1,8 +1,10 @@
 # dazzle workspace
 
-A cross-platform software update framework. dazzle is its own design: it is compatible
-with Sparkle only at the feed level (it reads Sparkle appcasts) and does not replicate
-Sparkle's or WinSparkle's API or configuration conventions (no `SUFeedURL`-style keys).
+A cross-platform software update framework. dazzle is its own design: it does not
+replicate Sparkle's or WinSparkle's API or configuration conventions (no
+`SUFeedURL`-style keys). Sparkle compatibility is confined to an optional `AppcastSource`
+module that reads Sparkle appcasts and converts them into dazzle releases (feed-level
+compatibility only); the [release index](specs/release-index.md) is dazzle's own format.
 The workspace holds the C++ core library, its language bindings and the design specs
 together. `core/` and `bindings/*` are plain
 directories; each can be split into its own repository later

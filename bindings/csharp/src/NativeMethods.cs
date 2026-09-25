@@ -19,8 +19,75 @@ internal static partial class NativeMethods
     // updater_c.h
 
     [LibraryImport(Library, StringMarshalling = StringMarshalling.Utf8)]
-    internal static partial void dazzle_updater_set_feed_url(string? feedUrl);
+    internal static partial void dazzle_updater_set_source(string? name);
 
     [LibraryImport(Library)]
-    internal static partial nint dazzle_updater_get_feed_url();
+    internal static partial nint dazzle_updater_get_source();
+
+    [LibraryImport(Library, StringMarshalling = StringMarshalling.Utf8)]
+    internal static partial void dazzle_updater_set_current_version(string? version);
+
+    [LibraryImport(Library)]
+    internal static partial nint dazzle_updater_get_current_version();
+
+    [LibraryImport(Library, StringMarshalling = StringMarshalling.Utf8)]
+    internal static partial void dazzle_updater_set_public_key(string? publicKey);
+
+    [LibraryImport(Library)]
+    internal static partial nint dazzle_updater_get_public_key();
+
+    [LibraryImport(Library)]
+    [return: MarshalAs(UnmanagedType.U1)]
+    internal static partial bool dazzle_updater_check_for_updates();
+
+    [LibraryImport(Library)]
+    [return: MarshalAs(UnmanagedType.U1)]
+    internal static partial bool dazzle_updater_is_update_available();
+
+    [LibraryImport(Library)]
+    internal static partial nint dazzle_updater_get_update_version();
+
+    [LibraryImport(Library)]
+    internal static partial nint dazzle_updater_get_update_display_version();
+
+    [LibraryImport(Library)]
+    internal static partial nint dazzle_updater_get_update_release_notes();
+
+    [LibraryImport(Library)]
+    internal static partial nint dazzle_updater_get_update_release_notes_url();
+
+    [LibraryImport(Library)]
+    internal static partial long dazzle_updater_get_update_size();
+
+    [LibraryImport(Library)]
+    [return: MarshalAs(UnmanagedType.U1)]
+    internal static partial bool dazzle_updater_download_update();
+
+    [LibraryImport(Library)]
+    internal static partial double dazzle_updater_get_download_progress();
+
+    [LibraryImport(Library)]
+    internal static partial void dazzle_updater_cancel_download();
+
+    [LibraryImport(Library)]
+    [return: MarshalAs(UnmanagedType.U1)]
+    internal static partial bool dazzle_updater_is_update_downloaded();
+
+    [LibraryImport(Library)]
+    [return: MarshalAs(UnmanagedType.U1)]
+    internal static partial bool dazzle_updater_install_update();
+
+    [LibraryImport(Library)]
+    internal static partial nint dazzle_updater_get_error_message();
+
+    [LibraryImport(Library)]
+    internal static partial nint dazzle_updater_get_error_code();
+
+    // release_index_source_c.h
+
+    [LibraryImport(Library, StringMarshalling = StringMarshalling.Utf8)]
+    internal static partial void dazzle_release_index_source_set_url(string? url);
+
+    [LibraryImport(Library)]
+    internal static partial nint dazzle_release_index_source_get_url();
 }

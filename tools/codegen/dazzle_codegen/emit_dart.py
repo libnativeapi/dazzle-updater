@@ -106,6 +106,6 @@ def module(cls: Class) -> str:
 
 def library(classes: list[Class]) -> str:
     """lib/dazzle.dart: the package's entry file, one export per generated class."""
-    out = [BANNER, "/// A cross-platform software update framework that reads Sparkle appcasts.", "library;", ""]
+    out = [BANNER, "/// A cross-platform software update framework.", "library;", ""]
     out += [f"export 'src/{cls.module}.dart' show {cls.name};" for cls in classes]
     return "\n".join(out) + "\n"

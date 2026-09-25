@@ -38,8 +38,7 @@ are supported:
 | `std::string` (out) | `char*`, NULL when empty | `Option<String>` | `String?` | `string?` |
 
 Anything else is **skipped with a warning** naming the method, never silently dropped.
-Constructors, operators, deleted members and nested classes (such as the `Impl` seam)
-are ignored.
+Constructors, operators, deleted members and nested classes are ignored.
 
 ## What it writes
 
@@ -78,7 +77,7 @@ Hand-written files the generated code builds on are never touched: `common_c.h` 
 The Doxygen comment of each class and method is carried into every binding: `@brief`
 and body paragraphs, `@param`, `@return` and `@note` (such as the platform availability
 block). `@code` blocks hold C++ and are dropped, together with a lead-in line ending in
-`:`. References like `SetFeedUrl()` are renamed to the binding's name for that member.
+`:`. References like `SetSource()` are renamed to the binding's name for that member.
 
 ## Layout
 

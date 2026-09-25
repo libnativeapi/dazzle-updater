@@ -18,7 +18,69 @@ external void dazzle_free_c_str(Pointer<Char> str);
 // updater_c.h
 
 @Native<Void Function(Pointer<Char>)>()
-external void dazzle_updater_set_feed_url(Pointer<Char> feed_url);
+external void dazzle_updater_set_source(Pointer<Char> name);
 
 @Native<Pointer<Char> Function()>()
-external Pointer<Char> dazzle_updater_get_feed_url();
+external Pointer<Char> dazzle_updater_get_source();
+
+@Native<Void Function(Pointer<Char>)>()
+external void dazzle_updater_set_current_version(Pointer<Char> version);
+
+@Native<Pointer<Char> Function()>()
+external Pointer<Char> dazzle_updater_get_current_version();
+
+@Native<Void Function(Pointer<Char>)>()
+external void dazzle_updater_set_public_key(Pointer<Char> public_key);
+
+@Native<Pointer<Char> Function()>()
+external Pointer<Char> dazzle_updater_get_public_key();
+
+@Native<Bool Function()>()
+external bool dazzle_updater_check_for_updates();
+
+@Native<Bool Function()>()
+external bool dazzle_updater_is_update_available();
+
+@Native<Pointer<Char> Function()>()
+external Pointer<Char> dazzle_updater_get_update_version();
+
+@Native<Pointer<Char> Function()>()
+external Pointer<Char> dazzle_updater_get_update_display_version();
+
+@Native<Pointer<Char> Function()>()
+external Pointer<Char> dazzle_updater_get_update_release_notes();
+
+@Native<Pointer<Char> Function()>()
+external Pointer<Char> dazzle_updater_get_update_release_notes_url();
+
+@Native<Int64 Function()>()
+external int dazzle_updater_get_update_size();
+
+@Native<Bool Function()>()
+external bool dazzle_updater_download_update();
+
+@Native<Double Function()>()
+external double dazzle_updater_get_download_progress();
+
+@Native<Void Function()>()
+external void dazzle_updater_cancel_download();
+
+@Native<Bool Function()>()
+external bool dazzle_updater_is_update_downloaded();
+
+@Native<Bool Function()>()
+external bool dazzle_updater_install_update();
+
+@Native<Pointer<Char> Function()>()
+external Pointer<Char> dazzle_updater_get_error_message();
+
+@Native<Pointer<Char> Function()>()
+external Pointer<Char> dazzle_updater_get_error_code();
+
+// release_index_source_c.h
+
+@Native<Void Function(Pointer<Char>)>()
+external void dazzle_release_index_source_set_url(Pointer<Char> url);
+
+@Native<Pointer<Char> Function()>()
+external Pointer<Char> dazzle_release_index_source_get_url();

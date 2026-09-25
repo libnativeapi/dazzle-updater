@@ -5,10 +5,22 @@ use crate::ffi_string::{take_c_string, to_c_string};
 
 /// The application's software updater.
 ///
-/// Updater checks an appcast feed and installs the updates it announces. The
-/// feed format is the Sparkle appcast (an RSS 2.0 document with `sparkle:`
-/// extensions), so existing appcasts work unchanged; the API itself is
-/// dazzle's own. One instance serves the whole process.
+/// Updater finds a new version through a data source, downloads and verifies it, and
+/// starts the platform installer. It draws no UI and knows no data format: source
+/// modules read the release index and, later, the Sparkle appcast, and Updater picks one
+/// by name with `set_source()`.
+///
+/// The three actions `check_for_updates()`, `download_update()` and `install_update()` block: they
+/// run to completion on the calling thread and report through their return value and the
+/// getters below. Call them from a worker thread, not from the UI thread; the results can
+/// then be read and shown on the UI thread. `download_progress()` and `cancel_download()`
+/// may be called from any other thread.
+///
+/// All methods are thread-safe, and the three actions are mutually exclusive: while one
+/// is running, any call to one of them returns false with the `"busy"` error code.
+/// `download_update()` requires a check that found an update and `install_update()` requires a
+/// verified download. Changing the source, or its configuration, while a check runs does
+/// not affect that check. Nothing is persisted, so a new process checks again.
 #[derive(Debug)]
 pub struct Updater {
     _private: (),
@@ -22,21 +34,249 @@ impl Updater {
         &UPDATER
     }
 
-    /// Get the URL of the appcast feed.
+    /// Get the data source to check for updates.
     ///
-    /// Returns the URL set with `set_feed_url()`, or "" if none has been set.
+    /// Returns the name set with `set_source()`, or "release-index" if none has been set.
     ///
     /// An empty string comes back as `None`.
-    pub fn feed_url(&self) -> Option<String> {
-        unsafe { take_c_string(ffi::dazzle_updater_get_feed_url()) }
+    pub fn source(&self) -> Option<String> {
+        unsafe { take_c_string(ffi::dazzle_updater_get_source()) }
     }
 
-    /// Set the URL of the appcast feed.
+    /// Set the data source to check for updates.
     ///
-    /// - `feed_url`: The appcast URL, e.g. "https://example.com/appcast.xml";
-    ///   "" clears it.
-    pub fn set_feed_url(&self, feed_url: &str) {
-        let feed_url = to_c_string(feed_url);
-        unsafe { ffi::dazzle_updater_set_feed_url(feed_url.as_ptr()) }
+    /// The source is chosen by its registered name. "release-index" is the default and
+    /// reads dazzle's own release index; the Sparkle-compatible module, once implemented,
+    /// registers itself as "appcast".
+    ///
+    /// - `name`: The name of a registered source, e.g. "release-index"; "" restores the
+    ///   default. An unregistered name is accepted here but makes `check_for_updates()` fail
+    ///   with the `"invalid-index"` error code.
+    pub fn set_source(&self, name: &str) {
+        let name = to_c_string(name);
+        unsafe { ffi::dazzle_updater_set_source(name.as_ptr()) }
+    }
+
+    /// Get the version of the running application.
+    ///
+    /// Returns the version set with `set_current_version()`, or the platform default, or "" if
+    ///   there is no default on this platform.
+    ///
+    /// An empty string comes back as `None`.
+    pub fn current_version(&self) -> Option<String> {
+        unsafe { take_c_string(ffi::dazzle_updater_get_current_version()) }
+    }
+
+    /// Set the version of the running application.
+    ///
+    /// The source compares it with the versions in the data source. The default comes from
+    /// the platform: the main bundle's `CFBundleShortVersionString` on macOS and iOS, and
+    /// the main executable's `ProductVersion` VERSIONINFO on Windows; other platforms have
+    /// no default.
+    ///
+    /// - `version`: The current version, e.g. "1.4.0"; "" restores the platform default.
+    pub fn set_current_version(&self, version: &str) {
+        let version = to_c_string(version);
+        unsafe { ffi::dazzle_updater_set_current_version(version.as_ptr()) }
+    }
+
+    /// Get the public key that installer signatures are verified against.
+    ///
+    /// Returns the key set with `set_public_key()`, or "" if none has been set.
+    ///
+    /// An empty string comes back as `None`.
+    pub fn public_key(&self) -> Option<String> {
+        unsafe { take_c_string(ffi::dazzle_updater_get_public_key()) }
+    }
+
+    /// Set the public key that installer signatures are verified against.
+    ///
+    /// The application ships the Ed25519 public key, Base64 encoded (32 bytes), and the
+    /// matching private key signs the installers. Verification is mandatory: with no key
+    /// set, `download_update()` fails.
+    ///
+    /// - `public_key`: The Base64 encoded Ed25519 public key; "" clears it.
+    pub fn set_public_key(&self, public_key: &str) {
+        let public_key = to_c_string(public_key);
+        unsafe { ffi::dazzle_updater_set_public_key(public_key.as_ptr()) }
+    }
+
+    /// Whether the last check found an update.
+    ///
+    /// Returns true if `check_for_updates()` found a release newer than `current_version()`.
+    pub fn is_update_available(&self) -> bool {
+        unsafe { ffi::dazzle_updater_is_update_available() }
+    }
+
+    /// The version of the update found by the last check.
+    ///
+    /// Returns the version used for comparison, e.g. "1.4.0"; "" if `is_update_available()` is
+    ///   false.
+    ///
+    /// An empty string comes back as `None`.
+    pub fn update_version(&self) -> Option<String> {
+        unsafe { take_c_string(ffi::dazzle_updater_get_update_version()) }
+    }
+
+    /// The version of the update to show to the user.
+    ///
+    /// Returns the release's display version, or `update_version()` when the release does
+    ///   not set one; "" if `is_update_available()` is false.
+    ///
+    /// An empty string comes back as `None`.
+    pub fn update_display_version(&self) -> Option<String> {
+        unsafe { take_c_string(ffi::dazzle_updater_get_update_display_version()) }
+    }
+
+    /// The release notes of the update found by the last check.
+    ///
+    /// Markdown. A source whose format carries another markup (the Sparkle appcast's HTML)
+    /// converts it before the release reaches Updater, so there is one format here.
+    ///
+    /// Returns the release notes; "" if the release has none or `is_update_available()` is
+    ///   false.
+    ///
+    /// An empty string comes back as `None`.
+    pub fn update_release_notes(&self) -> Option<String> {
+        unsafe { take_c_string(ffi::dazzle_updater_get_update_release_notes()) }
+    }
+
+    /// The web address of the full release notes.
+    ///
+    /// Returns the address, e.g. "https://example.com/myapp/changelog#1.4.0"; "" if the
+    ///   release has none or `is_update_available()` is false.
+    ///
+    /// An empty string comes back as `None`.
+    pub fn update_release_notes_url(&self) -> Option<String> {
+        unsafe { take_c_string(ffi::dazzle_updater_get_update_release_notes_url()) }
+    }
+
+    /// The size of the update's installer.
+    ///
+    /// Returns the installer size in bytes, as announced by the source; 0 if it is unknown
+    ///   or `is_update_available()` is false.
+    pub fn update_size(&self) -> i64 {
+        unsafe { ffi::dazzle_updater_get_update_size() }
+    }
+
+    /// The progress of the download started by `download_update()`.
+    ///
+    /// May be called from any thread, e.g. from a UI timer while `download_update()` blocks on
+    /// another thread.
+    ///
+    /// Returns the downloaded fraction, from 0.0 to 1.0; -1.0 while the total size is
+    ///   unknown; 0.0 before a download starts. It stays at 1.0 after the download
+    ///   finished, and a failed download resets it to 0.0.
+    pub fn download_progress(&self) -> f64 {
+        unsafe { ffi::dazzle_updater_get_download_progress() }
+    }
+
+    /// Whether a verified update is ready to install.
+    ///
+    /// Returns true after `download_update()` returned true, until `check_for_updates()` clears
+    ///   the result.
+    pub fn is_update_downloaded(&self) -> bool {
+        unsafe { ffi::dazzle_updater_is_update_downloaded() }
+    }
+
+    /// The error message of the last failed action.
+    ///
+    /// English, for logs and for showing to the user as-is; an interface that localizes
+    /// should switch on `error_code()` instead.
+    ///
+    /// Returns the message, e.g. "another operation is in progress"; "" when the last
+    ///   action succeeded.
+    ///
+    /// An empty string comes back as `None`.
+    pub fn error_message(&self) -> Option<String> {
+        unsafe { take_c_string(ffi::dazzle_updater_get_error_message()) }
+    }
+
+    /// The error code of the last failed action.
+    ///
+    /// A stable string, so an interface can pick text for the reason: "busy" (another
+    /// action is in progress), "unsupported-platform", "no-update" (the action was called
+    /// before the state it needs), "unknown-source" (`set_source()` named a source that is not
+    /// registered), "invalid-version" (the current version does not follow the version
+    /// syntax), "network", "invalid-index", "signature", "cancelled", "permission",
+    /// "app-location" or "installer". New codes may be added; existing codes keep their
+    /// meaning.
+    ///
+    /// Returns the error code; "" when the last action succeeded.
+    ///
+    /// An empty string comes back as `None`.
+    pub fn error_code(&self) -> Option<String> {
+        unsafe { take_c_string(ffi::dazzle_updater_get_error_code()) }
+    }
+
+    /// Find the newest update offered to this machine.
+    ///
+    /// Queries the selected source, then keeps the highest release that applies to this
+    /// machine and is newer than `current_version()`. Blocks until the query is done. Each
+    /// call clears the previous result, including a downloaded installer.
+    ///
+    /// Returns true if the query completed, with or without an update; false if it failed,
+    ///   in which case `error_message()` says why.
+    ///
+    /// Platform availability:
+    /// macOS: ✅
+    /// Windows: ✅
+    /// Linux: ✅
+    /// iOS: ✅ (finding an update only; guide the user to the App Store or TestFlight)
+    /// Android: ❌ (returns false, `error_message()` is "not supported on this platform")
+    /// OHOS: ❌ (returns false, `error_message()` is "not supported on this platform")
+    pub fn check_for_updates(&self) -> bool {
+        unsafe { ffi::dazzle_updater_check_for_updates() }
+    }
+
+    /// Download the update found by the last check and verify its signature.
+    ///
+    /// Blocks until the installer is in dazzle's cache directory and its Ed25519 signature
+    /// has been verified against `public_key()`. Call `cancel_download()` from another thread
+    /// to stop it. Fails, and deletes the file, when no public key is set, when the release
+    /// carries no signature, or when the signature does not match.
+    ///
+    /// Returns true if the installer is downloaded and its signature is valid; false
+    ///   otherwise, including when the download was cancelled. `error_message()` says why.
+    ///
+    /// Platform availability:
+    /// macOS: ✅
+    /// Windows: ✅
+    /// Linux: ✅
+    /// iOS: ❌ (returns false, `error_message()` is "not supported on this platform")
+    /// Android: ❌ (returns false, `error_message()` is "not supported on this platform")
+    /// OHOS: ❌ (returns false, `error_message()` is "not supported on this platform")
+    pub fn download_update(&self) -> bool {
+        unsafe { ffi::dazzle_updater_download_update() }
+    }
+
+    /// Stop the download started by `download_update()`.
+    ///
+    /// May be called from any thread. `download_update()` then returns false with the
+    /// `"cancelled"` error code. Does nothing when no download is running.
+    pub fn cancel_download(&self) {
+        unsafe { ffi::dazzle_updater_cancel_download() }
+    }
+
+    /// Start installing the downloaded update.
+    ///
+    /// Blocks until the installer has been started. The caller must quit the process as
+    /// soon as this returns true: the installer waits for this process to exit, then
+    /// replaces the application and starts it again (on Windows the installer decides
+    /// whether to start it). dazzle never quits the application itself, so that each UI
+    /// framework can run its own shutdown, saving documents and closing windows.
+    ///
+    /// Returns true if the installer was started; false if it was not and the application
+    ///   should keep running, in which case `error_message()` says why.
+    ///
+    /// Platform availability:
+    /// macOS: ✅ (the downloaded zip holds the new .app)
+    /// Windows: ✅ (an exe or msi installer runs with the release's installer arguments)
+    /// Linux: ❌ (returns false, `error_message()` is "not supported on this platform")
+    /// iOS: ❌ (returns false, `error_message()` is "not supported on this platform")
+    /// Android: ❌ (returns false, `error_message()` is "not supported on this platform")
+    /// OHOS: ❌ (returns false, `error_message()` is "not supported on this platform")
+    pub fn install_update(&self) -> bool {
+        unsafe { ffi::dazzle_updater_install_update() }
     }
 }

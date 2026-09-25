@@ -1,17 +1,17 @@
-use dazzle::Updater;
+use dazzle::{ReleaseIndexSource, Updater};
 
 fn main() {
     let updater = Updater::instance();
+    let source = ReleaseIndexSource::instance();
 
-    let initial = updater.feed_url();
+    println!("source:          {}", updater.source().unwrap_or_default());
     println!(
-        "Initial feed URL: {}",
-        initial.as_deref().unwrap_or("(none)")
+        "current version: {}",
+        updater.current_version().unwrap_or_default()
     );
-
-    updater.set_feed_url("https://example.com/appcast.xml");
     println!(
-        "Feed URL:         {}",
-        updater.feed_url().as_deref().unwrap_or("(none)")
+        "release index:   {}",
+        source.url().unwrap_or_else(|| "(none)".to_string())
     );
+    println!("public key set:  {}", updater.public_key().is_some());
 }

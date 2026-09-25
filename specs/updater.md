@@ -82,6 +82,10 @@ class ReleaseIndexSource {
 };
 ```
 
+这个模块是纯跨平台的：解析、条目选择和版本比较都在 `src/` 里，HTTP 走
+`src/foundation/http.h`（平台实现在 `platform/<os>/http_<os>.*`），所以它不声明 `Impl`，
+也不需要 `platform/<os>/release_index_source_<os>` 文件。
+
 生成的 C ABI 为 `dazzle_release_index_source_set_url()` 等；binding 中为
 `ReleaseIndexSource.instance.url`（Dart）、`ReleaseIndexSource::instance().set_url()`（Rust）、
 `ReleaseIndexSource.Instance.Url`（C#）。
@@ -189,6 +193,9 @@ std::string GetErrorCode() const;
 |---|---|---|
 | `busy` | 另一个动作进行中（`"another operation is in progress"`） | 全部 |
 | `unsupported-platform` | 本平台不支持该动作 | 全部 |
+| `no-update` | 顺序不对：没有可下载的更新，或没有已下载的更新 | 下载、安装 |
+| `unknown-source` | `SetSource()` 指定的名字没有注册 | 检查 |
+| `invalid-version` | 当前版本不符合版本号语法 | 检查 |
 | `network` | 无法连接、超时、HTTP 错误 | 检查、下载 |
 | `invalid-index` | 数据源格式不正确或 `schema` 不受支持 | 检查 |
 | `signature` | 未设置公钥、没有签名或签名不匹配 | 下载 |
@@ -261,14 +268,23 @@ class UpdateSource {
  public:
   virtual ~UpdateSource() = default;
   // 查询数据源。返回 true 表示查询完成：找到时 *found = true 并填好 *release。
-  // 返回 false 时把原因写入 *error。在调用 CheckForUpdates() 的线程上执行。
+  // 返回 false 时把原因写入 *error，并把上表的稳定错误码写入 *error_code；
+  // Updater 原样上报 *error_code（只有 source 知道自己的格式为什么失败）。
+  // 在调用 CheckForUpdates() 的线程上执行。
   virtual bool FindUpdate(const UpdateQuery& query, Release* release, bool* found,
-                          std::string* error) = 0;
+                          std::string* error, std::string* error_code) = 0;
 };
 
 // 按名字注册，供 Updater::SetSource() 选择。各 source 模块在静态初始化时注册自己。
 void RegisterUpdateSource(const std::string& name, UpdateSource* source);
+
+// 按名字取回已注册的 source，没有时为 nullptr。
+UpdateSource* FindUpdateSource(const std::string& name);
 ```
+
+跨平台层还包括两个可单独测试的模块：版本比较（`src/version.h`，见
+[release-index.md](release-index.md) 的"版本号"）和 release index 的解析与选择
+（`src/release_index_parse.h`，输入 JSON 文本，不碰网络）。
 
 source 需要的 HTTP 能力由内部的 `src/foundation/http.h` 提供（平台实现放在
 `platform/<os>/http_<os>.*`），Updater 下载安装包也用它。
@@ -291,18 +307,29 @@ iOS 上检查仍有用：应用发现新版本后引导用户去 App Store / Tes
 
 ## 实现分层
 
-- **跨平台（`src/`）**：`Updater` 的状态机与互斥、Ed25519 校验、`UpdateSource` 注册表、
-  `ReleaseIndexSource` 的 JSON 解析、条目选择与版本比较。第三方代码放 `core/third_party/`：
-  JSON 用单头文件的解析库（如 nlohmann/json），Ed25519 用 Monocypher（含 `monocypher-ed25519`）。
-- **平台层**：`Updater::Impl` 提供默认版本号、平台/架构/系统版本、安装；
-  `http_<os>` 提供 HTTP GET（到内存或文件，带进度与取消）。
+- **跨平台（`src/`）**：`Updater` 的状态机与互斥（`updater.cpp`）、`UpdateSource` 注册表
+  （`update_source.cpp`）、版本比较（`version.*`）、release index 的解析与选择
+  （`release_index_parse.*`，输入 JSON 文本，不碰网络）、Ed25519 校验与 Base64
+  （`ed25519.*`）、HTTP 缝（`foundation/http.*`）。第三方代码放 `core/third_party/`：
+  JSON 用 nlohmann/json，Ed25519 用 Monocypher（含 `monocypher-ed25519`）。
+- **平台层**：只有两个缝，都是内部自由函数。`foundation/system.h`（`system_<os>`）提供
+  能力位（是否能检查/下载/安装）、默认版本号、平台/架构/系统版本、下载目录与安装；
+  `foundation/http.h`（`http_<os>`）提供 HTTP GET（到内存或文件，带进度与取消）。
+  `Updater` 本身不携带平台缝——它是一份跨平台实现，平台差异只在这两个缝后面。
 
 ## 落地步骤
 
+当前状态：步骤 1、步骤 2 与步骤 3 的 macOS 部分（NSURLSession 下载、Ed25519 校验、
+zip 解压与脱离式辅助进程安装）已完成，由 `core/tests/` 的单元测试与
+`core/tests/macos_install_e2e.sh` 端到端覆盖。目前只有 macOS 有平台文件
+（`platform/macos/{http,system}_macos.mm`）；其它平台没有平台文件，编译的是跨平台默认
+实现（`foundation/{http,system}_default.cpp`），因此回答 `"not supported on this
+platform"`。Flutter 示例已改到新流程，但本机没有 Flutter SDK，未验证。
+
 1. [release-index.md](release-index.md) 定稿；实现版本比较与 release index 解析 + 单元测试。
 2. 删除 `Updater::SetFeedUrl()`，加入上述 Updater 方法与 `ReleaseIndexSource` 模块，
-   `./codegen` 重新生成；六个平台先全部留桩。同步更新 CLAUDE.md、`specs/README.md`、
-   各 binding 与 Flutter 示例中对 feed URL 的引用。
+   `./codegen` 重新生成；不支持的平台由跨平台默认实现兜底，不需要留桩。同步更新
+   CLAUDE.md、`specs/README.md`、各 binding 与 Flutter 示例中对 feed URL 的引用。
 3. macOS 实现（NSURLSession、zip 安装）；`flutter_updater_example` 走完整流程。
 4. Windows 实现（WinHTTP、安装程序启动）。
 5. Linux / iOS 的检查与下载。

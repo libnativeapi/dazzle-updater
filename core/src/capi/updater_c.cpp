@@ -8,19 +8,178 @@
 #include "../updater.h"
 #include "string_utils_c.h"
 
-void dazzle_updater_set_feed_url(const char* feed_url) {
+void dazzle_updater_set_source(const char* name) {
   try {
-    dazzle::Updater::GetInstance().SetFeedUrl(std::string(feed_url ? feed_url : ""));
+    dazzle::Updater::GetInstance().SetSource(std::string(name ? name : ""));
   } catch (...) {
-    fprintf(stderr, "[dazzle] %s: unexpected exception\n", "dazzle_updater_set_feed_url");
+    fprintf(stderr, "[dazzle] %s: unexpected exception\n", "dazzle_updater_set_source");
   }
 }
 
-char* dazzle_updater_get_feed_url(void) {
+char* dazzle_updater_get_source(void) {
   try {
-    return dazzle::to_c_str(dazzle::Updater::GetInstance().GetFeedUrl());
+    return dazzle::to_c_str(dazzle::Updater::GetInstance().GetSource());
   } catch (...) {
-    fprintf(stderr, "[dazzle] %s: unexpected exception\n", "dazzle_updater_get_feed_url");
+    fprintf(stderr, "[dazzle] %s: unexpected exception\n", "dazzle_updater_get_source");
+    return nullptr;
+  }
+}
+
+void dazzle_updater_set_current_version(const char* version) {
+  try {
+    dazzle::Updater::GetInstance().SetCurrentVersion(std::string(version ? version : ""));
+  } catch (...) {
+    fprintf(stderr, "[dazzle] %s: unexpected exception\n", "dazzle_updater_set_current_version");
+  }
+}
+
+char* dazzle_updater_get_current_version(void) {
+  try {
+    return dazzle::to_c_str(dazzle::Updater::GetInstance().GetCurrentVersion());
+  } catch (...) {
+    fprintf(stderr, "[dazzle] %s: unexpected exception\n", "dazzle_updater_get_current_version");
+    return nullptr;
+  }
+}
+
+void dazzle_updater_set_public_key(const char* public_key) {
+  try {
+    dazzle::Updater::GetInstance().SetPublicKey(std::string(public_key ? public_key : ""));
+  } catch (...) {
+    fprintf(stderr, "[dazzle] %s: unexpected exception\n", "dazzle_updater_set_public_key");
+  }
+}
+
+char* dazzle_updater_get_public_key(void) {
+  try {
+    return dazzle::to_c_str(dazzle::Updater::GetInstance().GetPublicKey());
+  } catch (...) {
+    fprintf(stderr, "[dazzle] %s: unexpected exception\n", "dazzle_updater_get_public_key");
+    return nullptr;
+  }
+}
+
+bool dazzle_updater_check_for_updates(void) {
+  try {
+    return dazzle::Updater::GetInstance().CheckForUpdates();
+  } catch (...) {
+    fprintf(stderr, "[dazzle] %s: unexpected exception\n", "dazzle_updater_check_for_updates");
+    return false;
+  }
+}
+
+bool dazzle_updater_is_update_available(void) {
+  try {
+    return dazzle::Updater::GetInstance().IsUpdateAvailable();
+  } catch (...) {
+    fprintf(stderr, "[dazzle] %s: unexpected exception\n", "dazzle_updater_is_update_available");
+    return false;
+  }
+}
+
+char* dazzle_updater_get_update_version(void) {
+  try {
+    return dazzle::to_c_str(dazzle::Updater::GetInstance().GetUpdateVersion());
+  } catch (...) {
+    fprintf(stderr, "[dazzle] %s: unexpected exception\n", "dazzle_updater_get_update_version");
+    return nullptr;
+  }
+}
+
+char* dazzle_updater_get_update_display_version(void) {
+  try {
+    return dazzle::to_c_str(dazzle::Updater::GetInstance().GetUpdateDisplayVersion());
+  } catch (...) {
+    fprintf(stderr, "[dazzle] %s: unexpected exception\n", "dazzle_updater_get_update_display_version");
+    return nullptr;
+  }
+}
+
+char* dazzle_updater_get_update_release_notes(void) {
+  try {
+    return dazzle::to_c_str(dazzle::Updater::GetInstance().GetUpdateReleaseNotes());
+  } catch (...) {
+    fprintf(stderr, "[dazzle] %s: unexpected exception\n", "dazzle_updater_get_update_release_notes");
+    return nullptr;
+  }
+}
+
+char* dazzle_updater_get_update_release_notes_url(void) {
+  try {
+    return dazzle::to_c_str(dazzle::Updater::GetInstance().GetUpdateReleaseNotesUrl());
+  } catch (...) {
+    fprintf(stderr, "[dazzle] %s: unexpected exception\n", "dazzle_updater_get_update_release_notes_url");
+    return nullptr;
+  }
+}
+
+int64_t dazzle_updater_get_update_size(void) {
+  try {
+    return dazzle::Updater::GetInstance().GetUpdateSize();
+  } catch (...) {
+    fprintf(stderr, "[dazzle] %s: unexpected exception\n", "dazzle_updater_get_update_size");
+    return 0;
+  }
+}
+
+bool dazzle_updater_download_update(void) {
+  try {
+    return dazzle::Updater::GetInstance().DownloadUpdate();
+  } catch (...) {
+    fprintf(stderr, "[dazzle] %s: unexpected exception\n", "dazzle_updater_download_update");
+    return false;
+  }
+}
+
+double dazzle_updater_get_download_progress(void) {
+  try {
+    return dazzle::Updater::GetInstance().GetDownloadProgress();
+  } catch (...) {
+    fprintf(stderr, "[dazzle] %s: unexpected exception\n", "dazzle_updater_get_download_progress");
+    return 0.0;
+  }
+}
+
+void dazzle_updater_cancel_download(void) {
+  try {
+    dazzle::Updater::GetInstance().CancelDownload();
+  } catch (...) {
+    fprintf(stderr, "[dazzle] %s: unexpected exception\n", "dazzle_updater_cancel_download");
+  }
+}
+
+bool dazzle_updater_is_update_downloaded(void) {
+  try {
+    return dazzle::Updater::GetInstance().IsUpdateDownloaded();
+  } catch (...) {
+    fprintf(stderr, "[dazzle] %s: unexpected exception\n", "dazzle_updater_is_update_downloaded");
+    return false;
+  }
+}
+
+bool dazzle_updater_install_update(void) {
+  try {
+    return dazzle::Updater::GetInstance().InstallUpdate();
+  } catch (...) {
+    fprintf(stderr, "[dazzle] %s: unexpected exception\n", "dazzle_updater_install_update");
+    return false;
+  }
+}
+
+char* dazzle_updater_get_error_message(void) {
+  try {
+    return dazzle::to_c_str(dazzle::Updater::GetInstance().GetErrorMessage());
+  } catch (...) {
+    fprintf(stderr, "[dazzle] %s: unexpected exception\n", "dazzle_updater_get_error_message");
+    return nullptr;
+  }
+}
+
+char* dazzle_updater_get_error_code(void) {
+  try {
+    return dazzle::to_c_str(dazzle::Updater::GetInstance().GetErrorCode());
+  } catch (...) {
+    fprintf(stderr, "[dazzle] %s: unexpected exception\n", "dazzle_updater_get_error_code");
     return nullptr;
   }
 }

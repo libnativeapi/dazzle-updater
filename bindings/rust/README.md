@@ -1,10 +1,13 @@
 # dazzle for Rust
 
 Rust bindings for [dazzle](../../README.md), a cross-platform software
-update framework. dazzle has its own API; its feed format is the
-[Sparkle](https://sparkle-project.org) appcast, so existing appcasts work unchanged.
+update framework with its own API. The default source reads dazzle's own
+[release index](../../specs/release-index.md); an optional `AppcastSource` will read
+[Sparkle](https://sparkle-project.org) appcasts.
 
-🚧 **Work in Progress**: only the feed URL setting is implemented so far.
+**Status**: macOS works end to end (check, download, Ed25519 verification, install). Other
+platforms answer `"not supported on this platform"` until their implementations land
+([plan](../../specs/updater.md)).
 
 ## Requirements
 
@@ -26,26 +29,24 @@ dazzle = { git = "https://github.com/fastforgedev/dazzle" }
 ## Usage
 
 ```rust
-use dazzle::Updater;
+use dazzle::{ReleaseIndexSource, Updater};
 
 fn main() {
+    ReleaseIndexSource::instance().set_url("https://example.com/myapp/releases.json");
+
     let updater = Updater::instance();
+    updater.set_public_key("pfIShU4dEXqPd5ObYNfDBiQWcXozk7estwzTnF9BamQ=");
 
-    assert_eq!(updater.feed_url(), None);
-
-    updater.set_feed_url("https://example.com/appcast.xml");
-    assert_eq!(
-        updater.feed_url().as_deref(),
-        Some("https://example.com/appcast.xml")
-    );
-
-    // "" clears it.
-    updater.set_feed_url("");
+    // CheckForUpdates, DownloadUpdate and InstallUpdate block, so run them on a worker
+    // thread and read the result on the UI thread.
+    if updater.check_for_updates() && updater.is_update_available() {
+        println!("{:?}", updater.update_display_version());
+    }
 }
 ```
 
-`feed_url()` returns `None` when no URL has been set.
-
+`check_for_updates()` returns `false` for a failed check; `error_code()` then says why, and
+`error_message()` carries the English text. An empty string comes back as `None`.
 
 ## Examples
 
@@ -55,7 +56,7 @@ cargo run --example updater_example
 
 | Example | Shows |
 | --- | --- |
-| [updater_example](examples/updater_example.rs) | Setting and reading the appcast feed URL |
+| [updater_example](examples/updater_example.rs) | The configured source, version and key |
 
 ## Development
 

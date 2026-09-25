@@ -7,10 +7,24 @@ namespace Dazzle;
 /// </summary>
 /// <remarks>
 /// <para>
-/// Updater checks an appcast feed and installs the updates it announces. The
-/// feed format is the Sparkle appcast (an RSS 2.0 document with <c>sparkle:</c>
-/// extensions), so existing appcasts work unchanged; the API itself is
-/// dazzle's own. One instance serves the whole process.
+/// Updater finds a new version through a data source, downloads and verifies it, and
+/// starts the platform installer. It draws no UI and knows no data format: source
+/// modules read the release index and, later, the Sparkle appcast, and Updater picks one
+/// by name with <c>Source</c>.
+/// </para>
+/// <para>
+/// The three actions <c>CheckForUpdates()</c>, <c>DownloadUpdate()</c> and <c>InstallUpdate()</c> block: they
+/// run to completion on the calling thread and report through their return value and the
+/// getters below. Call them from a worker thread, not from the UI thread; the results can
+/// then be read and shown on the UI thread. <c>DownloadProgress</c> and <c>CancelDownload()</c>
+/// may be called from any other thread.
+/// </para>
+/// <para>
+/// All methods are thread-safe, and the three actions are mutually exclusive: while one
+/// is running, any call to one of them returns false with the <c>"busy"</c> error code.
+/// <c>DownloadUpdate()</c> requires a check that found an update and <c>InstallUpdate()</c> requires a
+/// verified download. Changing the source, or its configuration, while a check runs does
+/// not affect that check. Nothing is persisted, so a new process checks again.
 /// </para>
 /// </remarks>
 public sealed class Updater
@@ -23,22 +37,341 @@ public sealed class Updater
     public static Updater Instance { get; } = new();
 
     /// <summary>
-    /// Get the URL of the appcast feed.
+    /// Get the data source to check for updates.
     /// </summary>
     /// <remarks>
     /// <para>
-    /// Returns the URL set with <c>FeedUrl</c>, or "" if none has been set.
+    /// Returns the name set with <c>Source</c>, or "release-index" if none has been set.
     /// </para>
     /// <para>
-    /// Set the URL of the appcast feed.
+    /// Set the data source to check for updates.
+    /// </para>
+    /// <para>
+    /// The source is chosen by its registered name. "release-index" is the default and
+    /// reads dazzle's own release index; the Sparkle-compatible module, once implemented,
+    /// registers itself as "appcast".
     /// </para>
     /// <para>
     /// An empty string comes back as <c>null</c>.
     /// </para>
     /// </remarks>
-    public string? FeedUrl
+    public string? Source
     {
-        get => CString.Take(NativeMethods.dazzle_updater_get_feed_url());
-        set => NativeMethods.dazzle_updater_set_feed_url(CString.TruncateAtNul(value));
+        get => CString.Take(NativeMethods.dazzle_updater_get_source());
+        set => NativeMethods.dazzle_updater_set_source(CString.TruncateAtNul(value));
     }
+
+    /// <summary>
+    /// Get the version of the running application.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Returns the version set with <c>CurrentVersion</c>, or the platform default, or "" if
+    ///   there is no default on this platform.
+    /// </para>
+    /// <para>
+    /// Set the version of the running application.
+    /// </para>
+    /// <para>
+    /// The source compares it with the versions in the data source. The default comes from
+    /// the platform: the main bundle's <c>CFBundleShortVersionString</c> on macOS and iOS, and
+    /// the main executable's <c>ProductVersion</c> VERSIONINFO on Windows; other platforms have
+    /// no default.
+    /// </para>
+    /// <para>
+    /// An empty string comes back as <c>null</c>.
+    /// </para>
+    /// </remarks>
+    public string? CurrentVersion
+    {
+        get => CString.Take(NativeMethods.dazzle_updater_get_current_version());
+        set => NativeMethods.dazzle_updater_set_current_version(CString.TruncateAtNul(value));
+    }
+
+    /// <summary>
+    /// Get the public key that installer signatures are verified against.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Returns the key set with <c>PublicKey</c>, or "" if none has been set.
+    /// </para>
+    /// <para>
+    /// Set the public key that installer signatures are verified against.
+    /// </para>
+    /// <para>
+    /// The application ships the Ed25519 public key, Base64 encoded (32 bytes), and the
+    /// matching private key signs the installers. Verification is mandatory: with no key
+    /// set, <c>DownloadUpdate()</c> fails.
+    /// </para>
+    /// <para>
+    /// An empty string comes back as <c>null</c>.
+    /// </para>
+    /// </remarks>
+    public string? PublicKey
+    {
+        get => CString.Take(NativeMethods.dazzle_updater_get_public_key());
+        set => NativeMethods.dazzle_updater_set_public_key(CString.TruncateAtNul(value));
+    }
+
+    /// <summary>
+    /// Whether the last check found an update.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Returns true if <c>CheckForUpdates()</c> found a release newer than <c>CurrentVersion</c>.
+    /// </para>
+    /// </remarks>
+    public bool IsUpdateAvailable
+    {
+        get => NativeMethods.dazzle_updater_is_update_available();
+    }
+
+    /// <summary>
+    /// The version of the update found by the last check.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Returns the version used for comparison, e.g. "1.4.0"; "" if <c>IsUpdateAvailable</c> is
+    ///   false.
+    /// </para>
+    /// <para>
+    /// An empty string comes back as <c>null</c>.
+    /// </para>
+    /// </remarks>
+    public string? UpdateVersion
+    {
+        get => CString.Take(NativeMethods.dazzle_updater_get_update_version());
+    }
+
+    /// <summary>
+    /// The version of the update to show to the user.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Returns the release's display version, or <c>UpdateVersion</c> when the release does
+    ///   not set one; "" if <c>IsUpdateAvailable</c> is false.
+    /// </para>
+    /// <para>
+    /// An empty string comes back as <c>null</c>.
+    /// </para>
+    /// </remarks>
+    public string? UpdateDisplayVersion
+    {
+        get => CString.Take(NativeMethods.dazzle_updater_get_update_display_version());
+    }
+
+    /// <summary>
+    /// The release notes of the update found by the last check.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Markdown. A source whose format carries another markup (the Sparkle appcast's HTML)
+    /// converts it before the release reaches Updater, so there is one format here.
+    /// </para>
+    /// <para>
+    /// Returns the release notes; "" if the release has none or <c>IsUpdateAvailable</c> is
+    ///   false.
+    /// </para>
+    /// <para>
+    /// An empty string comes back as <c>null</c>.
+    /// </para>
+    /// </remarks>
+    public string? UpdateReleaseNotes
+    {
+        get => CString.Take(NativeMethods.dazzle_updater_get_update_release_notes());
+    }
+
+    /// <summary>
+    /// The web address of the full release notes.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Returns the address, e.g. "https://example.com/myapp/changelog#1.4.0"; "" if the
+    ///   release has none or <c>IsUpdateAvailable</c> is false.
+    /// </para>
+    /// <para>
+    /// An empty string comes back as <c>null</c>.
+    /// </para>
+    /// </remarks>
+    public string? UpdateReleaseNotesUrl
+    {
+        get => CString.Take(NativeMethods.dazzle_updater_get_update_release_notes_url());
+    }
+
+    /// <summary>
+    /// The size of the update's installer.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Returns the installer size in bytes, as announced by the source; 0 if it is unknown
+    ///   or <c>IsUpdateAvailable</c> is false.
+    /// </para>
+    /// </remarks>
+    public long UpdateSize
+    {
+        get => NativeMethods.dazzle_updater_get_update_size();
+    }
+
+    /// <summary>
+    /// The progress of the download started by <c>DownloadUpdate()</c>.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// May be called from any thread, e.g. from a UI timer while <c>DownloadUpdate()</c> blocks on
+    /// another thread.
+    /// </para>
+    /// <para>
+    /// Returns the downloaded fraction, from 0.0 to 1.0; -1.0 while the total size is
+    ///   unknown; 0.0 before a download starts. It stays at 1.0 after the download
+    ///   finished, and a failed download resets it to 0.0.
+    /// </para>
+    /// </remarks>
+    public double DownloadProgress
+    {
+        get => NativeMethods.dazzle_updater_get_download_progress();
+    }
+
+    /// <summary>
+    /// Whether a verified update is ready to install.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Returns true after <c>DownloadUpdate()</c> returned true, until <c>CheckForUpdates()</c> clears
+    ///   the result.
+    /// </para>
+    /// </remarks>
+    public bool IsUpdateDownloaded
+    {
+        get => NativeMethods.dazzle_updater_is_update_downloaded();
+    }
+
+    /// <summary>
+    /// The error message of the last failed action.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// English, for logs and for showing to the user as-is; an interface that localizes
+    /// should switch on <c>ErrorCode</c> instead.
+    /// </para>
+    /// <para>
+    /// Returns the message, e.g. "another operation is in progress"; "" when the last
+    ///   action succeeded.
+    /// </para>
+    /// <para>
+    /// An empty string comes back as <c>null</c>.
+    /// </para>
+    /// </remarks>
+    public string? ErrorMessage
+    {
+        get => CString.Take(NativeMethods.dazzle_updater_get_error_message());
+    }
+
+    /// <summary>
+    /// The error code of the last failed action.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// A stable string, so an interface can pick text for the reason: "busy" (another
+    /// action is in progress), "unsupported-platform", "no-update" (the action was called
+    /// before the state it needs), "unknown-source" (<c>Source</c> named a source that is not
+    /// registered), "invalid-version" (the current version does not follow the version
+    /// syntax), "network", "invalid-index", "signature", "cancelled", "permission",
+    /// "app-location" or "installer". New codes may be added; existing codes keep their
+    /// meaning.
+    /// </para>
+    /// <para>
+    /// Returns the error code; "" when the last action succeeded.
+    /// </para>
+    /// <para>
+    /// An empty string comes back as <c>null</c>.
+    /// </para>
+    /// </remarks>
+    public string? ErrorCode
+    {
+        get => CString.Take(NativeMethods.dazzle_updater_get_error_code());
+    }
+
+    /// <summary>
+    /// Find the newest update offered to this machine.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Queries the selected source, then keeps the highest release that applies to this
+    /// machine and is newer than <c>CurrentVersion</c>. Blocks until the query is done. Each
+    /// call clears the previous result, including a downloaded installer.
+    /// </para>
+    /// <para>
+    /// Platform availability:
+    /// macOS: ✅
+    /// Windows: ✅
+    /// Linux: ✅
+    /// iOS: ✅ (finding an update only; guide the user to the App Store or TestFlight)
+    /// Android: ❌ (returns false, <c>ErrorMessage</c> is "not supported on this platform")
+    /// OHOS: ❌ (returns false, <c>ErrorMessage</c> is "not supported on this platform")
+    /// </para>
+    /// </remarks>
+    /// <returns>true if the query completed, with or without an update; false if it failed, in which case GetErrorMessage() says why.</returns>
+    public bool CheckForUpdates() =>
+        NativeMethods.dazzle_updater_check_for_updates();
+
+    /// <summary>
+    /// Download the update found by the last check and verify its signature.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Blocks until the installer is in dazzle's cache directory and its Ed25519 signature
+    /// has been verified against <c>PublicKey</c>. Call <c>CancelDownload()</c> from another thread
+    /// to stop it. Fails, and deletes the file, when no public key is set, when the release
+    /// carries no signature, or when the signature does not match.
+    /// </para>
+    /// <para>
+    /// Platform availability:
+    /// macOS: ✅
+    /// Windows: ✅
+    /// Linux: ✅
+    /// iOS: ❌ (returns false, <c>ErrorMessage</c> is "not supported on this platform")
+    /// Android: ❌ (returns false, <c>ErrorMessage</c> is "not supported on this platform")
+    /// OHOS: ❌ (returns false, <c>ErrorMessage</c> is "not supported on this platform")
+    /// </para>
+    /// </remarks>
+    /// <returns>true if the installer is downloaded and its signature is valid; false otherwise, including when the download was cancelled. GetErrorMessage() says why.</returns>
+    public bool DownloadUpdate() =>
+        NativeMethods.dazzle_updater_download_update();
+
+    /// <summary>
+    /// Stop the download started by <c>DownloadUpdate()</c>.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// May be called from any thread. <c>DownloadUpdate()</c> then returns false with the
+    /// <c>"cancelled"</c> error code. Does nothing when no download is running.
+    /// </para>
+    /// </remarks>
+    public void CancelDownload() =>
+        NativeMethods.dazzle_updater_cancel_download();
+
+    /// <summary>
+    /// Start installing the downloaded update.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Blocks until the installer has been started. The caller must quit the process as
+    /// soon as this returns true: the installer waits for this process to exit, then
+    /// replaces the application and starts it again (on Windows the installer decides
+    /// whether to start it). dazzle never quits the application itself, so that each UI
+    /// framework can run its own shutdown, saving documents and closing windows.
+    /// </para>
+    /// <para>
+    /// Platform availability:
+    /// macOS: ✅ (the downloaded zip holds the new .app)
+    /// Windows: ✅ (an exe or msi installer runs with the release's installer arguments)
+    /// Linux: ❌ (returns false, <c>ErrorMessage</c> is "not supported on this platform")
+    /// iOS: ❌ (returns false, <c>ErrorMessage</c> is "not supported on this platform")
+    /// Android: ❌ (returns false, <c>ErrorMessage</c> is "not supported on this platform")
+    /// OHOS: ❌ (returns false, <c>ErrorMessage</c> is "not supported on this platform")
+    /// </para>
+    /// </remarks>
+    /// <returns>true if the installer was started; false if it was not and the application should keep running, in which case GetErrorMessage() says why.</returns>
+    public bool InstallUpdate() =>
+        NativeMethods.dazzle_updater_install_update();
 }

@@ -1,10 +1,13 @@
 # dazzle for C#
 
 .NET bindings for [dazzle](../../README.md), a cross-platform software
-update framework. dazzle has its own API; its feed format is the
-[Sparkle](https://sparkle-project.org) appcast, so existing appcasts work unchanged.
+update framework with its own API. The default source reads dazzle's own
+[release index](../../specs/release-index.md); an optional `AppcastSource` will read
+[Sparkle](https://sparkle-project.org) appcasts.
 
-🚧 **Work in Progress**: only the feed URL setting is implemented so far.
+**Status**: macOS works end to end (check, download, Ed25519 verification, install). Other
+platforms answer `"not supported on this platform"` until their implementations land
+([plan](../../specs/updater.md)).
 
 ## Requirements
 
@@ -34,19 +37,21 @@ The package is not on NuGet yet. Clone the repository and reference the project:
 ```csharp
 using Dazzle;
 
+ReleaseIndexSource.Instance.Url = "https://example.com/myapp/releases.json";
+
 var updater = Updater.Instance;
+updater.PublicKey = "pfIShU4dEXqPd5ObYNfDBiQWcXozk7estwzTnF9BamQ=";
 
-Console.WriteLine(updater.FeedUrl ?? "(none)"); // (none)
-
-updater.FeedUrl = "https://example.com/appcast.xml";
-Console.WriteLine(updater.FeedUrl); // https://example.com/appcast.xml
-
-// null (or "") clears it.
-updater.FeedUrl = null;
+// CheckForUpdates, DownloadUpdate and InstallUpdate block: run them with Task.Run so the
+// UI thread stays free, and read the result on the UI thread.
+if (updater.CheckForUpdates() && updater.IsUpdateAvailable)
+{
+    Console.WriteLine(updater.UpdateDisplayVersion);
+}
 ```
 
-`FeedUrl` is `null` when no URL has been set.
-
+`CheckForUpdates()` returns `false` for a failed check; `ErrorCode` then says why, and
+`ErrorMessage` carries the English text. An empty string comes back as `null`.
 
 ## Examples
 
@@ -56,7 +61,7 @@ dotnet run --project examples/UpdaterExample
 
 | Example | Shows |
 | --- | --- |
-| [UpdaterExample](examples/UpdaterExample/Program.cs) | Setting and reading the appcast feed URL |
+| [UpdaterExample](examples/UpdaterExample/Program.cs) | The configured source, version and key |
 
 ## Development
 

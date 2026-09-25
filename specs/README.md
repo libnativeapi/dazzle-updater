@@ -21,10 +21,13 @@ src/capi/           C ABI 层
 依赖自上而下，不得反向：接口层不引用 `platform/`，`capi/` 只引用接口层。
 
 - 公共头文件里不出现任何平台类型、平台头文件或 `#ifdef` 平台分支。
-- 平台差异藏在 PIMPL 后面：公共类声明 `class Impl`，持有 `std::unique_ptr<Impl> pimpl_`，
-  每个平台文件实现 `Impl` 子类、构造函数和析构函数。
-- 六个平台目录（macos、windows、linux、android、ios、ohos）每个模块都要有一份实现，
-  不支持的平台也要留桩，否则该平台链接失败。
+- 公共类是一份跨平台实现，不携带平台缝（不声明 `class Impl`、不持有 `pimpl_`）。
+  平台差异用内部自由函数表达，声明在 `src/foundation/<缝>.h`（如 `system.h`、`http.h`），
+  缝的用法写在头注释里。
+- 平台实现放在 `src/platform/<os>/<缝>_<os>.<ext>`，只写这个平台真正实现的部分：
+  每个缝都有一份跨平台默认实现 `src/foundation/<缝>_default.cpp`，构建时只在平台目录没有
+  对应文件时才编译它（见 `core/src/CMakeLists.txt`）。于是不支持某个能力的平台不需要任何
+  文件，也不需要留桩。
 
 ## 公共 API 风格
 
@@ -42,7 +45,7 @@ src/capi/           C ABI 层
 
 | 对象 | 约定 | 例 |
 |---|---|---|
-| 函数 | `dazzle_<模块>_<动作>` | `dazzle_updater_get_feed_url` |
+| 函数 | `dazzle_<模块>_<动作>` | `dazzle_release_index_source_set_url` |
 | 文件 | `<模块>_c.h` / `<模块>_c.cpp` | `updater_c.h` |
 | 导出宏 | `DAZZLE_EXPORT` | |
 

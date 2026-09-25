@@ -1,4 +1,4 @@
-.PHONY: build examples rust dart csharp flutter codegen check test clean
+.PHONY: build examples core-tests rust dart csharp flutter codegen check test clean
 
 BUILD_DIR := core/build
 
@@ -6,6 +6,10 @@ BUILD_DIR := core/build
 build:
 	cmake -S core -B $(BUILD_DIR)
 	cmake --build $(BUILD_DIR)
+
+# Run the core unit tests (version comparison, release index parsing, Ed25519, Updater)
+core-tests: build
+	cd $(BUILD_DIR) && ctest --output-on-failure
 
 # Build, then run every example
 examples: build
@@ -36,8 +40,8 @@ codegen:
 check:
 	./codegen check
 
-# Everything: generated files, core examples and every binding
-test: check examples rust dart csharp
+# Everything: generated files, core tests, core examples and every binding
+test: check core-tests examples rust dart csharp
 
 clean:
 	rm -rf $(BUILD_DIR) bindings/rust/target bindings/dart/.dart_tool

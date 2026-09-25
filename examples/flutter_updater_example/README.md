@@ -1,7 +1,8 @@
 # flutter_updater_example
 
-A Flutter desktop app using the [Dart binding](../../bindings/dart/README.md): it sets,
-reads and clears the appcast feed URL.
+A Flutter desktop app using the [Dart binding](../../bindings/dart/README.md): it points
+dazzle at a release index, embeds the signing key, and walks the whole flow — check,
+download, verify, install and restart — from one screen.
 
 Beyond the console examples, it shows the binding working inside a real Flutter app: the
 Dart binding's build hook compiles the dazzle core, and Flutter bundles it into the app

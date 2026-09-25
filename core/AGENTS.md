@@ -1,6 +1,8 @@
 # dazzle
 
-A cross-platform software update framework that reads Sparkle appcasts, C++17 with a C ABI. This directory is the
+A cross-platform software update framework, C++17 with a C ABI. Updater itself knows no
+data format; an optional `AppcastSource` module reads Sparkle appcasts, and the default
+`ReleaseIndexSource` reads dazzle's own release index. This directory is the
 `core/` of the dazzle workspace; the design specs live one directory up, in `../specs/` —
 read them before adding or reshaping public API.
 
@@ -18,15 +20,16 @@ examples/              # <module>_example (C++) and <module>_c_example (C)
 ## Rules
 
 1. **No platform types in public headers** — no `#ifdef` platform branches in `src/*.h`.
-2. **A cross-platform module is six platform files** — every directory under
-   `src/platform/` needs an implementation (a stub if unsupported), or that platform
-   fails to link. Platform files are named `<module>_<platform>.<ext>`.
-3. **PIMPL** — the public class declares `class Impl`, holds `std::unique_ptr<Impl> pimpl_`;
-   each platform file defines the `Impl` subclass, the constructor and the destructor.
-4. **Public API style** is in `../specs/README.md`: `SetX`/`GetX() const` pairs, strings in
+2. **No platform seam in a public class** — a public class is one cross-platform
+   implementation. Platform differences are free functions declared in an internal header
+   under `src/foundation/`, and implemented per platform as
+   `src/platform/<os>/<seam>_<os>.<ext>`. Every seam has a cross-platform default
+   (`src/foundation/<seam>_default.cpp`), compiled only when the platform directory has no
+   file for it, so a platform that does not implement a seam needs no stub.
+3. **Public API style** is in `../specs/README.md`: `SetX`/`GetX() const` pairs, strings in
    as `const std::string&` and out by value, never throw across the public API, platform
    differences in a `@note Platform availability:` block.
-5. **C ABI** — functions are `dazzle_<module>_<verb>`, files `<module>_c.h/.cpp`, every
+4. **C ABI** — functions are `dazzle_<module>_<verb>`, files `<module>_c.h/.cpp`, every
    entry point catches exceptions, returned strings are freed with `dazzle_free_c_str()`.
    Every exported symbol carries the `dazzle_` prefix, so dazzle links cleanly next to
    other native libraries. The `<module>_c.*` files and `include/dazzle.h` are generated:

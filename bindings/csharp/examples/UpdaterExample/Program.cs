@@ -1,8 +1,9 @@
 using Dazzle;
 
 var updater = Updater.Instance;
+var source = ReleaseIndexSource.Instance;
 
-Console.WriteLine($"Initial feed URL: {updater.FeedUrl ?? "(none)"}");
-
-updater.FeedUrl = "https://example.com/appcast.xml";
-Console.WriteLine($"Feed URL:         {updater.FeedUrl ?? "(none)"}");
+Console.WriteLine($"source:          {updater.Source ?? "(none)"}");
+Console.WriteLine($"current version: {updater.CurrentVersion ?? "(none)"}");
+Console.WriteLine($"release index:   {source.Url ?? "(none)"}");
+Console.WriteLine($"public key set:  {updater.PublicKey is not null}");

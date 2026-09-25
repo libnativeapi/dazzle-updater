@@ -307,7 +307,9 @@ src/platform/<os>/updater_ui_<os>.*   UpdaterUI::Impl：两个窗口、切换窗
   选择窗口，状态机不需要知道窗口的存在。这样两个平台的流程行为保证一致。
 - `Impl` 接口大致为：`ShowState(state, content)`、`SetProgress(fraction, text)`、`Hide()`、
   `QuitApplication()`，以及把按钮事件回传给状态机的回调。它不是公共 API，可以用 `std::function`。
-- 六个平台目录都要有 `updater_ui_<os>` 文件；Linux 与移动端为返回 false 的桩。
+- 平台界面放进 `platform/<os>/updater_ui_<os>`；没有该文件的平台编译跨平台默认实现，两个
+  `CheckForUpdates*()` 直接返回 false，所以 Linux 与移动端不需要任何文件。`UpdaterUI` 这个
+  公共类本身是跨平台的，不携带平台缝（见 [README.md](README.md) 的分层规则）。
 - 链接依赖：macOS 增加 `-framework AppKit`；Windows 增加 `user32`、`gdi32`、`shell32`、`d2d1`、`dwrite`、
   `dwmapi`、`uiautomationcore`。
   只用 Updater 的应用也会链接到这些系统库，但不会加载任何界面，直到调用 `UpdaterUI`。
@@ -318,7 +320,8 @@ src/platform/<os>/updater_ui_<os>.*   UpdaterUI::Impl：两个窗口、切换窗
 
 1. 跨平台层：状态机与文案表，用一个记录调用的假 `Impl` 做单元测试（覆盖每条状态转换）。
 2. Markdown → HTML / RTF 输出 + 单元测试。
-3. `updater_ui.h` 加入 `API_HEADERS`，`./codegen` 重新生成；六个平台先全部留桩。
+3. `updater_ui.h` 加入 `API_HEADERS`，`./codegen` 重新生成；平台层先只做 macOS，其余平台
+   走跨平台默认实现。
 4. macOS 实现；`flutter_updater_example` 增加"检查更新…"按钮走内置界面。
 5. Windows 实现。
 6. 各 binding 的示例补上内置界面的用法。

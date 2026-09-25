@@ -8,18 +8,118 @@
 extern "C" {
 #endif
 
-/// Set the URL of the appcast feed.
+/// Set the data source to check for updates.
 ///
 /// String parameters accept NULL as an empty string.
 DAZZLE_EXPORT
-void dazzle_updater_set_feed_url(const char* feed_url);
+void dazzle_updater_set_source(const char* name);
 
-/// Get the URL of the appcast feed.
+/// Get the data source to check for updates.
 ///
 /// Returns NULL for an empty string. Caller owns the returned string;
 /// free it with dazzle_free_c_str().
 DAZZLE_EXPORT
-char* dazzle_updater_get_feed_url(void);
+char* dazzle_updater_get_source(void);
+
+/// Set the version of the running application.
+///
+/// String parameters accept NULL as an empty string.
+DAZZLE_EXPORT
+void dazzle_updater_set_current_version(const char* version);
+
+/// Get the version of the running application.
+///
+/// Returns NULL for an empty string. Caller owns the returned string;
+/// free it with dazzle_free_c_str().
+DAZZLE_EXPORT
+char* dazzle_updater_get_current_version(void);
+
+/// Set the public key that installer signatures are verified against.
+///
+/// String parameters accept NULL as an empty string.
+DAZZLE_EXPORT
+void dazzle_updater_set_public_key(const char* public_key);
+
+/// Get the public key that installer signatures are verified against.
+///
+/// Returns NULL for an empty string. Caller owns the returned string;
+/// free it with dazzle_free_c_str().
+DAZZLE_EXPORT
+char* dazzle_updater_get_public_key(void);
+
+/// Find the newest update offered to this machine.
+DAZZLE_EXPORT
+bool dazzle_updater_check_for_updates(void);
+
+/// Whether the last check found an update.
+DAZZLE_EXPORT
+bool dazzle_updater_is_update_available(void);
+
+/// The version of the update found by the last check.
+///
+/// Returns NULL for an empty string. Caller owns the returned string;
+/// free it with dazzle_free_c_str().
+DAZZLE_EXPORT
+char* dazzle_updater_get_update_version(void);
+
+/// The version of the update to show to the user.
+///
+/// Returns NULL for an empty string. Caller owns the returned string;
+/// free it with dazzle_free_c_str().
+DAZZLE_EXPORT
+char* dazzle_updater_get_update_display_version(void);
+
+/// The release notes of the update found by the last check.
+///
+/// Returns NULL for an empty string. Caller owns the returned string;
+/// free it with dazzle_free_c_str().
+DAZZLE_EXPORT
+char* dazzle_updater_get_update_release_notes(void);
+
+/// The web address of the full release notes.
+///
+/// Returns NULL for an empty string. Caller owns the returned string;
+/// free it with dazzle_free_c_str().
+DAZZLE_EXPORT
+char* dazzle_updater_get_update_release_notes_url(void);
+
+/// The size of the update's installer.
+DAZZLE_EXPORT
+int64_t dazzle_updater_get_update_size(void);
+
+/// Download the update found by the last check and verify its signature.
+DAZZLE_EXPORT
+bool dazzle_updater_download_update(void);
+
+/// The progress of the download started by `dazzle_updater_download_update()`.
+DAZZLE_EXPORT
+double dazzle_updater_get_download_progress(void);
+
+/// Stop the download started by `dazzle_updater_download_update()`.
+DAZZLE_EXPORT
+void dazzle_updater_cancel_download(void);
+
+/// Whether a verified update is ready to install.
+DAZZLE_EXPORT
+bool dazzle_updater_is_update_downloaded(void);
+
+/// Start installing the downloaded update.
+DAZZLE_EXPORT
+bool dazzle_updater_install_update(void);
+
+/// The error message of the last failed action.
+///
+/// Returns NULL for an empty string. Caller owns the returned string;
+/// free it with dazzle_free_c_str().
+DAZZLE_EXPORT
+char* dazzle_updater_get_error_message(void);
+
+/// The error code of the last failed action.
+///
+/// Returns NULL for an empty string. Caller owns the returned string;
+/// free it with dazzle_free_c_str().
+DAZZLE_EXPORT
+char* dazzle_updater_get_error_code(void);
 
 #ifdef __cplusplus
 }

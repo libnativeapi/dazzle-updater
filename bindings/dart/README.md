@@ -1,10 +1,13 @@
 # dazzle for Dart
 
 Dart bindings for [dazzle](../../README.md), a cross-platform software
-update framework. dazzle has its own API; its feed format is the
-[Sparkle](https://sparkle-project.org) appcast, so existing appcasts work unchanged.
+update framework with its own API. The default source reads dazzle's own
+[release index](../../specs/release-index.md); an optional `AppcastSource` will read
+[Sparkle](https://sparkle-project.org) appcasts.
 
-🚧 **Work in Progress**: only the feed URL setting is implemented so far.
+**Status**: macOS works end to end (check, download, Ed25519 verification, install). Other
+platforms answer `"not supported on this platform"` until their implementations land
+([plan](../../specs/updater.md)).
 
 ## Requirements
 
@@ -34,23 +37,27 @@ dependencies:
 ## Usage
 
 ```dart
+import 'dart:isolate';
+
 import 'package:dazzle/dazzle.dart';
 
-void main() {
+Future<void> main() async {
+  ReleaseIndexSource.instance.url = 'https://example.com/myapp/releases.json';
+
   final updater = Updater.instance;
+  updater.publicKey = 'pfIShU4dEXqPd5ObYNfDBiQWcXozk7estwzTnF9BamQ=';
 
-  print(updater.feedUrl); // null
-
-  updater.feedUrl = 'https://example.com/appcast.xml';
-  print(updater.feedUrl); // https://example.com/appcast.xml
-
-  // null (or '') clears it.
-  updater.feedUrl = null;
+  // checkForUpdates, downloadUpdate and installUpdate block: run them in a worker
+  // isolate so the UI keeps painting, and read the result on the UI isolate.
+  final found = await Isolate.run(() => updater.checkForUpdates());
+  if (found && updater.isUpdateAvailable) {
+    print(updater.updateDisplayVersion);
+  }
 }
 ```
 
-`feedUrl` is `null` when no URL has been set.
-
+`checkForUpdates()` returns `false` for a failed check; `errorCode` then says why, and
+`errorMessage` carries the English text. An empty string comes back as `null`.
 
 ## Examples
 
@@ -60,7 +67,7 @@ dart run example/updater_example.dart
 
 | Example | Shows |
 | --- | --- |
-| [updater_example](example/updater_example.dart) | Setting and reading the appcast feed URL |
+| [updater_example](example/updater_example.dart) | The configured source, version and key |
 
 ## Development
 

@@ -19,7 +19,7 @@ def _indent_continuation(text: str, indent: str) -> str:
 def blocks(doc: Doc, refs: dict[str, str], *, params: bool = True, returns: bool = True) -> list[str]:
     """Paragraphs in reading order: summary, body, parameters, return value, notes.
 
-    `refs` maps C++ member names to what the binding calls them, so "SetFeedUrl()" in
+    `refs` maps C++ member names to what the binding calls them, so "SetSource()" in
     the header reads as that language's name.
     """
     out = [p for p in [doc.brief, *doc.paragraphs] if p]

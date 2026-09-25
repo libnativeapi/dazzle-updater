@@ -1,8 +1,14 @@
-//! A cross-platform software update framework that reads Sparkle appcasts.
+//! A cross-platform software update framework.
 //!
 //! ```no_run
+//! let source = dazzle::ReleaseIndexSource::instance();
+//! source.set_url("https://example.com/myapp/releases.json");
+//!
 //! let updater = dazzle::Updater::instance();
-//! println!("{:?}", updater.feed_url());
+//! updater.set_public_key("pfIShU4dEXqPd5ObYNfDBiQWcXozk7estwzTnF9BamQ=");
+//! if updater.check_for_updates() && updater.is_update_available() {
+//!     println!("{:?}", updater.update_display_version());
+//! }
 //! ```
 
 mod ffi;

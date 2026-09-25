@@ -11,6 +11,30 @@ extern "C" {
 
 // updater_c.h
 extern "C" {
-    pub fn dazzle_updater_set_feed_url(feed_url: *const c_char);
-    pub fn dazzle_updater_get_feed_url() -> *mut c_char;
+    pub fn dazzle_updater_set_source(name: *const c_char);
+    pub fn dazzle_updater_get_source() -> *mut c_char;
+    pub fn dazzle_updater_set_current_version(version: *const c_char);
+    pub fn dazzle_updater_get_current_version() -> *mut c_char;
+    pub fn dazzle_updater_set_public_key(public_key: *const c_char);
+    pub fn dazzle_updater_get_public_key() -> *mut c_char;
+    pub fn dazzle_updater_check_for_updates() -> bool;
+    pub fn dazzle_updater_is_update_available() -> bool;
+    pub fn dazzle_updater_get_update_version() -> *mut c_char;
+    pub fn dazzle_updater_get_update_display_version() -> *mut c_char;
+    pub fn dazzle_updater_get_update_release_notes() -> *mut c_char;
+    pub fn dazzle_updater_get_update_release_notes_url() -> *mut c_char;
+    pub fn dazzle_updater_get_update_size() -> i64;
+    pub fn dazzle_updater_download_update() -> bool;
+    pub fn dazzle_updater_get_download_progress() -> f64;
+    pub fn dazzle_updater_cancel_download();
+    pub fn dazzle_updater_is_update_downloaded() -> bool;
+    pub fn dazzle_updater_install_update() -> bool;
+    pub fn dazzle_updater_get_error_message() -> *mut c_char;
+    pub fn dazzle_updater_get_error_code() -> *mut c_char;
+}
+
+// release_index_source_c.h
+extern "C" {
+    pub fn dazzle_release_index_source_set_url(url: *const c_char);
+    pub fn dazzle_release_index_source_get_url() -> *mut c_char;
 }

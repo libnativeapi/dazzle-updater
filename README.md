@@ -1,7 +1,8 @@
 # dazzle workspace
 
-A cross-platform software update framework. dazzle has its own API; its feed format is the
-[Sparkle](https://sparkle-project.org) appcast, so existing appcasts work unchanged. This
+A cross-platform software update framework. dazzle has its own API: the default source
+reads dazzle's own [release index](specs/release-index.md), and an optional `AppcastSource`
+will read [Sparkle](https://sparkle-project.org) appcasts. This
 workspace holds the C++ core library, its language bindings and the design specs together.
 
 | Directory | Contents |
