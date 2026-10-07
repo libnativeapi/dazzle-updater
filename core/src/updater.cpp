@@ -8,7 +8,7 @@
 #include <cstdio>
 #include <string>
 
-namespace dazzle {
+namespace dazzle_updater {
 namespace {
 
 constexpr const char* kBusy = "another operation is in progress";
@@ -421,4 +421,4 @@ std::string Updater::GetErrorCode() const {
   return error_code_;
 }
 
-}  // namespace dazzle
+}  // namespace dazzle_updater

@@ -13,7 +13,7 @@
 // that, so it carries a file beside its binary.
 //
 // The application is deliberately ordinary: it initializes GTK, runs its own main loop,
-// and hands nothing to dazzle but the feed, the key and its version. UpdaterUI draws on
+// and hands nothing to dazzle_updater but the feed, the key and its version. UpdaterUI draws on
 // this same loop (a GTK application's main thread), which is what the Linux backend is
 // written for.
 
@@ -21,7 +21,7 @@
 
 #include <unistd.h>
 
-#include <dazzle.h>
+#include <dazzle_updater.h>
 
 #include <cstdio>
 #include <string>
@@ -103,7 +103,7 @@ void OnCheckForUpdates(GtkButton* button, gpointer user_data) {
   (void)user_data;
   std::printf("check for updates\n");
   std::fflush(stdout);
-  dazzle::UpdaterUI::GetInstance().CheckForUpdates();
+  dazzle_updater::UpdaterUI::GetInstance().CheckForUpdates();
 }
 
 void OnCheckInBackground(GtkButton* button, gpointer user_data) {
@@ -113,7 +113,7 @@ void OnCheckInBackground(GtkButton* button, gpointer user_data) {
   std::fflush(stdout);
   // The silent entry point: nothing is shown unless there is something to tell the user
   // about, and the question about automatic checks is asked the first time.
-  dazzle::UpdaterUI::GetInstance().CheckForUpdatesInBackground();
+  dazzle_updater::UpdaterUI::GetInstance().CheckForUpdatesInBackground();
 }
 
 void BuildHostWindow(GtkApplication* application) {
@@ -121,7 +121,7 @@ void BuildHostWindow(GtkApplication* application) {
   // the executable's own name — so this application names itself, the way any desktop
   // application does.
   const std::string name = "Dazzle Demo";
-  const std::string version = dazzle::Updater::GetInstance().GetCurrentVersion();
+  const std::string version = dazzle_updater::Updater::GetInstance().GetCurrentVersion();
 
   GtkWidget* window = gtk_application_window_new(application);
   gtk_window_set_title(GTK_WINDOW(window), (name + " " + version).c_str());
@@ -166,14 +166,14 @@ void OnActivate(GtkApplication* application, gpointer user_data) {
 
   // The user started the application, so this is the check they asked for: the window
   // opens at once and walks them through whatever the feed has.
-  dazzle::UpdaterUI::GetInstance().CheckForUpdates();
+  dazzle_updater::UpdaterUI::GetInstance().CheckForUpdates();
 }
 
 }  // namespace
 
 int main(int argc, char** argv) {
-  dazzle::Updater& updater = dazzle::Updater::GetInstance();
-  dazzle::UpdaterUI& ui = dazzle::UpdaterUI::GetInstance();
+  dazzle_updater::Updater& updater = dazzle_updater::Updater::GetInstance();
+  dazzle_updater::UpdaterUI& ui = dazzle_updater::UpdaterUI::GetInstance();
 
   const std::string directory = ApplicationDirectory();
   const std::string config =
@@ -194,7 +194,7 @@ int main(int argc, char** argv) {
                  "no release index or public key: pass them as arguments, or run "
                  "demo_linux.sh, which starts a local feed and runs this application\n");
   } else {
-    dazzle::ReleaseIndexSource::GetInstance().SetUrl(feed);
+    dazzle_updater::ReleaseIndexSource::GetInstance().SetUrl(feed);
     updater.SetPublicKey(key);
     // Linux has no metadata every application carries, so the version is the
     // application's own to declare.

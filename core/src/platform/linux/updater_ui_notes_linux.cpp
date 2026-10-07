@@ -16,7 +16,7 @@
 // current span opened. Text is inserted with all of them applied, which is what makes
 // bold inside a heading, or a link inside a list item, come out right.
 
-namespace dazzle {
+namespace dazzle_updater {
 namespace internal {
 namespace {
 
@@ -72,16 +72,21 @@ void CreateTags(GtkTextBuffer* buffer) {
                              "pixels-below-lines", 2, nullptr);
 }
 
-/// Inserts `text` at the end of the buffer with the block's tag and every open span's.
+/// Inserts `text` at the end of the buffer with the body tag, the block's tag and every
+/// open span's. The start is kept as an offset: gtk_text_buffer_insert() moves the iterator
+/// it is given to the end of what it inserted, and a tag applied from there covers nothing.
 void Append(RenderState* state, const std::string& text) {
   if (text.empty()) {
     return;
   }
   GtkTextIter start;
   GtkTextIter end;
-  gtk_text_buffer_get_end_iter(state->buffer, &start);
-  gtk_text_buffer_insert(state->buffer, &start, text.c_str(), static_cast<int>(text.size()));
   gtk_text_buffer_get_end_iter(state->buffer, &end);
+  const int start_offset = gtk_text_iter_get_offset(&end);
+  gtk_text_buffer_insert(state->buffer, &end, text.c_str(), static_cast<int>(text.size()));
+  gtk_text_buffer_get_iter_at_offset(state->buffer, &start, start_offset);
+  gtk_text_buffer_get_end_iter(state->buffer, &end);
+  gtk_text_buffer_apply_tag_by_name(state->buffer, "body", &start, &end);
   if (!state->block_tag.empty()) {
     gtk_text_buffer_apply_tag_by_name(state->buffer, state->block_tag.c_str(), &start, &end);
   }
@@ -90,23 +95,44 @@ void Append(RenderState* state, const std::string& text) {
   }
 }
 
+/// Starts a new line for the next block, unless the buffer is empty or already ends in
+/// one: blocks are separated by exactly one newline, and the spacing between them is the
+/// tags' pixels-above/below-lines. The separator carries no block tag, so it stays part of
+/// the line it ends.
+void BeginLine(RenderState* state) {
+  GtkTextIter end;
+  gtk_text_buffer_get_end_iter(state->buffer, &end);
+  if (gtk_text_iter_is_start(&end)) {
+    return;
+  }
+  GtkTextIter last = end;
+  gtk_text_iter_backward_char(&last);
+  if (gtk_text_iter_get_char(&last) == '\n') {
+    return;
+  }
+  gtk_text_buffer_insert(state->buffer, &end, "\n", 1);
+}
+
 int EnterBlock(MD_BLOCKTYPE type, void* detail, void* userdata) {
   RenderState* state = static_cast<RenderState*>(userdata);
   switch (type) {
     case MD_BLOCK_H: {
       const auto* heading = static_cast<const MD_BLOCK_H_DETAIL*>(detail);
+      BeginLine(state);
       state->block_tag = heading->level <= 2 ? kHeadingTag : kSubheadingTag;
-      Append(state, "\n");
       break;
     }
     case MD_BLOCK_P:
-      state->block_tag = kParagraphTag;
-      Append(state, "\n");
+      // A paragraph inside a list item (a loose list) continues the item's own line.
+      if (state->block_tag != kListItemTag) {
+        BeginLine(state);
+        state->block_tag = kParagraphTag;
+      }
       break;
     case MD_BLOCK_CODE:
+      BeginLine(state);
       state->in_code_block = true;
       state->block_tag = kCodeBlockTag;
-      Append(state, "\n");
       break;
     case MD_BLOCK_UL:
       ++state->list_depth;
@@ -121,17 +147,18 @@ int EnterBlock(MD_BLOCKTYPE type, void* detail, void* userdata) {
       break;
     }
     case MD_BLOCK_LI:
+      BeginLine(state);
       state->block_tag = kListItemTag;
       if (!state->ordered.empty() && state->ordered.back()) {
         state->counters.back() += 1;
-        Append(state, "\n" + std::to_string(state->counters.back()) + ". ");
+        Append(state, std::to_string(state->counters.back()) + ". ");
       } else {
-        Append(state, "\n• ");
+        Append(state, "• ");
       }
       break;
     case MD_BLOCK_QUOTE:
+      BeginLine(state);
       state->block_tag = kParagraphTag;
-      Append(state, "\n");
       break;
     default:
       break;
@@ -143,12 +170,17 @@ int LeaveBlock(MD_BLOCKTYPE type, void* detail, void* userdata) {
   (void)detail;
   RenderState* state = static_cast<RenderState*>(userdata);
   switch (type) {
-    case MD_BLOCK_H:
     case MD_BLOCK_P:
+      if (state->block_tag == kListItemTag) {
+        break;  // the item's own line goes on until the item ends
+      }
+      state->block_tag.clear();
+      break;
+    case MD_BLOCK_H:
     case MD_BLOCK_CODE:
       state->in_code_block = false;
-      state->block_tag.clear();
-      Append(state, "\n");
+      // Back to the enclosing list item's style, when the block sat inside one.
+      state->block_tag = state->list_depth > 0 ? kListItemTag : "";
       break;
     case MD_BLOCK_UL:
     case MD_BLOCK_OL:
@@ -159,10 +191,10 @@ int LeaveBlock(MD_BLOCKTYPE type, void* detail, void* userdata) {
       if (state->list_depth > 0) {
         --state->list_depth;
       }
+      state->block_tag = state->list_depth > 0 ? kListItemTag : "";
       break;
     case MD_BLOCK_LI:
       state->block_tag.clear();
-      Append(state, "\n");
       break;
     default:
       break;
@@ -203,7 +235,7 @@ int EnterSpan(MD_SPANTYPE type, void* detail, void* userdata) {
                                                         nullptr);
       // The index travels on the tag, so a click can find its target without parsing names
       // (GTK 4 has no gtk_text_tag_get_name()).
-      g_object_set_data(G_OBJECT(text_tag), "dazzle-link-index",
+      g_object_set_data(G_OBJECT(text_tag), "dazzle_updater-link-index",
                         GINT_TO_POINTER(static_cast<int>(state->urls->size())));
       state->span_tags.push_back(tag);
       break;
@@ -242,8 +274,12 @@ int TextCallback(MD_TEXTTYPE type, const MD_CHAR* text, MD_SIZE size, void* user
   }
   switch (type) {
     case MD_TEXT_BR:
-    case MD_TEXT_SOFTBR:
       Append(state, "\n");
+      break;
+    case MD_TEXT_SOFTBR:
+      // A line wrapped in the source is one line of text, as in the HTML the other
+      // platforms render; only a code block keeps its lines.
+      Append(state, state->in_code_block ? "\n" : " ");
       break;
     case MD_TEXT_CODE:
       // An inline code span inside a code block is already the block's own text.
@@ -288,4 +324,4 @@ void RenderNotesInto(GtkTextBuffer* buffer, const std::string& markdown,
 }
 
 }  // namespace internal
-}  // namespace dazzle
+}  // namespace dazzle_updater

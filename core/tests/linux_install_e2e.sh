@@ -3,7 +3,7 @@
 #
 # It builds two throwaway application directories around the updater example, serves a
 # release index over HTTP, checks that a wrong public key is rejected, and then lets the
-# version 1.0.0 directory install the signed version 2.0.0 update through dazzle: the
+# version 1.0.0 directory install the signed version 2.0.0 update through dazzle_updater: the
 # Ed25519 check, the libcurl download, the detached install helper, the replacement of
 # the directory, and the restart.
 #
@@ -13,8 +13,8 @@ set -eu
 example="${1:?usage: linux_install_e2e.sh <updater_example> <fixture_signer>}"
 signer="${2:?usage: linux_install_e2e.sh <updater_example> <fixture_signer>}"
 
-work="$(mktemp -d "${TMPDIR:-/tmp}/dazzle-e2e.XXXXXX")"
-cache="${XDG_CACHE_HOME:-$HOME/.cache}/dazzle"
+work="$(mktemp -d "${TMPDIR:-/tmp}/dazzle_updater-e2e.XXXXXX")"
+cache="${XDG_CACHE_HOME:-$HOME/.cache}/dazzle_updater"
 server_pid=""
 cleanup() {
   if [ -n "$server_pid" ]; then
@@ -31,11 +31,11 @@ fail() {
 }
 
 # make_app <directory> <version> [<marker text>]. The executable sits directly in the
-# application directory, which is the directory dazzle replaces: it is the one holding
+# application directory, which is the directory dazzle_updater replaces: it is the one holding
 # the running executable.
 make_app() {
   mkdir -p "$1"
-  cp "$example" "$1/dazzle-e2e"
+  cp "$example" "$1/dazzle_updater-e2e"
   printf '%s\n' "$2" > "$1/version"
   if [ -n "${3:-}" ]; then
     printf '%s\n' "$3" > "$1/version-marker"
@@ -101,7 +101,7 @@ done
 run_app() {
   # $1 = public key; prints the app's output, returns its exit status. The version is the
   # directory's own: an application that has not declared one is up to date with anything.
-  "$work/DazzleE2E/dazzle-e2e" "http://127.0.0.1:$port/releases.json" "$1" "1.0.0" --install 2>&1
+  "$work/DazzleE2E/dazzle_updater-e2e" "http://127.0.0.1:$port/releases.json" "$1" "1.0.0" --install 2>&1
 }
 
 if wrong_output="$(run_app "$other_public_key")"; then
@@ -136,5 +136,5 @@ done
   printf '%s\n' "$output"
   fail "the application directory was not replaced"
 }
-[ -x "$work/DazzleE2E/dazzle-e2e" ] || fail "the replaced directory lost its executable"
+[ -x "$work/DazzleE2E/dazzle_updater-e2e" ] || fail "the replaced directory lost its executable"
 echo "PASS: the update was downloaded, verified, installed and restarted"

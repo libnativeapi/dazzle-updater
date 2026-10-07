@@ -10,7 +10,7 @@
 // destroyed — an application quits through its own platform (see the note below) — so
 // making it a leaked singleton is deliberate rather than a leak.
 
-namespace dazzle {
+namespace dazzle_updater {
 namespace {
 
 internal::UiRunner& Runner() {
@@ -29,10 +29,6 @@ UpdaterUI& UpdaterUI::GetInstance() {
   static UpdaterUI instance;
   return instance;
 }
-
-void UpdaterUI::SetDispatcherQueue(int64_t queue) { internal::GetUiBackend().SetHostUiQueue(queue); }
-
-void UpdaterUI::Pump() { internal::GetUiBackend().Pump(); }
 
 bool UpdaterUI::CheckForUpdates() { return Runner().CheckForUpdates(); }
 
@@ -62,4 +58,4 @@ void UpdaterUI::SetAutomaticDownloadsAllowed(bool allowed) {
 
 bool UpdaterUI::IsAutomaticDownloadsAllowed() const { return Runner().IsAutomaticDownloadsAllowed(); }
 
-}  // namespace dazzle
+}  // namespace dazzle_updater

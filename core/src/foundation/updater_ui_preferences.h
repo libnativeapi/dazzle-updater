@@ -15,7 +15,7 @@
 // state machine holds one store for its lifetime and a test substitutes its own — the
 // functions never throw.
 
-namespace dazzle {
+namespace dazzle_updater {
 
 /// What UpdaterUI remembers for the user on their behalf.
 struct UiPreferences {
@@ -50,4 +50,4 @@ UiPreferencesStore& GetUiPreferencesStore();
 /// tag it has wording for and falls back to English.
 std::vector<std::string> UiPreferredLanguages();
 
-}  // namespace dazzle
+}  // namespace dazzle_updater

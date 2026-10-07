@@ -4,7 +4,7 @@
 
 ## 定位与边界
 
-- Prototype（`prototype/`，基于 Storybook）承载 dazzle 更新界面的交互原型、功能视图和组件展示，使用本地示例数据与模拟行为。
+- Prototype（`prototype/`，基于 Storybook）承载 dazzle updater 更新界面的交互原型、功能视图和组件展示，使用本地示例数据与模拟行为。
 - 原型以 spec 为准：功能、状态、按钮和文案与对应的 spec 一致（如 `updater-ui` 对应
   [updater-ui.md](updater-ui.md)），命名沿用 spec 的模块名和状态名，不使用 Sparkle 的类名。
   窗口尺寸、边距、间距等视觉细节参照 Sparkle（`SUUpdateAlert.xib`、`SUStatusController.m`），
@@ -47,7 +47,7 @@ prototype/
 
 树中功能文件按需创建，不为尚不存在的职责建立空目录或空文件。
 
-- dazzle 是更新框架而不是应用，原型不设宿主应用（没有 `App`、`AppLayout`）：一个功能的完整流程
+- dazzle updater 是更新框架而不是应用，原型不设宿主应用（没有 `App`、`AppLayout`）：一个功能的完整流程
   由它的 `<Feature>View` 承载，放在 `Examples` 下，以宿主应用的形式展示（如 `Examples/Host App`）。
 - `src/components/` 中的组件不依赖具体功能。
 - 功能内部组件放在所属功能的 `components/`，跨功能复用后再提升到 `src/components/`。

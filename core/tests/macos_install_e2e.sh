@@ -3,7 +3,7 @@
 #
 # It builds two throwaway application bundles around the updater example, serves a
 # release index over HTTP, checks that a wrong public key is rejected, and then lets the
-# version 1.0.0 bundle install the signed version 2.0.0 update through dazzle: the
+# version 1.0.0 bundle install the signed version 2.0.0 update through dazzle_updater: the
 # Ed25519 check, the detached install helper, the replacement of the bundle, and the
 # relaunch.
 #
@@ -13,8 +13,8 @@ set -eu
 example="${1:?usage: macos_install_e2e.sh <updater_example> <fixture_signer>}"
 signer="${2:?usage: macos_install_e2e.sh <updater_example> <fixture_signer>}"
 
-bundle_id="com.example.dazzle-e2e"
-work="$(mktemp -d "${TMPDIR:-/tmp}/dazzle-e2e.XXXXXX")"
+bundle_id="com.example.dazzle_updater-e2e"
+work="$(mktemp -d "${TMPDIR:-/tmp}/dazzle_updater-e2e.XXXXXX")"
 server_pid=""
 cleanup() {
   if [ -n "$server_pid" ]; then
@@ -33,7 +33,7 @@ fail() {
 # make_bundle <path> <version>
 make_bundle() {
   mkdir -p "$1/Contents/MacOS"
-  cp "$example" "$1/Contents/MacOS/dazzle-e2e"
+  cp "$example" "$1/Contents/MacOS/dazzle_updater-e2e"
   cat > "$1/Contents/Info.plist" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -41,7 +41,7 @@ make_bundle() {
 <dict>
   <key>CFBundleIdentifier</key><string>$bundle_id</string>
   <key>CFBundleName</key><string>DazzleE2E</string>
-  <key>CFBundleExecutable</key><string>dazzle-e2e</string>
+  <key>CFBundleExecutable</key><string>dazzle_updater-e2e</string>
   <key>CFBundlePackageType</key><string>APPL</string>
   <key>CFBundleShortVersionString</key><string>$2</string>
   <key>CFBundleVersion</key><string>$2</string>
@@ -108,7 +108,7 @@ done
 
 run_app() {
   # $1 = public key; prints the app's output, returns its exit status.
-  "$work/DazzleE2E.app/Contents/MacOS/dazzle-e2e" \
+  "$work/DazzleE2E.app/Contents/MacOS/dazzle_updater-e2e" \
     "http://127.0.0.1:$port/releases.json" "$1" "" --install 2>&1
 }
 

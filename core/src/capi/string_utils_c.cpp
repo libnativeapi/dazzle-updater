@@ -3,7 +3,7 @@
 #include <cstring>
 #include <new>
 
-namespace dazzle {
+namespace dazzle_updater {
 
 char* to_c_str(const std::string& str) {
   if (str.empty())
@@ -16,7 +16,7 @@ char* to_c_str(const std::string& str) {
   return result;
 }
 
-}  // namespace dazzle
+}  // namespace dazzle_updater
 
 void dazzle_free_c_str(char* str) {
   delete[] str;

@@ -14,7 +14,7 @@
 // The functions are called from Updater under its own lock, on the thread that started
 // the action. They never throw.
 
-namespace dazzle {
+namespace dazzle_updater {
 
 /// Whether this platform can look for an update at all (see the availability table in
 /// ../specs/updater.md).
@@ -46,7 +46,7 @@ std::string AppVersionFromPlatform();
 /// has set none of its own.
 std::string AppNameFromPlatform();
 
-/// A directory dazzle may write downloads into, without a trailing separator; created
+/// A directory dazzle_updater may write downloads into, without a trailing separator; created
 /// when missing. "" when the platform provides none.
 std::string DownloadDirectory();
 
@@ -58,4 +58,4 @@ bool InstallDownloadedUpdate(const std::string& downloaded_path, const std::stri
                              const std::string& installer_arguments, std::string* error,
                              std::string* error_code);
 
-}  // namespace dazzle
+}  // namespace dazzle_updater

@@ -1,10 +1,10 @@
 import 'dart:async';
 import 'dart:isolate';
 
-import 'package:dazzle/dazzle.dart';
+import 'package:dazzle_updater/dazzle_updater.dart';
 import 'package:flutter/material.dart';
 
-// The whole update flow in one screen: point dazzle at a release index, embed the public
+// The whole update flow in one screen: point dazzle_updater at a release index, embed the public
 // key your installers are signed with, then check, download and install.
 //
 // The three actions block, so they run in a worker isolate (Isolate.run) and the UI
@@ -19,7 +19,7 @@ class UpdaterExampleApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => MaterialApp(
-    title: 'dazzle',
+    title: 'dazzle updater',
     theme: ThemeData(colorSchemeSeed: Colors.indigo),
     home: const UpdaterPage(),
   );
@@ -146,7 +146,7 @@ class _UpdaterPageState extends State<UpdaterPage> {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     return Scaffold(
-      appBar: AppBar(title: const Text('dazzle')),
+      appBar: AppBar(title: const Text('dazzle updater')),
       body: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(

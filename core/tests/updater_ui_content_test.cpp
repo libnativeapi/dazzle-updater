@@ -11,16 +11,16 @@
 // its controls. Pure functions, so specs/updater-ui.md's tables are checked directly,
 // without a thread or a window.
 
-using dazzle::internal::BuildContent;
-using dazzle::internal::ContentInput;
-using dazzle::internal::Format;
-using dazzle::internal::FormatBytes;
-using dazzle::internal::UiContent;
-using dazzle::internal::UiErrorStep;
-using dazzle::internal::UiState;
-using dazzle::internal::UiStrings;
-using dazzle::internal::UiStringsFor;
-using dazzle::internal::UiWindow;
+using dazzle_updater::internal::BuildContent;
+using dazzle_updater::internal::ContentInput;
+using dazzle_updater::internal::Format;
+using dazzle_updater::internal::FormatBytes;
+using dazzle_updater::internal::UiContent;
+using dazzle_updater::internal::UiErrorStep;
+using dazzle_updater::internal::UiState;
+using dazzle_updater::internal::UiStrings;
+using dazzle_updater::internal::UiStringsFor;
+using dazzle_updater::internal::UiWindow;
 
 namespace {
 
@@ -42,7 +42,7 @@ UiContent Content(UiState state) { return BuildContent(Input(state)); }
 
 std::vector<std::string> Buttons(const UiContent& content) {
   std::vector<std::string> labels;
-  for (const dazzle::internal::UiButton& button : content.buttons) {
+  for (const dazzle_updater::internal::UiButton& button : content.buttons) {
     labels.push_back(button.label);
   }
   return labels;

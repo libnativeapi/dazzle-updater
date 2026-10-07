@@ -9,7 +9,7 @@
 // the comparison rules are in ../specs/release-index.md ("版本号"). It is not listed in
 // API_HEADERS, so codegen ignores it and it reaches no binding.
 
-namespace dazzle {
+namespace dazzle_updater {
 
 /**
  * @brief A version parsed into the parts that take part in comparison.
@@ -52,4 +52,4 @@ class Version {
   std::vector<std::string> prerelease_;  // Empty for a release version.
 };
 
-}  // namespace dazzle
+}  // namespace dazzle_updater

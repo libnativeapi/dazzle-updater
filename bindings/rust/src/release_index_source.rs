@@ -5,7 +5,7 @@ use crate::ffi_string::{take_c_string, to_c_string};
 
 /// The release index data source.
 ///
-/// Reads dazzle's own release index: a `releases.json` JSON document at an HTTP(S)
+/// Reads dazzle_updater's own release index: a `releases.json` JSON document at an HTTP(S)
 /// address that lists the application's versions and, for each version, the installer of
 /// every platform it ships. Updater asks it for the release to offer this machine; the
 /// address lives here, not on Updater, which knows no data format.

@@ -16,11 +16,11 @@
 // outlive a call. The interface itself is internal either way — no public class holds a
 // platform seam (see ../specs/README.md).
 
-namespace dazzle {
+namespace dazzle_updater {
 namespace internal {
 
 /// The backend for this build and this platform; never null, never throws.
 UiBackend& GetUiBackend();
 
 }  // namespace internal
-}  // namespace dazzle
+}  // namespace dazzle_updater

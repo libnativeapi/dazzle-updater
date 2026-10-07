@@ -4,12 +4,12 @@
 
 #include <string>
 
-// Internal parsing and selection for dazzle's own release index format. It is split from
+// Internal parsing and selection for dazzle_updater's own release index format. It is split from
 // release_index_source.cpp so the rules can be unit tested with JSON text, without a
 // network. It is not listed in API_HEADERS, so codegen ignores it and it reaches no
 // binding.
 
-namespace dazzle {
+namespace dazzle_updater {
 
 /**
  * @brief Reads a release index and picks the release to offer this machine.
@@ -33,4 +33,4 @@ namespace dazzle {
 bool ParseReleaseIndex(const std::string& document, const UpdateQuery& query, Release* release,
                        bool* found, std::string* error, std::string* error_code);
 
-}  // namespace dazzle
+}  // namespace dazzle_updater

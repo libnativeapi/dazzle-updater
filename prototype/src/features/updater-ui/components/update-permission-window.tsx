@@ -20,7 +20,7 @@ export interface UpdatePermissionWindowProps {
 /**
  * The one-time question before the first silent check — Sparkle's
  * `SUUpdatePermissionPrompt`, without its anonymous system profile, which
- * dazzle does not collect.
+ * dazzle_updater does not collect.
  */
 export function UpdatePermissionWindow({ appName, automaticDownloadsAllowed = true, onAllow, onDeny }: UpdatePermissionWindowProps) {
   const t = useStrings()
@@ -31,7 +31,7 @@ export function UpdatePermissionWindow({ appName, automaticDownloadsAllowed = tr
     <Window
       // SUUpdatePermissionPrompt.xib: Titled alone — no close button, no resize and no
       // title of its own — with a 437 pt content. Sparkle's anonymous system profile
-      // section is not drawn: dazzle does not collect one (specs/updater-ui.md).
+      // section is not drawn: dazzle_updater does not collect one (specs/updater-ui.md).
       title=""
       controls={{ close: false, minimize: false, zoom: false }}
       width={437}

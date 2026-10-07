@@ -3,7 +3,7 @@ import 'dart:ffi';
 
 import 'package:ffi/ffi.dart';
 
-import 'dazzle_bindings.dart';
+import 'dazzle_updater_bindings.dart';
 
 /// Calls [body] with [value] as a NUL-terminated UTF-8 string that lives only
 /// for the duration of the call. C strings end at the first NUL, so anything

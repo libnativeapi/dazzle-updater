@@ -1,7 +1,7 @@
 // Configures the updater through the C ABI and runs one check.
 //
 // Usage: updater_c_example <release-index-url> [public-key] [current-version]
-#include <dazzle.h>
+#include <dazzle_updater.h>
 #include <stdio.h>
 
 static void PrintError(const char* action) {

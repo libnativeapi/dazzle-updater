@@ -4,7 +4,7 @@
 
 #include <string>
 
-using dazzle::Version;
+using dazzle_updater::Version;
 
 namespace {
 

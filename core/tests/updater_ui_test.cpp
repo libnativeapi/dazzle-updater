@@ -24,16 +24,16 @@
 // Everything the module reaches outside itself is injected, so no test depends on the
 // machine's language, its user preferences or Updater's real state.
 
-using dazzle::UiPreferences;
-using dazzle::UiPreferencesStore;
-using dazzle::internal::UiBackend;
-using dazzle::internal::UiContent;
-using dazzle::internal::UiEvent;
-using dazzle::internal::UiEventKind;
-using dazzle::internal::UiRunner;
-using dazzle::internal::UiState;
-using dazzle::internal::UiWindow;
-using dazzle::internal::UpdaterPort;
+using dazzle_updater::UiPreferences;
+using dazzle_updater::UiPreferencesStore;
+using dazzle_updater::internal::UiBackend;
+using dazzle_updater::internal::UiContent;
+using dazzle_updater::internal::UiEvent;
+using dazzle_updater::internal::UiEventKind;
+using dazzle_updater::internal::UiRunner;
+using dazzle_updater::internal::UiState;
+using dazzle_updater::internal::UiWindow;
+using dazzle_updater::internal::UpdaterPort;
 
 namespace {
 
@@ -313,7 +313,7 @@ class RecordingBackend final : public UiBackend {
 class Fixture {
  public:
   Fixture()
-      : strings(dazzle::internal::UiStringsFor({"en"})),
+      : strings(dazzle_updater::internal::UiStringsFor({"en"})),
         runner(new UiRunner(backend, port, store, strings)) {
     runner->SetAppName("Test App");
   }
@@ -331,7 +331,7 @@ class Fixture {
     return backend.Last();
   }
 
-  dazzle::internal::UiStrings strings;
+  dazzle_updater::internal::UiStrings strings;
   RecordingBackend backend;
   ScriptedPort port;
   MemoryStore store;
@@ -349,7 +349,7 @@ UiPreferences Answered(bool automatic_downloads = false) {
 
 std::vector<std::string> ButtonLabels(const UiContent& content) {
   std::vector<std::string> labels;
-  for (const dazzle::internal::UiButton& button : content.buttons) {
+  for (const dazzle_updater::internal::UiButton& button : content.buttons) {
     labels.push_back(button.label);
   }
   return labels;
@@ -845,5 +845,5 @@ DAZZLE_TEST(updater_ui_the_app_name_defaults_to_the_platform) {
   Fixture fixture;
   EXPECT_EQ(fixture.runner->GetAppName(), "Test App");
   fixture.runner->SetAppName("");
-  EXPECT_EQ(fixture.runner->GetAppName(), dazzle::AppNameFromPlatform());
+  EXPECT_EQ(fixture.runner->GetAppName(), dazzle_updater::AppNameFromPlatform());
 }

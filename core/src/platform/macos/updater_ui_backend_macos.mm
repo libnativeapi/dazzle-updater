@@ -23,15 +23,15 @@
 
 namespace {
 
-using dazzle::internal::IsUpdateWindow;
-using dazzle::internal::UiButton;
-using dazzle::internal::UiCheckbox;
-using dazzle::internal::UiContent;
-using dazzle::internal::UiEvent;
-using dazzle::internal::UiEventKind;
-using dazzle::internal::UiProgress;
-using dazzle::internal::UiState;
-using dazzle::internal::UiWindow;
+using dazzle_updater::internal::IsUpdateWindow;
+using dazzle_updater::internal::UiButton;
+using dazzle_updater::internal::UiCheckbox;
+using dazzle_updater::internal::UiContent;
+using dazzle_updater::internal::UiEvent;
+using dazzle_updater::internal::UiEventKind;
+using dazzle_updater::internal::UiProgress;
+using dazzle_updater::internal::UiState;
+using dazzle_updater::internal::UiWindow;
 
 // --- metrics (../../specs/updater-ui.md, "外观") --------------------------------------
 //
@@ -185,7 +185,7 @@ void ForgetViews() {
 }
 
 - (void)drawRect:(NSRect)dirtyRect {
-  [dazzle::internal::MacCurrentTokens().window_background setFill];
+  [dazzle_updater::internal::MacCurrentTokens().window_background setFill];
   NSRectFill(dirtyRect);
 }
 
@@ -262,7 +262,7 @@ CGFloat TextHeight(NSTextField* field, CGFloat width) {
   return [field sizeThatFits:NSMakeSize(width, CGFLOAT_MAX)].height;
 }
 
-const dazzle::internal::MacTokens& Tokens() { return dazzle::internal::MacCurrentTokens(); }
+const dazzle_updater::internal::MacTokens& Tokens() { return dazzle_updater::internal::MacCurrentTokens(); }
 
 NSFont* BodyFont() { return [NSFont systemFontOfSize:kBodyFontSize]; }
 NSFont* HeadingFont() { return [NSFont boldSystemFontOfSize:kBodyFontSize]; }
@@ -422,7 +422,7 @@ void SpaceNotesParagraphs(NSMutableAttributedString* text) {
 /// The HTML importer brings fonts, colors and list styles of its own, so they are
 /// replaced rather than trusted.
 NSAttributedString* NotesAttributedString(const UiContent& content) {
-  NSString* html = ToNSString(dazzle::MarkdownToHtml(content.notes_markdown));
+  NSString* html = ToNSString(dazzle_updater::MarkdownToHtml(content.notes_markdown));
   NSData* data = [html dataUsingEncoding:NSUTF8StringEncoding];
   NSMutableAttributedString* text = [[NSMutableAttributedString alloc] initWithHTML:data
                                                                 documentAttributes:nil];
@@ -991,7 +991,7 @@ void HideOnMain() {
 
 // --- the backend ----------------------------------------------------------------------
 
-namespace dazzle {
+namespace dazzle_updater {
 namespace internal {
 namespace {
 
@@ -1042,4 +1042,4 @@ UiBackend& GetUiBackend() {
 }
 
 }  // namespace internal
-}  // namespace dazzle
+}  // namespace dazzle_updater

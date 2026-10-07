@@ -1,0 +1,56 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>DazzleUpdater</RootNamespace>
+    <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+
+    <PackageId>DazzleUpdater</PackageId>
+    <Title>dazzle updater</Title>
+    <Version>0.0.1</Version>
+    <Description>dazzle updater: a cross-platform software update framework.</Description>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+
+  <!-- The example and test projects live below this directory; keep their sources out. -->
+  <ItemGroup>
+    <Compile Remove="examples/**;tests/**" />
+    <None Remove="examples/**;tests/**" />
+    <None Include="README.md" Pack="true" PackagePath="/" />
+  </ItemGroup>
+
+  <!--
+    Build the dazzle_updater core (bindings/csharp -> core/) as a shared library with CMake and
+    ship it next to the managed assembly, so [LibraryImport("dazzle_updater")] resolves it.
+  -->
+  <PropertyGroup>
+    <DazzleUpdaterCoreDir>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)../../core'))</DazzleUpdaterCoreDir>
+    <DazzleUpdaterCMakeDir>$(MSBuildThisFileDirectory)obj/cmake</DazzleUpdaterCMakeDir>
+    <DazzleUpdaterLibraryName Condition="$([MSBuild]::IsOSPlatform('Windows'))">dazzle_updater.dll</DazzleUpdaterLibraryName>
+    <DazzleUpdaterLibraryName Condition="$([MSBuild]::IsOSPlatform('OSX'))">libdazzle_updater.dylib</DazzleUpdaterLibraryName>
+    <DazzleUpdaterLibraryName Condition="'$(DazzleUpdaterLibraryName)' == ''">libdazzle_updater.so</DazzleUpdaterLibraryName>
+    <!-- Visual Studio generators add a per-configuration directory. -->
+    <DazzleUpdaterLibraryPath Condition="$([MSBuild]::IsOSPlatform('Windows'))">$(DazzleUpdaterCMakeDir)/src/Release/$(DazzleUpdaterLibraryName)</DazzleUpdaterLibraryPath>
+    <DazzleUpdaterLibraryPath Condition="'$(DazzleUpdaterLibraryPath)' == ''">$(DazzleUpdaterCMakeDir)/src/$(DazzleUpdaterLibraryName)</DazzleUpdaterLibraryPath>
+    <DazzleUpdaterRuntimeId>$([System.Runtime.InteropServices.RuntimeInformation]::RuntimeIdentifier)</DazzleUpdaterRuntimeId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="$(DazzleUpdaterLibraryPath)"
+          Link="$(DazzleUpdaterLibraryName)"
+          CopyToOutputDirectory="PreserveNewest"
+          Pack="true"
+          PackagePath="runtimes/$(DazzleUpdaterRuntimeId)/native/$(DazzleUpdaterLibraryName)" />
+  </ItemGroup>
+
+  <Target Name="BuildDazzleUpdaterCore" BeforeTargets="BeforeBuild">
+    <Exec Command="cmake -S &quot;$(DazzleUpdaterCoreDir)&quot; -B &quot;$(DazzleUpdaterCMakeDir)&quot; -DDAZZLE_BUILD_SHARED=ON -DBUILD_TESTING=OFF -DCMAKE_BUILD_TYPE=Release" />
+    <Exec Command="cmake --build &quot;$(DazzleUpdaterCMakeDir)&quot; --target dazzle_updater --config Release" />
+    <Error Condition="!Exists('$(DazzleUpdaterLibraryPath)')" Text="dazzle_updater: $(DazzleUpdaterLibraryPath) was not built." />
+  </Target>
+
+</Project>

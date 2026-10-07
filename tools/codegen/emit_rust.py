@@ -14,7 +14,7 @@ _RETURN = {BOOL: "bool", I32: "i32", I64: "i64", F64: "f64", STRING: "Option<Str
 
 
 def ffi(classes: list[Class]) -> str:
-    out = [BANNER, "//! Declarations of the dazzle C ABI (`core/src/capi/`).", "",
+    out = [BANNER, "//! Declarations of the dazzle_updater C ABI (`core/src/capi/`).", "",
            "use std::os::raw::c_char;", "", "// string_utils_c.h", 'extern "C" {',
            "    pub fn dazzle_free_c_str(str_: *mut c_char);", "}"]
     for cls in classes:

@@ -4,7 +4,7 @@
 // compiled only when platform/<os>/ has no http_<os> file, so a platform that does not
 // implement transfers needs no source file at all (see ../CMakeLists.txt).
 
-namespace dazzle {
+namespace dazzle_updater {
 namespace {
 
 class UnsupportedHttpImpl final : public HttpClient::Impl {
@@ -27,4 +27,4 @@ HttpClient::HttpClient() : pimpl_(std::make_unique<UnsupportedHttpImpl>()) {}
 
 HttpClient::~HttpClient() = default;
 
-}  // namespace dazzle
+}  // namespace dazzle_updater

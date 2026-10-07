@@ -1,7 +1,7 @@
-# dazzle for Dart
+# dazzle updater for Dart
 
-Dart bindings for [dazzle](../../README.md), a cross-platform software
-update framework with its own API. The default source reads dazzle's own
+Dart bindings for [dazzle updater](../../README.md), a cross-platform software
+update framework with its own API. The default source reads dazzle updater's own
 [release index](../../specs/release-index.md); an optional `AppcastSource` will read
 [Sparkle](https://sparkle-project.org) appcasts.
 
@@ -16,7 +16,7 @@ platforms answer `"not supported on this platform"` until their implementations 
 - CMake 3.10+
 - A C++17 compiler (Xcode Command Line Tools on macOS, MSVC on Windows, GCC or Clang on Linux)
 
-The build hook compiles the dazzle C++ core from source the first time you `dart run` or
+The build hook compiles the dazzle updater C++ core from source the first time you `dart run` or
 `dart test`, and bundles it as a native asset. There is no library to copy by hand.
 
 Only the host OS is supported for now: building for iOS or Android from a desktop fails
@@ -28,7 +28,7 @@ The package is not on pub.dev yet. Depend on it from git:
 
 ```yaml
 dependencies:
-  dazzle:
+  dazzle_updater:
     git:
       url: https://github.com/fastforgedev/dazzle
       path: bindings/dart
@@ -39,7 +39,7 @@ dependencies:
 ```dart
 import 'dart:isolate';
 
-import 'package:dazzle/dazzle.dart';
+import 'package:dazzle_updater/dazzle_updater.dart';
 
 Future<void> main() async {
   ReleaseIndexSource.instance.url = 'https://example.com/myapp/releases.json';
@@ -77,8 +77,8 @@ dart test
 dart analyze
 ```
 
-[lib/dazzle.dart](lib/dazzle.dart),
-[lib/src/dazzle_bindings.dart](lib/src/dazzle_bindings.dart) and one
+[lib/dazzle_updater.dart](lib/dazzle_updater.dart),
+[lib/src/dazzle_updater_bindings.dart](lib/src/dazzle_updater_bindings.dart) and one
 `lib/src/<module>.dart` per class are generated from the C++ headers; do not edit them.
 Change the header in [core/src/](../../core/src) and run `./codegen` from the repository
 root. The string helpers ([lib/src/ffi_string.dart](lib/src/ffi_string.dart)) are

@@ -7,7 +7,7 @@
 // CFBundleShortVersionString), so this program can run from inside an application
 // bundle and install the update it finds there. Without arguments it prints its usage
 // and exits, which is what the install helper's relaunch does.
-#include <dazzle.h>
+#include <dazzle_updater.h>
 
 #include <cstdint>
 #include <iostream>
@@ -16,7 +16,7 @@
 
 namespace {
 
-void PrintError(const dazzle::Updater& updater, const char* action) {
+void PrintError(const dazzle_updater::Updater& updater, const char* action) {
   std::cerr << action << " failed: " << updater.GetErrorCode() << ": "
             << updater.GetErrorMessage() << "\n";
 }
@@ -42,9 +42,9 @@ int main(int argc, char** argv) {
     return 0;
   }
 
-  dazzle::ReleaseIndexSource::GetInstance().SetUrl(arguments[0]);
+  dazzle_updater::ReleaseIndexSource::GetInstance().SetUrl(arguments[0]);
 
-  dazzle::Updater& updater = dazzle::Updater::GetInstance();
+  dazzle_updater::Updater& updater = dazzle_updater::Updater::GetInstance();
   if (arguments.size() > 1 && !arguments[1].empty()) {
     updater.SetPublicKey(arguments[1]);
   }

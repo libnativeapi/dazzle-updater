@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(dazzle_library VERSION 0.0.1 LANGUAGES CXX C)
+project(dazzle_updater VERSION 0.0.1 LANGUAGES CXX C)
 
 # Every source in this tree is UTF-8, and the localized strings in updater_ui_strings.cpp
 # and the tests are not ASCII. MSVC reads a file in the system codepage unless told

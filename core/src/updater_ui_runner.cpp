@@ -8,7 +8,7 @@
 #include "updater_ui_content.h"
 #include "updater_ui_strings.h"
 
-namespace dazzle {
+namespace dazzle_updater {
 namespace internal {
 namespace {
 
@@ -522,4 +522,4 @@ void UiRunner::WaitForIdle() {
 }
 
 }  // namespace internal
-}  // namespace dazzle
+}  // namespace dazzle_updater

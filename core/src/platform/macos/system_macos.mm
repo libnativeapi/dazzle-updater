@@ -6,7 +6,7 @@
 
 #include <string>
 
-namespace dazzle {
+namespace dazzle_updater {
 namespace {
 
 std::string ToUtf8(NSString* value) {
@@ -77,13 +77,13 @@ bool StartInstallHelper(NSString* working_directory, NSString* app_path, NSStrin
                         NSString* log_path, std::string* error) {
   const char* script_text =
       "#!/bin/sh\n"
-      "# dazzle: replace the application once the old process has exited.\n"
+      "# dazzle_updater: replace the application once the old process has exited.\n"
       "pid=\"$1\"\n"
       "app=\"$2\"\n"
       "new=\"$3\"\n"
       "work=\"$4\"\n"
       "while kill -0 \"$pid\" 2>/dev/null; do sleep 0.2; done\n"
-      "backup=\"$app.dazzle-old.$$\"\n"
+      "backup=\"$app.dazzle_updater-old.$$\"\n"
       "if mv \"$app\" \"$backup\" 2>/dev/null; then\n"
       "  if ditto \"$new\" \"$app\" 2>/dev/null; then\n"
       "    rm -rf \"$backup\"\n"
@@ -192,7 +192,7 @@ std::string DownloadDirectory() {
     directory = "/tmp";
   }
   const std::string identifier = BundleIdentifier();
-  directory += "/" + (identifier.empty() ? std::string("dazzle") : identifier);
+  directory += "/" + (identifier.empty() ? std::string("dazzle_updater") : identifier);
   [manager createDirectoryAtPath:ToNSString(directory)
       withIntermediateDirectories:YES
                        attributes:nil
@@ -276,4 +276,4 @@ bool InstallDownloadedUpdate(const std::string& downloaded_path, const std::stri
   return true;
 }
 
-}  // namespace dazzle
+}  // namespace dazzle_updater

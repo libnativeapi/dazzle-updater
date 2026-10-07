@@ -1,4 +1,4 @@
-import 'package:dazzle/dazzle.dart';
+import 'package:dazzle_updater/dazzle_updater.dart';
 
 void main() {
   final updater = Updater.instance;

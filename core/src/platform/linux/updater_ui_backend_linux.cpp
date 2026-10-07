@@ -31,15 +31,15 @@
 
 namespace {
 
-using dazzle::internal::IsUpdateWindow;
-using dazzle::internal::UiButton;
-using dazzle::internal::UiCheckbox;
-using dazzle::internal::UiContent;
-using dazzle::internal::UiEvent;
-using dazzle::internal::UiEventKind;
-using dazzle::internal::UiProgress;
-using dazzle::internal::UiState;
-using dazzle::internal::UiWindow;
+using dazzle_updater::internal::IsUpdateWindow;
+using dazzle_updater::internal::UiButton;
+using dazzle_updater::internal::UiCheckbox;
+using dazzle_updater::internal::UiContent;
+using dazzle_updater::internal::UiEvent;
+using dazzle_updater::internal::UiEventKind;
+using dazzle_updater::internal::UiProgress;
+using dazzle_updater::internal::UiState;
+using dazzle_updater::internal::UiWindow;
 
 // --- metrics (../../../specs/updater-ui.md, "外观") -----------------------------------
 //
@@ -70,12 +70,12 @@ constexpr int kStatusBodyWidth = kStatusWidth - 2 * kMargin;
 constexpr int kPulseIntervalMs = 100;
 
 const char* const kStylesheet =
-    ".dazzle-heading { font-weight: bold; }\n"
-    ".dazzle-detail { }\n"
-    ".dazzle-status { font-size: 11px; opacity: 0.65; }\n"
-    ".dazzle-notes { border: 1px solid alpha(currentColor, 0.15); border-radius: 6px; }\n"
-    ".dazzle-notes text { background-color: transparent; }\n"
-    ".dazzle-buttons button { min-width: 100px; }\n";
+    ".dazzle_updater-heading { font-weight: bold; }\n"
+    ".dazzle_updater-detail { }\n"
+    ".dazzle_updater-status { font-size: 11px; opacity: 0.65; }\n"
+    ".dazzle_updater-notes { border: 1px solid alpha(currentColor, 0.15); border-radius: 6px; }\n"
+    ".dazzle_updater-notes text { background-color: transparent; }\n"
+    ".dazzle_updater-buttons button { min-width: 100px; }\n";
 
 // --- state shared with the main thread, main thread only ------------------------------
 
@@ -249,7 +249,7 @@ void OnNotesClicked(GtkGestureClick* gesture, int press_count, double x, double 
   for (GSList* item = tags; item != nullptr; item = item->next) {
     // The renderer stores each link's number on its tag; a tag without one is not a link.
     const gpointer value =
-        g_object_get_data(G_OBJECT(item->data), "dazzle-link-index");
+        g_object_get_data(G_OBJECT(item->data), "dazzle_updater-link-index");
     if (value == nullptr) {
       continue;
     }
@@ -272,7 +272,7 @@ GtkWidget* MakeNotesBox(const UiContent& content) {
   // rest, so the natural height is capped there.
   gtk_scrolled_window_set_max_content_height(GTK_SCROLLED_WINDOW(scroller), kNotesMinHeight);
   gtk_widget_set_vexpand(scroller, TRUE);
-  gtk_widget_add_css_class(scroller, "dazzle-notes");
+  gtk_widget_add_css_class(scroller, "dazzle_updater-notes");
 
   GtkWidget* view = gtk_text_view_new();
   gtk_text_view_set_editable(GTK_TEXT_VIEW(view), FALSE);
@@ -284,7 +284,7 @@ GtkWidget* MakeNotesBox(const UiContent& content) {
   gtk_text_view_set_bottom_margin(GTK_TEXT_VIEW(view), 8);
 
   g_window.notes_urls.clear();
-  dazzle::internal::RenderNotesInto(gtk_text_view_get_buffer(GTK_TEXT_VIEW(view)),
+  dazzle_updater::internal::RenderNotesInto(gtk_text_view_get_buffer(GTK_TEXT_VIEW(view)),
                                     content.notes_markdown, &g_window.notes_urls);
 
   GtkGesture* click = gtk_gesture_click_new();
@@ -298,7 +298,7 @@ GtkWidget* MakeNotesBox(const UiContent& content) {
 
 void OnButtonClicked(GtkButton* button, gpointer user_data) {
   (void)user_data;
-  const int tag = GPOINTER_TO_INT(g_object_get_data(G_OBJECT(button), "dazzle-event"));
+  const int tag = GPOINTER_TO_INT(g_object_get_data(G_OBJECT(button), "dazzle_updater-event"));
   ReportEvent(static_cast<UiEventKind>(tag - 1));
 }
 
@@ -320,17 +320,30 @@ GtkWidget* MakeCheckbox(const UiCheckbox& checkbox) {
   return widget;
 }
 
-/// The state's action row, at the trailing edge. The default button is the window's
-/// default widget, so Return presses it; the window's own Escape handling reports the
-/// same event a close does, which is what the spec asks of both.
+/// The state's action row, at the trailing edge — except Skip This Version, which sits at
+/// the leading edge on its own ("跳过此版本 ··· 以后再说 · 安装更新", as in SUUpdateAlert and
+/// the prototype), with Later and Install equal in width. The default button is the
+/// window's default widget, so Return presses it; the window's own Escape handling reports
+/// the same event a close does, which is what the spec asks of both.
 GtkWidget* MakeButtons(const UiContent& content) {
+  bool has_skip = false;
+  for (const UiButton& button : content.buttons) {
+    has_skip = has_skip || button.event == UiEventKind::kSkip;
+  }
   GtkWidget* row = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, kGap);
-  gtk_widget_set_halign(row, GTK_ALIGN_END);
-  gtk_widget_add_css_class(row, "dazzle-buttons");
+  gtk_widget_set_halign(row, has_skip ? GTK_ALIGN_FILL : GTK_ALIGN_END);
+  gtk_widget_add_css_class(row, "dazzle_updater-buttons");
+  GtkWidget* trailing = row;
+  if (has_skip) {
+    trailing = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, kGap);
+    gtk_box_set_homogeneous(GTK_BOX(trailing), TRUE);
+    gtk_widget_set_halign(trailing, GTK_ALIGN_END);
+    gtk_widget_set_hexpand(trailing, TRUE);
+  }
   for (const UiButton& button : content.buttons) {
     GtkWidget* widget = gtk_button_new_with_label(button.label.c_str());
     gtk_widget_set_size_request(widget, kButtonMinWidth, -1);
-    g_object_set_data(G_OBJECT(widget), "dazzle-event",
+    g_object_set_data(G_OBJECT(widget), "dazzle_updater-event",
                       GINT_TO_POINTER(static_cast<int>(button.event) + 1));
     g_signal_connect(widget, "clicked", G_CALLBACK(OnButtonClicked), nullptr);
     if (button.is_default) {
@@ -338,7 +351,10 @@ GtkWidget* MakeButtons(const UiContent& content) {
       gtk_window_set_default_widget(GTK_WINDOW(g_window.window), widget);
       g_window.default_button = widget;
     }
-    gtk_box_append(GTK_BOX(row), widget);
+    gtk_box_append(GTK_BOX(button.event == UiEventKind::kSkip ? row : trailing), widget);
+  }
+  if (trailing != row) {
+    gtk_box_append(GTK_BOX(row), trailing);
   }
   return row;
 }
@@ -386,8 +402,8 @@ GtkWidget* MakeAvailableBody(const UiContent& content) {
   GtkWidget* text_column = gtk_box_new(GTK_ORIENTATION_VERTICAL, kTextGap);
   gtk_widget_set_hexpand(text_column, TRUE);
   gtk_widget_set_valign(text_column, GTK_ALIGN_START);
-  g_window.heading = MakeLabel(content.heading, "dazzle-heading");
-  g_window.detail = MakeLabel(content.detail, "dazzle-detail");
+  g_window.heading = MakeLabel(content.heading, "dazzle_updater-heading");
+  g_window.detail = MakeLabel(content.detail, "dazzle_updater-detail");
   CapLabelWidth(g_window.heading, kAvailableTextWidth);
   CapLabelWidth(g_window.detail, kAvailableTextWidth);
   gtk_box_append(GTK_BOX(text_column), g_window.heading);
@@ -435,7 +451,7 @@ GtkWidget* MakeStatusBody(const UiContent& content) {
   GtkWidget* text_column = gtk_box_new(GTK_ORIENTATION_VERTICAL, kTextGap);
   gtk_widget_set_hexpand(text_column, TRUE);
   gtk_widget_set_valign(text_column, GTK_ALIGN_CENTER);
-  g_window.heading = MakeLabel(content.heading, "dazzle-heading");
+  g_window.heading = MakeLabel(content.heading, "dazzle_updater-heading");
   CapLabelWidth(g_window.heading, kStatusTextWidth);
   gtk_box_append(GTK_BOX(text_column), g_window.heading);
   if (content.progress.visible) {
@@ -444,7 +460,7 @@ GtkWidget* MakeStatusBody(const UiContent& content) {
     SyncProgress(content.progress);
     gtk_box_append(GTK_BOX(text_column), g_window.progress);
   } else {
-    g_window.detail = MakeLabel(content.detail, "dazzle-detail");
+    g_window.detail = MakeLabel(content.detail, "dazzle_updater-detail");
     CapLabelWidth(g_window.detail, kStatusTextWidth);
     gtk_box_append(GTK_BOX(text_column), g_window.detail);
   }
@@ -452,7 +468,7 @@ GtkWidget* MakeStatusBody(const UiContent& content) {
   gtk_box_append(GTK_BOX(root), body_row);
 
   GtkWidget* footer = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, kGap);
-  g_window.status = MakeLabel(content.progress.status_text, "dazzle-status");
+  g_window.status = MakeLabel(content.progress.status_text, "dazzle_updater-status");
   gtk_label_set_wrap(GTK_LABEL(g_window.status), FALSE);
   gtk_label_set_selectable(GTK_LABEL(g_window.status), FALSE);
   gtk_widget_set_valign(g_window.status, GTK_ALIGN_CENTER);
@@ -466,7 +482,7 @@ GtkWidget* MakeStatusBody(const UiContent& content) {
   }
   // The raw message goes under the footer, in the small monospace the spec asks for, so
   // a user can copy it into a bug report.
-  GtkWidget* message = MakeLabel(content.error_message, "dazzle-status");
+  GtkWidget* message = MakeLabel(content.error_message, "dazzle_updater-status");
   gtk_widget_add_css_class(message, "monospace");
   CapLabelWidth(message, kStatusBodyWidth);
   gtk_box_append(GTK_BOX(root), message);
@@ -487,8 +503,8 @@ GtkWidget* MakePermissionBody(const UiContent& content) {
   GtkWidget* text_column = gtk_box_new(GTK_ORIENTATION_VERTICAL, kTextGap);
   gtk_widget_set_hexpand(text_column, TRUE);
   gtk_widget_set_valign(text_column, GTK_ALIGN_CENTER);
-  g_window.heading = MakeLabel(content.heading, "dazzle-heading");
-  g_window.detail = MakeLabel(content.detail, "dazzle-detail");
+  g_window.heading = MakeLabel(content.heading, "dazzle_updater-heading");
+  g_window.detail = MakeLabel(content.detail, "dazzle_updater-detail");
   CapLabelWidth(g_window.heading, kPermissionTextWidth);
   CapLabelWidth(g_window.detail, kPermissionTextWidth);
   gtk_box_append(GTK_BOX(text_column), g_window.heading);
@@ -567,6 +583,29 @@ void FocusDefaultButton() {
   }
 }
 
+/// Asks a fixed window for its size once more, a moment after its content changed. A fixed
+/// window is as tall as its content, and new content may be taller (an error with its
+/// message under the buttons); but when the content changes right after the window was
+/// presented — a check that fails at once turns Checking into Error — the display server's
+/// answer to the first size arrives after the second request and wins, and the message is
+/// clipped. Asking again once that answer is in settles on the content's own height.
+void ResizeAgainSoon() {
+  GtkWidget* window = g_window.window;
+  if (window == nullptr || gtk_window_get_resizable(GTK_WINDOW(window))) {
+    return;
+  }
+  g_timeout_add_full(
+      G_PRIORITY_DEFAULT, 150,
+      [](gpointer data) -> gboolean {
+        GtkWidget* target = GTK_WIDGET(data);
+        if (target == g_window.window) {
+          gtk_widget_queue_resize(target);
+        }
+        return G_SOURCE_REMOVE;
+      },
+      g_object_ref(window), g_object_unref);
+}
+
 /// The content widget for `content`'s window kind. The window it will be put into must
 /// already be g_window.window: the default button registers itself on it as it is built.
 GtkWidget* BuildBody(const UiContent& content) {
@@ -611,6 +650,7 @@ void DrawOnMain(const UiContent& content) {
     g_window.state = content.state;
     gtk_window_present(GTK_WINDOW(g_window.window));
     FocusDefaultButton();
+    ResizeAgainSoon();
     return;
   }
 
@@ -631,8 +671,10 @@ void DrawOnMain(const UiContent& content) {
     gtk_window_set_deletable(GTK_WINDOW(window), FALSE);
   }
   gtk_window_set_resizable(GTK_WINDOW(window), content.resizable);
-  if (content.window == UiWindow::kUpdateAvailable) {
+  if (content.window == UiWindow::kUpdateAvailable && content.resizable) {
     // The spec's own opening size: 532 × 370 of content, and never narrower than 462.
+    // Only with notes: without them the window is fixed and as tall as what it shows (a
+    // default size would hold it open at 370 around a link and a check box).
     gtk_window_set_default_size(GTK_WINDOW(window), kAvailableWidth, kAvailableHeight);
     gtk_widget_set_size_request(window, kAvailableMinWidth, kAvailableMinHeight);
   }
@@ -712,7 +754,7 @@ void QuitOnMain() {
 
 // --- the backend ----------------------------------------------------------------------
 
-namespace dazzle {
+namespace dazzle_updater {
 namespace internal {
 namespace {
 
@@ -748,4 +790,4 @@ UiBackend& GetUiBackend() {
 }
 
 }  // namespace internal
-}  // namespace dazzle
+}  // namespace dazzle_updater

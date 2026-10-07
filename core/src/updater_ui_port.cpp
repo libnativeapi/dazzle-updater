@@ -5,7 +5,7 @@
 // The port UpdaterUI uses in a real build: every call is an Updater method with the same
 // meaning. Internal (see updater_ui_port.h); tests substitute their own.
 
-namespace dazzle {
+namespace dazzle_updater {
 namespace internal {
 namespace {
 
@@ -45,4 +45,4 @@ UpdaterPort& GetUpdaterPort() {
 }
 
 }  // namespace internal
-}  // namespace dazzle
+}  // namespace dazzle_updater

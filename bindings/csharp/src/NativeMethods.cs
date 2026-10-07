@@ -2,14 +2,14 @@
 
 using System.Runtime.InteropServices;
 
-namespace Dazzle;
+namespace DazzleUpdater;
 
 /// <summary>
-/// Declarations of the dazzle C ABI (<c>core/src/capi/</c>).
+/// Declarations of the dazzle_updater C ABI (<c>core/src/capi/</c>).
 /// </summary>
 internal static partial class NativeMethods
 {
-    private const string Library = "dazzle";
+    private const string Library = "dazzle_updater";
 
     // string_utils_c.h
 
@@ -104,12 +104,6 @@ internal static partial class NativeMethods
     [LibraryImport(Library)]
     [return: MarshalAs(UnmanagedType.U1)]
     internal static partial bool dazzle_updater_ui_is_visible();
-
-    [LibraryImport(Library)]
-    internal static partial void dazzle_updater_ui_pump();
-
-    [LibraryImport(Library)]
-    internal static partial void dazzle_updater_ui_set_dispatcher_queue(long queue);
 
     [LibraryImport(Library, StringMarshalling = StringMarshalling.Utf8)]
     internal static partial void dazzle_updater_ui_set_app_name(string? name);

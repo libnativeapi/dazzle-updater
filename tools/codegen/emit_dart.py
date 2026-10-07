@@ -1,4 +1,4 @@
-"""Dart: bindings/dart/lib/src/dazzle_bindings.dart, lib/src/<module>.dart and lib/src/modules.dart."""
+"""Dart: bindings/dart/lib/src/dazzle_updater_bindings.dart, lib/src/<module>.dart and lib/src/modules.dart."""
 
 from __future__ import annotations
 
@@ -17,12 +17,12 @@ def bindings(classes: list[Class]) -> str:
     out = [
         BANNER.rstrip("\n"),
         "//",
-        "// Declarations of the dazzle C ABI (core/src/capi/). The library is the code",
+        "// Declarations of the dazzle_updater C ABI (core/src/capi/). The library is the code",
         "// asset built by hook/build.dart, resolved through this file's default asset id.",
         "//",
         "// Declarations keep the C symbol names.",
         "// ignore_for_file: non_constant_identifier_names",
-        "@DefaultAsset('package:dazzle/src/dazzle_bindings.dart')",
+        "@DefaultAsset('package:dazzle_updater/src/dazzle_updater_bindings.dart')",
         "library;",
         "",
         "import 'dart:ffi';",
@@ -79,7 +79,7 @@ def module(cls: Class) -> str:
     uses_strings = any(
         m.returns == STRING or any(p.type == STRING for p in m.params) for m in cls.methods
     )
-    out = [BANNER, "import 'dazzle_bindings.dart';"]
+    out = [BANNER, "import 'dazzle_updater_bindings.dart';"]
     if uses_strings:
         out.append("import 'ffi_string.dart';")
     out += ["", *line_comment("/// ", blocks(cls.doc, refs)), f"final class {cls.name} {{",
@@ -105,7 +105,7 @@ def module(cls: Class) -> str:
 
 
 def library(classes: list[Class]) -> str:
-    """lib/dazzle.dart: the package's entry file, one export per generated class."""
-    out = [BANNER, "/// A cross-platform software update framework.", "library;", ""]
+    """lib/dazzle_updater.dart: the package's entry file, one export per generated class."""
+    out = [BANNER, "/// dazzle updater: a cross-platform software update framework.", "library;", ""]
     out += [f"export 'src/{cls.module}.dart' show {cls.name};" for cls in classes]
     return "\n".join(out) + "\n"

@@ -12,10 +12,10 @@
 //
 // libcurl carries the parts the other platforms get from their own stacks: TLS with the
 // system's CA bundle, redirects, and the response code of the *last* response after a
-// redirect. What dazzle keeps for itself is the same contract http.h declares — a body to
+// redirect. What dazzle_updater keeps for itself is the same contract http.h declares — a body to
 // memory or to a file, progress on the calling thread, and a cancel that aborts it.
 
-namespace dazzle {
+namespace dazzle_updater {
 namespace {
 
 /// Shared between libcurl's callbacks and the calling thread; libcurl runs the callbacks
@@ -119,7 +119,7 @@ class LinuxHttpImpl final : public HttpClient::Impl {
     curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1L);
     curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 30L);
     curl_easy_setopt(curl, CURLOPT_TIMEOUT, 3600L);
-    curl_easy_setopt(curl, CURLOPT_USERAGENT, "dazzle");
+    curl_easy_setopt(curl, CURLOPT_USERAGENT, "dazzle_updater");
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &state);
     curl_easy_setopt(curl, CURLOPT_XFERINFOFUNCTION, ProgressCallback);
@@ -181,4 +181,4 @@ HttpClient::HttpClient() : pimpl_(std::make_unique<LinuxHttpImpl>()) {}
 
 HttpClient::~HttpClient() = default;
 
-}  // namespace dazzle
+}  // namespace dazzle_updater

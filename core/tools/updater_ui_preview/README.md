@@ -13,7 +13,7 @@ well as the English one.
 ```bash
 cd core
 clang++ -std=c++17 -fobjc-arc -I src -I third_party \
-  tools/updater_ui_preview/updater_ui_preview.mm build/src/libdazzle.a \
+  tools/updater_ui_preview/updater_ui_preview.mm build/src/libdazzle_updater.a \
   -framework AppKit -framework Foundation -o build/preview/updater_ui_preview
 ./build/preview/updater_ui_preview
 ```
@@ -28,7 +28,7 @@ DAZZLE_PREVIEW_LANG=zh ./build/preview/updater_ui_preview              # Simplif
 DAZZLE_PREVIEW_PREFIX=dark- ./build/preview/updater_ui_preview         # name the files
 ```
 
-Render the library before the tool: the tool links `build/src/libdazzle.a`, so a change
+Render the library before the tool: the tool links `build/src/libdazzle_updater.a`, so a change
 in `src/` needs `cmake --build build` before the line above.
 
 ### On Linux (GTK 4)
@@ -41,7 +41,7 @@ permission, no desktop session:
 cd core
 g++ -std=c++17 -I src -I third_party \
   $(pkg-config --cflags gtk4) $(pkg-config --cflags libcurl) \
-  tools/updater_ui_preview/updater_ui_preview_linux.cpp build/src/libdazzle.a \
+  tools/updater_ui_preview/updater_ui_preview_linux.cpp build/src/libdazzle_updater.a \
   $(pkg-config --libs gtk4) $(pkg-config --libs libcurl) -o build/preview-linux/preview
 
 Xvfb :99 -screen 0 1280x900x24 &          # or any real display
@@ -59,7 +59,7 @@ Notes on what the pictures show:
 
 - Only a window's content view is captured, so the title bar is missing. The window
   titles are printed next to each file name.
-- The buttons, check boxes and progress bars are dazzle's own, drawn from the same
+- The buttons, check boxes and progress bars are dazzle updater's own, drawn from the same
   tokens on both sides of the comparison, so they are exact. The window around them
   (title bar, traffic lights, shadow, corners) is the real NSWindow, which a command-line
   tool still gets; it is the one part the prototype does not model.

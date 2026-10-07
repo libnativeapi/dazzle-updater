@@ -7,7 +7,7 @@
 #include <cstdint>
 #include <string>
 
-namespace dazzle {
+namespace dazzle_updater {
 namespace {
 
 constexpr int kSchema = 1;
@@ -60,7 +60,7 @@ void OptionalInteger(const nlohmann::json& object, const char* key, int64_t* val
                                        : found->get<int64_t>();
 }
 
-/// One `assets` entry, as far as dazzle reads it.
+/// One `assets` entry, as far as dazzle_updater reads it.
 struct Asset {
   std::string platform;
   std::string arch;
@@ -220,4 +220,4 @@ bool ParseReleaseIndex(const std::string& document, const UpdateQuery& query, Re
   return true;
 }
 
-}  // namespace dazzle
+}  // namespace dazzle_updater

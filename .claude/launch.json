@@ -1,0 +1,12 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "prototype",
+      "runtimeExecutable": "prototype/node_modules/.bin/storybook",
+      "runtimeArgs": ["dev", "-c", "prototype/.storybook", "-p", "6016", "--host", "127.0.0.1", "--no-open"],
+      "port": 6016,
+      "url": "http://127.0.0.1:6016"
+    }
+  ]
+}

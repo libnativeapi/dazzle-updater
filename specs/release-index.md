@@ -1,6 +1,6 @@
 # Release index 格式（schema 1）
 
-Release index 是 dazzle 自有的数据源格式，由 `ReleaseIndexSource` 读取：一个放在任意静态
+Release index 是 dazzle updater 自有的数据源格式，由 `ReleaseIndexSource` 读取：一个放在任意静态
 HTTP(S) 地址上的 JSON 文件，约定命名为 `releases.json`，列出应用的
 各个版本和每个版本在各平台的安装包。与 Sparkle appcast 无关。
 
@@ -110,5 +110,5 @@ release/asset 被跳过，不导致整个查询失败。
 - 公钥由应用通过 `Updater::SetPublicKey()` 内置，不出现在 release index 里。
 - release index 本身不签名：篡改 release index 最多指向另一个同样需要有效签名的安装包，且版本必须高于当前版本，
   不能回退。release index 的签名留待以后（届时通过新增可选字段加入）。
-- 签名工具：dazzle 以后提供 `dazzle sign` 命令；在此之前，任何能输出 Ed25519 原始签名的工具都可用
+- 签名工具：dazzle updater 以后提供 `dazzle_updater sign` 命令；在此之前，任何能输出 Ed25519 原始签名的工具都可用
   （Sparkle 的 `generate_keys` / `sign_update` 产出的密钥与签名同样有效）。

@@ -1,6 +1,6 @@
 using System.Runtime.InteropServices;
 
-namespace Dazzle;
+namespace DazzleUpdater;
 
 internal static class CString
 {

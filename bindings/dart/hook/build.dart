@@ -3,8 +3,8 @@ import 'dart:io';
 import 'package:code_assets/code_assets.dart';
 import 'package:hooks/hooks.dart';
 
-/// Builds the dazzle core library as a shared library with CMake and bundles
-/// it as the code asset that `lib/src/dazzle_bindings.dart` binds to.
+/// Builds the dazzle_updater core library as a shared library with CMake and bundles
+/// it as the code asset that `lib/src/dazzle_updater_bindings.dart` binds to.
 void main(List<String> args) async {
   await build(args, (input, output) async {
     if (!input.config.buildCodeAssets) {
@@ -14,7 +14,7 @@ void main(List<String> args) async {
     final targetOS = code.targetOS;
     if (targetOS != OS.current) {
       throw UnsupportedError(
-        'dazzle: building for $targetOS from ${OS.current} is not supported yet.',
+        'dazzle_updater: building for $targetOS from ${OS.current} is not supported yet.',
       );
     }
 
@@ -37,12 +37,12 @@ void main(List<String> args) async {
       '--build',
       buildDir.toFilePath(),
       '--target',
-      'dazzle',
+      'dazzle_updater',
       '--config',
       'Release',
     ]);
 
-    final fileName = targetOS.dylibFileName('dazzle');
+    final fileName = targetOS.dylibFileName('dazzle_updater');
     final libDir = buildDir.resolve('src/');
     // Multi-config generators (Visual Studio) add a per-configuration directory.
     final library =
@@ -51,13 +51,13 @@ void main(List<String> args) async {
           libDir.resolve('Release/$fileName'),
         ].firstWhere(
           (uri) => File.fromUri(uri).existsSync(),
-          orElse: () => throw StateError('dazzle: $fileName was not built.'),
+          orElse: () => throw StateError('dazzle_updater: $fileName was not built.'),
         );
 
     output.assets.code.add(
       CodeAsset(
         package: input.packageName,
-        name: 'src/dazzle_bindings.dart',
+        name: 'src/dazzle_updater_bindings.dart',
         linkMode: DynamicLoadingBundled(),
         file: library,
       ),
@@ -84,7 +84,7 @@ Iterable<Uri> _coreSources(Uri coreDir) sync* {
 String _appleArch(Architecture architecture) => switch (architecture) {
   Architecture.arm64 => 'arm64',
   Architecture.x64 => 'x86_64',
-  _ => throw UnsupportedError('dazzle: unsupported architecture $architecture'),
+  _ => throw UnsupportedError('dazzle_updater: unsupported architecture $architecture'),
 };
 
 Future<void> _run(String executable, List<String> arguments) async {

@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(dazzle_tests LANGUAGES CXX)
+project(dazzle_updater_tests LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -21,35 +21,35 @@ if(DAZZLE_WITH_UPDATER_UI)
   list(APPEND DAZZLE_TEST_SOURCES markdown_test.cpp)
 endif()
 
-add_executable(dazzle_tests ${DAZZLE_TEST_SOURCES})
+add_executable(dazzle_updater_tests ${DAZZLE_TEST_SOURCES})
 
-target_link_libraries(dazzle_tests PRIVATE dazzle)
+target_link_libraries(dazzle_updater_tests PRIVATE dazzle_updater)
 
-add_test(NAME dazzle_tests COMMAND dazzle_tests)
+add_test(NAME dazzle_updater_tests COMMAND dazzle_updater_tests)
 
-# A stand-in for the `dazzle sign` command specs/updater.md plans: it signs a package the
+# A stand-in for the `dazzle_updater sign` command specs/updater.md plans: it signs a package the
 # way a release would, with the same Monocypher build the library verifies with. Both
 # end-to-end install tests need it.
 if(APPLE OR CMAKE_SYSTEM_NAME STREQUAL "Linux")
   add_executable(fixture_signer fixture_signer.cpp)
-  target_link_libraries(fixture_signer PRIVATE dazzle)
+  target_link_libraries(fixture_signer PRIVATE dazzle_updater)
 endif()
 
 if(APPLE)
   # The end-to-end install test builds, replaces and relaunches application bundles, so
-  # it is opt-in: ctest -R dazzle_macos_install_e2e
-  add_test(NAME dazzle_macos_install_e2e
+  # it is opt-in: ctest -R dazzle_updater_macos_install_e2e
+  add_test(NAME dazzle_updater_macos_install_e2e
     COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/macos_install_e2e.sh"
             "$<TARGET_FILE:updater_example>" "$<TARGET_FILE:fixture_signer>")
-  set_tests_properties(dazzle_macos_install_e2e PROPERTIES LABELS "e2e" TIMEOUT 180)
+  set_tests_properties(dazzle_updater_macos_install_e2e PROPERTIES LABELS "e2e" TIMEOUT 180)
 endif()
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   # The Linux one replaces an application directory in place and starts it again; also
-  # opt-in: ctest -R dazzle_linux_install_e2e
-  add_test(NAME dazzle_linux_install_e2e
+  # opt-in: ctest -R dazzle_updater_linux_install_e2e
+  add_test(NAME dazzle_updater_linux_install_e2e
     COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/linux_install_e2e.sh"
             "$<$<TARGET_EXISTS:updater_example>:$<TARGET_FILE:updater_example>>"
             "$<TARGET_FILE:fixture_signer>")
-  set_tests_properties(dazzle_linux_install_e2e PROPERTIES LABELS "e2e" TIMEOUT 180)
+  set_tests_properties(dazzle_updater_linux_install_e2e PROPERTIES LABELS "e2e" TIMEOUT 180)
 endif()

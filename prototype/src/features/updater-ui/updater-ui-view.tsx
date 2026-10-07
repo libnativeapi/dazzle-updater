@@ -293,7 +293,7 @@ export function UpdaterUIView({
     }
   }
 
-  // The app that embeds dazzle; Desktop decides which window is key.
+  // The app that embeds dazzle_updater; Desktop decides which window is key.
   const host = (
     <Window title={appName} width={460}>
       <div className="updater-ui-view__host">

@@ -21,14 +21,6 @@ bool dazzle_updater_ui_check_for_updates_in_background(void);
 DAZZLE_EXPORT
 bool dazzle_updater_ui_is_visible(void);
 
-/// Draws whatever the module has been asked for since the last call.
-DAZZLE_EXPORT
-void dazzle_updater_ui_pump(void);
-
-/// Hands the module the UI thread its windows must be created on.
-DAZZLE_EXPORT
-void dazzle_updater_ui_set_dispatcher_queue(int64_t queue);
-
 /// Set the application name the windows use in their wording.
 ///
 /// String parameters accept NULL as an empty string.

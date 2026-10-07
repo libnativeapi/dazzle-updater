@@ -6,7 +6,7 @@
 
 #include <string>
 
-namespace dazzle {
+namespace dazzle_updater {
 namespace {
 
 /// The UpdateSource the release index module registers as "release-index": fetch the
@@ -63,4 +63,4 @@ std::string ReleaseIndexSource::GetUrl() const {
   return url_;
 }
 
-}  // namespace dazzle
+}  // namespace dazzle_updater

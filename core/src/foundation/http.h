@@ -14,7 +14,7 @@
 // (NSURLSession on macOS and iOS, WinHTTP on Windows, stub elsewhere for now). See
 // ../specs/updater.md ("实现分层").
 
-namespace dazzle {
+namespace dazzle_updater {
 
 /**
  * @brief Reports the progress of a transfer and lets the caller cancel it.
@@ -115,4 +115,4 @@ bool HttpIsAvailable();
  */
 bool IsHttpUrl(const std::string& url);
 
-}  // namespace dazzle
+}  // namespace dazzle_updater

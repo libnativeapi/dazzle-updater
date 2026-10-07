@@ -3,7 +3,7 @@
 #include <cctype>
 #include <cstring>
 
-namespace dazzle {
+namespace dazzle_updater {
 namespace {
 
 bool StartsWithScheme(const std::string& url, const char* scheme) {
@@ -57,4 +57,4 @@ HttpResult HttpClient::Get(const std::string& url, const std::string& destinatio
   return pimpl_->Get(url, destination_path, progress);
 }
 
-}  // namespace dazzle
+}  // namespace dazzle_updater

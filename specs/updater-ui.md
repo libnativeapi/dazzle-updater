@@ -9,10 +9,11 @@
 
 ## 目标与边界
 
-- 原生外观：macOS 用 AppKit 的系统控件；Windows 用 Win32 窗口，控件按 Windows 11 的 Fluent 规格
-  自绘；Linux 用 GTK 4 自己的控件（见"外观"）。不用 WebView。
+- 原生外观：macOS 用 AppKit 的系统控件；Windows 用 Windows App SDK 的 WinUI 3 控件；
+  Linux 用 GTK 4 自己的控件（见"外观"）。不用 WebView。
 - 一行代码接入：配好 Updater 的数据源和公钥，菜单项里调用 `CheckForUpdates()` 即可。
-- 任何 UI 框架的应用都能用（Flutter、Qt、Electron、原生），不要求应用配合事件循环。
+- 窗口实现和调度由 core 负责。macOS 可用于 Flutter、Qt、Electron 和原生应用；
+  Windows 目前要求 WinUI 3 宿主，Linux 要求 GTK 4 宿主。
 
 目前界面由两个更新窗口和一个只出现一次的询问窗口组成（见"窗口与流程"）。模块名不叫 window，是为以后留出其它形式的界面，
 例如后台检查发现更新时改用系统通知（macOS 通知中心、Windows toast），而不必改名。
@@ -20,7 +21,7 @@
 **暂不包含**（后续再设计）：系统通知、定时自动检查的调度、"退出时安装"、匿名系统信息上报、
 自定义文案和配色、自定义窗口内容、移动端界面。
 
-**不做**：独立的"正在解压"阶段。Sparkle 在下载后先解压再进入 Ready；dazzle 的签名校验在
+**不做**：独立的"正在解压"阶段。Sparkle 在下载后先解压再进入 Ready；dazzle updater 的签名校验在
 `DownloadUpdate()` 里完成，macOS 的解压发生在 `InstallUpdate()` 里（见 [updater.md](updater.md)），
 解压的时间已经包含在 Installing 里，没有可以单独显示的步骤。
 
@@ -82,7 +83,7 @@ class UpdaterUI {
 Updater 不持久化任何状态；`UpdaterUI` 要记住三件属于用户的事，存在平台的用户偏好里，
 随应用走、按用户隔离：
 
-| 偏好 | 含义 | macOS（`NSUserDefaults` 标准域） | Windows（`HKCU\Software\{公司名}\{应用名}\dazzle`） | Linux（`$XDG_CONFIG_HOME/dazzle/<应用名>.conf`） |
+| 偏好 | 含义 | macOS（`NSUserDefaults` 标准域） | Windows（`HKCU\Software\{公司名}\{应用名}\dazzle_updater`） | Linux（`$XDG_CONFIG_HOME/dazzle/<应用名>.conf`） |
 |---|---|---|---|---|
 | 自动检查 | 未回答 / 是 / 否 | `DazzleAutomaticChecks` | `AutomaticChecks`（DWORD，缺省为未回答） | `AutomaticChecks`（`1`/`0`，缺省为未回答） |
 | 自动下载 | 是 / 否 | `DazzleAutomaticDownloads` | `AutomaticDownloads`（DWORD） | `AutomaticDownloads`（`1`/`0`） |
@@ -102,27 +103,27 @@ Updater 不持久化任何状态；`UpdaterUI` 要记住三件属于用户的事
 典型用法：
 
 ```cpp
-dazzle::ReleaseIndexSource::GetInstance().SetUrl("https://example.com/myapp/releases.json");
-dazzle::Updater::GetInstance().SetPublicKey("pfIShU4dEXqPd5ObYNfDBiQWcXozk7estwzTnF9BamQ=");
+dazzle_updater::ReleaseIndexSource::GetInstance().SetUrl("https://example.com/myapp/releases.json");
+dazzle_updater::Updater::GetInstance().SetPublicKey("pfIShU4dEXqPd5ObYNfDBiQWcXozk7estwzTnF9BamQ=");
 
 // 应用启动后：
-dazzle::UpdaterUI::GetInstance().CheckForUpdatesInBackground();
+dazzle_updater::UpdaterUI::GetInstance().CheckForUpdatesInBackground();
 
 // "检查更新…"菜单项：
-dazzle::UpdaterUI::GetInstance().CheckForUpdates();
+dazzle_updater::UpdaterUI::GetInstance().CheckForUpdates();
 ```
 
 ## 线程
 
-- 所有方法**任意线程可调用，立即返回**，不阻塞调用方。这一点对 Flutter 尤其重要：Dart 代码
-  不一定运行在平台主线程上。
+- 所有方法**立即返回**，不阻塞调用方。macOS 可从任意线程调用；Windows 首次检查要从
+  宿主的 XAML UI 线程调用，建立调度后可从任意线程调用；Linux 需要初始化 GTK 并运行主循环。
 - 模块内部自己调度：Updater 的阻塞动作在模块自己的工作线程上执行；界面操作切到平台的 UI 线程——
-  macOS 投递到主线程（`dispatch_async(dispatch_get_main_queue(), ...)`），Windows 由模块自己的
-  UI 线程创建窗口并运行消息循环，不依赖、也不干扰应用的消息循环。Linux 用
+  macOS 投递到主线程（`dispatch_async(dispatch_get_main_queue(), ...)`）；Windows 首次检查在
+  宿主的 XAML UI 线程上调用，后端随后通过自己的消息窗口投递工作。Linux 用
   `g_main_context_invoke_full()` 把窗口操作投递给**应用自己的 GTK 主线程**：GTK 不是线程安全的，
   也只能由初始化它的线程使用，所以 Linux 要求应用是 GTK 应用（`gtk_init()` 已经有主循环），
   否则 `CheckForUpdates()` 与 `CheckForUpdatesInBackground()` 返回 false，什么都不显示。
-- 这是 dazzle 里唯一自带线程的模块；Updater 本身仍然没有线程（见 [updater.md](updater.md)）。
+- 这是 dazzle updater 里唯一自带线程的模块；Updater 本身仍然没有线程（见 [updater.md](updater.md)）。
 
 ## 窗口与流程
 
@@ -273,7 +274,7 @@ Error 状态的说明按 Updater 的 `GetErrorCode()`（见 [updater.md](updater
 | Windows | Markdown → RTF，显示在只读 RichEdit 控件（`msftedit.dll`，系统自带）中；深色时用 `EM_SETBKGNDCOLOR` 与字符格式设置配色 |
 | Linux | Markdown → `GtkTextBuffer` 的 tag，显示在只读 `GtkTextView`（包在 `GtkScrolledWindow` 里）中：标题、列表缩进、粗体、斜体、行内代码、代码块各是一个 tag，每个链接是名为 `link-<n>` 的 tag，点击时按 tag 找到地址交给桌面打开 |
 
-Markdown 解析用 md4c（`core/third_party/`，单文件、MIT），HTML/RTF 输出由 dazzle 自己实现
+Markdown 解析用 md4c（`core/third_party/`，单文件、MIT），HTML/RTF 输出由 dazzle updater 自己实现
 （`src/markdown/`）；md4c 自带的渲染器不使用，所以窗口只能渲染上面这个子集。两个平台都不需要 WebView。
 
 ## 本地化
@@ -283,7 +284,7 @@ Markdown 解析用 md4c（`core/third_party/`，单文件、MIT），HTML/RTF �
 
 ## 外观
 
-- macOS：窗口是标准 `NSWindow`（标题栏、红绿灯、阴影、缩放都交给系统），窗口内的控件由 dazzle 按
+- macOS：窗口是标准 `NSWindow`（标题栏、红绿灯、阴影、缩放都交给系统），窗口内的控件由 dazzle updater 按
   原型的 token 自绘，跟随浅色/深色模式（`platform/macos/updater_ui_controls_macos.*`）。这样做的原因是
   原型对 macOS 的按钮、复选框和进度条有自己的度量（macOS 27 一代是 28 pt 胶囊，15 一代是 22 pt 圆角），
   而 AppKit 的标准控件画不出这些值；自绘的每个控件仍然实现 AppKit 的约定：动作/目标、第一响应者、
@@ -294,7 +295,7 @@ Markdown 解析用 md4c（`core/third_party/`，单文件、MIT），HTML/RTF �
   - UpdateStatusWindow：`Titled | Closable`（按状态决定能否关闭），内容区 400 × 107 pt、最小
     213 × 107 pt。
   - UpdatePermissionWindow：`Titled`，没有关闭按钮，内容区宽 437 pt，高随内容（Esc 等同于"不检查"，
-    这是 dazzle 自己的键盘路径）。
+    这是 dazzle updater 自己的键盘路径）。
   - 尺寸与间距参照 Sparkle 的同类窗口：64 pt 应用图标，四周 20 pt 边距，更新说明区域为 6 pt 圆角、
     1 pt 分隔线边框。
   - 窗口内部按 Sparkle 2.x 自己的约束，逐条取自它的源码；原型 `prototype/src/features/updater-ui/
@@ -311,7 +312,7 @@ Markdown 解析用 md4c（`core/third_party/`，单文件、MIT），HTML/RTF �
     - **UpdatePermissionWindow** = `Sparkle/SUUpdatePermissionPrompt.xib`：内容 437 pt 宽，
       `Titled` 且没有关闭按钮（用户必须回答）、窗口无标题；图标 64 pt 在 (23, 18)；正文列从 106 pt 起
       （间距 19 pt），问题距顶 20 pt、13 pt 粗体，说明在它下面 8 pt；两个按钮相距 14 pt、距底 20 pt，
-      宽度不小于 101 pt。dazzle 不收集匿名系统信息，所以 Sparkle 那个区域不画。
+      宽度不小于 101 pt。dazzle updater 不收集匿名系统信息，所以 Sparkle 那个区域不画。
   - 文案也取自 Sparkle：`Sparkle/Base.lproj/Sparkle.strings` 与 `Sparkle/zh_CN.lproj/Sparkle.strings`
     （"Remind Me Later/稍后提醒我"、"Installing update…/正在安装更新…"、"Update Error!/更新错误！"、
     各错误码的整句文案等）。窗口标题：检查、已是最新、出错为"软件更新"，下载/就绪/安装为"正在更新{应用名}"；
@@ -322,9 +323,9 @@ Markdown 解析用 md4c（`core/third_party/`，单文件、MIT），HTML/RTF �
   - 仍由系统绘制的部分：窗口圆角与标题栏、红绿灯、窗口阴影、缩放。它们带着模块不该重做的行为。
   - 自绘控件的键盘行为与原 AppKit 一致：回车按默认按钮、Esc 与关闭窗口等同、Tab 在控件间移动、
     焦点框只在键盘获得焦点时出现。
-- Windows 有两条路，模块本身不引 UI 框架，示例可以：
+- Windows 的已实现后端使用 WinUI 3，位于 core；以下自绘路线为设计参考：
   - **自绘（模块内）**：Win32 顶层窗口，窗口内的控件（按钮、复选框、进度条、链接）不用 Common Controls，
-  而是由 dazzle 用 Direct2D + DirectWrite 自绘，外观取 WinUI 3 的 Fluent 规格。Common Controls v6
+  而是由 dazzle updater 用 Direct2D + DirectWrite 自绘，外观取 WinUI 3 的 Fluent 规格。Common Controls v6
   在 Windows 11 上是旧式外观，且没有公开的深色模式支持；自绘才能与系统其它部分一致并跟随深浅色。
   - 规格以 microsoft-ui-xaml 的主题资源为准（`Common_themeresources_any.xaml`、
     `Button_themeresources.xaml`、`CheckBox_themeresources.xaml`、`ProgressBar_themeresources.xaml`）：
@@ -337,21 +338,26 @@ Markdown 解析用 md4c（`core/third_party/`，单文件、MIT），HTML/RTF �
     实现同一个 `UiBackend` seam（与 macOS 的 AppKit、Linux 的 GTK 4 并列），由跨平台状态机、
     `updater_ui_content.cpp` 与 `updater_ui_strings.cpp` 驱动，控件、强调色、深浅色、DPI 与无障碍
     交给框架。`examples/winui3_updater_ui_example/` 退化为薄宿主（只调 C ABI）。
-    - **窗口属于宿主的 XAML 线程**：XAML 属于启动 `Application` 的那个线程，模块自建线程建窗口会被
-      `RPC_E_WRONG_THREAD` 拒绝。因此后端在**调用线程**上绘制（探测方式是真的建一个窗口），
-      非该线程的状态（检查失败、下载完成）先暂存，等宿主在自己的循环里调 `UpdaterUI::Pump()`
-      时绘制；`UpdaterUI::SetDispatcherQueue()` 供宿主显式声明线程，但**不接收跨 ABI 的对象句柄**
-      （那是 CCW，重入 CLR 会访问违例）。这两个入口都是 Windows 专用，按 `@note Platform availability`
-      记录，其它平台为空实现。
-    - **尺寸按内容区给**（`AppWindow.ResizeClient` + 每显示器 DPI 缩放）：`Resize` 设的是整窗，会让
-      内容少掉标题栏。状态窗口高度按自身组成算（4 + 64 + 8 + 32 + 20 = 128），不是 macOS 的 107。
+    - **窗口属于宿主的 XAML 线程**：XAML 属于启动 `Application` 的那个线程。首次检查要从
+      该线程调用；后端通过探测窗口确认线程，并创建自己的 Win32 消息窗口（`HWND_MESSAGE`）。
+      后续调用可来自其它线程。状态机产生的检查结果、下载进度、关闭窗口和退出请求由 core 用
+      `PostMessageW` 投递到消息窗口，在宿主已有的消息循环上执行。示例无需定时刷新，也无需
+      传入 DispatcherQueue 或跨 C ABI 的 COM 对象句柄。连续等待中的绘制只保留最新一份，
+      关闭、退出等动作按队列顺序保留。
+    - **尺寸按内容区给**（`AppWindow.ResizeClient` + 每显示器 DPI 缩放），高度按内容实测
+      （Update 窗口有更新说明时为 370，可调整大小）。`ResizeClient` 会在请求值上**再加一个系统标题栏**，
+      即使内容已经延伸进标题栏，所以按第一次得到的客户区校正一次。
       Permission 用**无标题栏的独立窗口**（无关闭按钮、Esc = 不检查、不画标题）。
-    - **尚未完成**：应用图标（`AppIcon()` 暂返回 null，需要安全的 GDI→WriteableBitmap 或 PNG 资源）；
-      Available/Downloaded 的截图需要"索引来自本地"的能力（Windows 没有 HTTP 层，真实检查止于 Error 状态）。
+    - 关闭按钮经 `AppWindow.Closing` 取消后报给状态机（Installing 时不报，窗口关不掉）；Esc 同关闭，
+      回车按默认按钮；默认按钮用 WinUI 的 `AccentButtonStyle`，颜色取宿主合并的主题资源，
+      深色时标题栏按钮的颜色一并设置。更新说明与其它平台一样经 md4c 渲染进 `RichTextBlock`，
+      只有 http/https/mailto 成为链接。应用图标取主程序的第一个图标资源，没有时用系统的通用图标。
+    - **宿主要声明 DPI 感知**（`app.manifest` 的 `PerMonitorV2`，WinUI 3 模板自带）：否则整个进程按
+      100% 渲染后被系统拉伸，窗口是糊的。这是宿主的清单，模块无法替它声明。
 
 - Linux 用 **GTK 4 自己的控件**（`GtkWindow` + `GtkHeaderBar`、`GtkLabel`、`GtkButton`、
   `GtkCheckButton`、`GtkProgressBar`、只读 `GtkTextView`），外观、深浅色、强调色、字体与无障碍
-  都由 GTK 和当前主题给出，dazzle 只给尺寸和间距：
+  都由 GTK 和当前主题给出，dazzle updater 只给尺寸和间距：
   - UpdateAvailableWindow：默认 532 × 370，最小 462 × 150，可调整大小；更新说明区域最小高 200 pt、
     6 px 圆角与 1 px 描边（一条 GTK CSS）。
   - UpdateStatusWindow：宽 400，高按内容（图标 64 + 文字/进度条 + 按钮行 ≈ 150），固定大小。
@@ -377,7 +383,7 @@ Markdown 解析用 md4c（`core/third_party/`，单文件、MIT），HTML/RTF �
 | 平台 | 可用 | 说明 |
 |---|---|---|
 | macOS | ✅ | AppKit |
-| Windows | ✅ | Win32 窗口 + Direct2D 自绘控件 |
+| Windows | ✅ | WinUI 3 窗口（要求宿主是 WinUI 3 应用，窗口画在它的 XAML 线程上） |
 | Linux | ✅ | GTK 4 窗口；要求应用本身是 GTK 应用（模块画在应用的 GTK 主循环上），构建时找不到 GTK 4 的构建返回 false |
 | iOS | ❌ | 应用应引导用户去 App Store / TestFlight |
 | Android | ❌ | |

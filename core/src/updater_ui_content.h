@@ -13,7 +13,7 @@
 // ContentInput and gets back the UiContent a backend draws. That keeps the wording and
 // the button set of every state, including every error code, testable on its own.
 
-namespace dazzle {
+namespace dazzle_updater {
 namespace internal {
 
 /// What the state machine knows about the round when it draws a state.
@@ -43,4 +43,4 @@ UiContent BuildContent(const ContentInput& input);
 std::string FormatBytes(int64_t bytes);
 
 }  // namespace internal
-}  // namespace dazzle
+}  // namespace dazzle_updater

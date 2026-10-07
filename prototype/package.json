@@ -1,9 +1,9 @@
 {
-  "name": "@dazzle/prototype",
+  "name": "@dazzle-updater/prototype",
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "description": "Interaction prototypes for the dazzle update UI",
+  "description": "Interaction prototypes for dazzle updater",
   "scripts": {
     "dev": "storybook dev -p 6006 --host 127.0.0.1",
     "build": "storybook build",

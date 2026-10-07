@@ -5,7 +5,7 @@
 // implements updates needs no source file at all (see ../CMakeLists.txt). The error text
 // and code match the availability table in ../../../specs/updater.md.
 
-namespace dazzle {
+namespace dazzle_updater {
 namespace {
 
 constexpr const char* kUnsupported = "not supported on this platform";
@@ -59,4 +59,4 @@ bool InstallDownloadedUpdate(const std::string&, const std::string&, const std::
   return false;
 }
 
-}  // namespace dazzle
+}  // namespace dazzle_updater

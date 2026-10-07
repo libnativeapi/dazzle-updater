@@ -11,7 +11,7 @@
 // prototype/src/features/updater-ui/strings.ts, which holds the same wording.
 // Internal: not a public header, and not read by the code generator.
 
-namespace dazzle {
+namespace dazzle_updater {
 namespace internal {
 
 struct UiStrings {
@@ -73,4 +73,4 @@ const UiStrings& UiStringsFor(const std::vector<std::string>& preferred_language
 std::string Format(const char* pattern, const std::vector<std::string>& values);
 
 }  // namespace internal
-}  // namespace dazzle
+}  // namespace dazzle_updater

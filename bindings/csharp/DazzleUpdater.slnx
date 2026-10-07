@@ -1,9 +1,9 @@
 <Solution>
-  <Project Path="Dazzle.csproj" />
+  <Project Path="DazzleUpdater.csproj" />
   <Folder Name="/examples/">
     <Project Path="examples/UpdaterExample/UpdaterExample.csproj" />
   </Folder>
   <Folder Name="/tests/">
-    <Project Path="tests/Dazzle.Tests/Dazzle.Tests.csproj" />
+    <Project Path="tests/DazzleUpdater.Tests/DazzleUpdater.Tests.csproj" />
   </Folder>
 </Solution>

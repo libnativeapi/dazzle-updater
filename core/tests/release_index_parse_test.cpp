@@ -4,9 +4,9 @@
 
 #include <string>
 
-using dazzle::ParseReleaseIndex;
-using dazzle::Release;
-using dazzle::UpdateQuery;
+using dazzle_updater::ParseReleaseIndex;
+using dazzle_updater::Release;
+using dazzle_updater::UpdateQuery;
 
 namespace {
 

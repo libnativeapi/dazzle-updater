@@ -3,11 +3,11 @@
 # breaks those builds for users on older CMake.
 cmake_minimum_required(VERSION 3.10)
 
-project(dazzle VERSION 0.0.1 LANGUAGES CXX)
+project(dazzle_updater_core VERSION 0.0.1 LANGUAGES CXX)
 
 # Bindings that load the library at runtime (Dart FFI) need a shared library;
 # bindings that link it (Rust) and the examples use the static one.
-option(DAZZLE_BUILD_SHARED "Build dazzle as a shared library" OFF)
+option(DAZZLE_BUILD_SHARED "Build dazzle_updater as a shared library" OFF)
 
 # UpdaterUI's native windows (../../specs/updater-ui.md) are optional. OFF leaves the
 # window and preferences implementations of this platform out of the build, together
@@ -244,7 +244,7 @@ if(NOT DAZZLE_WITH_UPDATER_UI)
     list(FILTER PLATFORM_SOURCES EXCLUDE REGEX "updater_ui_")
 else()
     # Markdown for the notes box: the parser is vendored (third_party/md4c), the writers
-    # are dazzle's own. Only the windows render Markdown, so only they pull it in.
+    # are dazzle_updater's own. Only the windows render Markdown, so only they pull it in.
     file(GLOB MARKDOWN_SOURCES "markdown/*.cpp")
     list(APPEND COMMON_SOURCES ${MARKDOWN_SOURCES})
     list(APPEND THIRD_PARTY_SOURCES
@@ -290,7 +290,7 @@ else()
   set(DAZZLE_LIBRARY_TYPE STATIC)
 endif()
 
-add_library(dazzle ${DAZZLE_LIBRARY_TYPE}
+add_library(dazzle_updater ${DAZZLE_LIBRARY_TYPE}
   ${COMMON_SOURCES}
   ${PLATFORM_SOURCES}
   ${CAPI_SOURCES}
@@ -298,51 +298,53 @@ add_library(dazzle ${DAZZLE_LIBRARY_TYPE}
   ${SEAM_FALLBACK_SOURCES}
 )
 
-# Propagate the language requirement to anything that links dazzle; the
+# Propagate the language requirement to anything that links dazzle_updater; the
 # CMAKE_CXX_STANDARD variables above only govern this directory's targets.
-target_compile_features(dazzle PUBLIC cxx_std_17)
+target_compile_features(dazzle_updater PUBLIC cxx_std_17)
 
 # Set library include directories
-target_include_directories(dazzle PUBLIC
+target_include_directories(dazzle_updater PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>
   $<INSTALL_INTERFACE:include>
 )
 
 # The vendored headers stay an implementation detail of the library.
-target_include_directories(dazzle PRIVATE "${THIRD_PARTY_INCLUDE_DIR}")
+target_include_directories(dazzle_updater PRIVATE "${THIRD_PARTY_INCLUDE_DIR}")
 
 
 # Link required frameworks and libraries
 if(ANDROID)
-    target_link_libraries(dazzle PUBLIC log android)
+    target_link_libraries(dazzle_updater PUBLIC log android)
 elseif(CMAKE_SYSTEM_NAME STREQUAL "iOS")
-    target_link_libraries(dazzle PUBLIC "-framework Foundation")
-    target_compile_options(dazzle PRIVATE "-x" "objective-c++")
+    target_link_libraries(dazzle_updater PUBLIC "-framework Foundation")
+    target_compile_options(dazzle_updater PRIVATE "-x" "objective-c++")
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    target_link_libraries(dazzle PUBLIC pthread)
+    target_link_libraries(dazzle_updater PUBLIC pthread)
     # libcurl carries the HTTP seam; the include directories and link flags come with the
     # pkg-config imported target, which is also what makes the build work from a prefix
     # (PKG_CONFIG_PATH) rather than from /usr.
     if(DAZZLE_LINUX_HTTP_AVAILABLE)
-        target_link_libraries(dazzle PUBLIC PkgConfig::LIBCURL)
+        target_link_libraries(dazzle_updater PUBLIC PkgConfig::LIBCURL)
     endif()
     # The windows are GTK 4's; a build without them links nothing of it.
     if(DAZZLE_WITH_UPDATER_UI AND DAZZLE_LINUX_GTK4_AVAILABLE)
-        target_link_libraries(dazzle PUBLIC PkgConfig::GTK4)
+        target_link_libraries(dazzle_updater PUBLIC PkgConfig::GTK4)
     endif()
 elseif(APPLE)
-    target_link_libraries(dazzle PUBLIC "-framework Foundation")
+    target_link_libraries(dazzle_updater PUBLIC "-framework Foundation")
     # The Objective-C++ files are the platform ones, and the `.mm` extension is already
     # what makes CMake compile them as OBJCXX (enable_language above). The vendored C
     # files are therefore left as C: md4c does not compile as Objective-C++.
     # The windows are AppKit; a build without them does not link it at all.
     if(DAZZLE_WITH_UPDATER_UI)
-        target_link_libraries(dazzle PUBLIC "-framework AppKit")
+        target_link_libraries(dazzle_updater PUBLIC "-framework AppKit")
     endif()
 elseif(CMAKE_SYSTEM_NAME STREQUAL "OHOS")
-    target_link_libraries(dazzle PUBLIC hilog_ndk.z)
+    target_link_libraries(dazzle_updater PUBLIC hilog_ndk.z)
 elseif(WIN32)
-    target_link_libraries(dazzle PUBLIC kernel32)
+    # WinHTTP for the HTTP seam, version.lib for the executable's VERSIONINFO, shell32 for
+    # the installer launch (system_windows.cpp).
+    target_link_libraries(dazzle_updater PUBLIC kernel32 winhttp version shell32)
     # C++/WinRT wants C++20 (or /await), and the projections come from the Windows App SDK
     # payload. Only the backend files take the newer mode: the rest of core is C++17.
     if(DAZZLE_WITH_UPDATER_UI AND DAZZLE_WINDOWS_WINUI3_AVAILABLE)
@@ -357,32 +359,32 @@ elseif(WIN32)
             COMMAND "${CMAKE_COMMAND}" -P "${CMAKE_BINARY_DIR}/generate-winrt.cmake"
             COMMENT "Generating the C++/WinRT projections for the Windows App SDK"
             VERBATIM)
-        add_custom_target(dazzle_winrt_projections DEPENDS "${DAZZLE_WINRT_STAMP}")
-        add_dependencies(dazzle dazzle_winrt_projections)
+        add_custom_target(dazzle_updater_winrt_projections DEPENDS "${DAZZLE_WINRT_STAMP}")
+        add_dependencies(dazzle_updater dazzle_updater_winrt_projections)
         foreach(source ${PLATFORM_SOURCES})
             if(source MATCHES "updater_ui_backend_winui3")
                 set_source_files_properties("${source}" PROPERTIES
                     COMPILE_OPTIONS "/std:c++17;/await;/permissive;/EHsc;/bigobj;/D_WIN32_WINNT=0x0A00")
             endif()
         endforeach()
-        target_include_directories(dazzle PRIVATE
+        target_include_directories(dazzle_updater PRIVATE
             "${DAZZLE_WINRT_GENERATED}" ${DAZZLE_WASDK_INCLUDE_DIRS})
         if(DAZZLE_CPPWINRT_INCLUDE)
             # Ahead of everything: the matching base.h decides whether the projections
             # compile.
-            target_include_directories(dazzle BEFORE PRIVATE "${DAZZLE_CPPWINRT_INCLUDE}")
+            target_include_directories(dazzle_updater BEFORE PRIVATE "${DAZZLE_CPPWINRT_INCLUDE}")
         endif()
         # C++/WinRT's own entry points (RoGetActivationFactory, RoOriginateLanguageException)
         # come from the Windows Runtime umbrella library.
-        target_link_libraries(dazzle PRIVATE windowsapp)
+        target_link_libraries(dazzle_updater PRIVATE windowsapp)
         foreach(lib_dir ${DAZZLE_WASDK_LIB_DIRS})
             file(GLOB component_libs "${lib_dir}/*.lib")
-            target_link_libraries(dazzle PRIVATE ${component_libs})
+            target_link_libraries(dazzle_updater PRIVATE ${component_libs})
         endforeach()
     endif()
-    # The windows draw their own Fluent controls (Direct2D + DirectWrite), follow the
-    # system theme through DWM and expose themselves to UI Automation.
-    if(DAZZLE_WITH_UPDATER_UI)
-        target_link_libraries(dazzle PUBLIC user32 gdi32 shell32 d2d1 dwrite dwmapi uiautomationcore)
+    # Native icon extraction and the message window used to dispatch onto the XAML
+    # thread. WinUI itself supplies the controls, theme and UI Automation support.
+    if(DAZZLE_WITH_UPDATER_UI AND DAZZLE_WINDOWS_WINUI3_AVAILABLE)
+        target_link_libraries(dazzle_updater PRIVATE user32 gdi32)
     endif()
 endif()

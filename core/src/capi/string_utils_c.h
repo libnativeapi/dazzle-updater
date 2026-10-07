@@ -5,7 +5,7 @@
 #ifdef __cplusplus
 #include <string>
 
-namespace dazzle {
+namespace dazzle_updater {
 
 /**
  * Copy a C++ string into a newly allocated C string.
@@ -14,7 +14,7 @@ namespace dazzle {
  */
 char* to_c_str(const std::string& str);
 
-}  // namespace dazzle
+}  // namespace dazzle_updater
 #endif
 
 #ifdef __cplusplus
@@ -22,7 +22,7 @@ extern "C" {
 #endif
 
 /**
- * Free a string returned by the dazzle C API.
+ * Free a string returned by the dazzle_updater C API.
  * @param str The string to free (can be NULL)
  */
 DAZZLE_EXPORT

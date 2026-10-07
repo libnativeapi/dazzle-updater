@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <!--
-    A real WinUI 3 application (Windows App SDK) showing dazzle's update windows.
+    A real WinUI 3 application (Windows App SDK) showing dazzle_updater's update windows.
     Unpackaged and self-contained: nothing has to be installed on the machine, the
     Windows App Runtime travels with the output. Build with `dotnet build`, run the .exe.
   -->
@@ -8,7 +8,7 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>net9.0-windows10.0.26100.0</TargetFramework>
     <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
-    <RootNamespace>Dazzle.WinUI3UpdaterUiExample</RootNamespace>
+    <RootNamespace>DazzleUpdater.WinUI3UpdaterUiExample</RootNamespace>
     <AssemblyName>DazzleUiExample</AssemblyName>
     <Nullable>enable</Nullable>
     <!-- [LibraryImport] generates unsafe code. -->
@@ -18,6 +18,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWinUI>true</UseWinUI>
     <WindowsPackageType>None</WindowsPackageType>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
     <EnableMsixTooling>false</EnableMsixTooling>
     <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
@@ -28,17 +29,15 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.8.260921001" />
     <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.28000.2705" />
-    <!-- The windows show the application's own icon, which System.Drawing extracts. -->
-    <PackageReference Include="System.Drawing.Common" Version="9.0.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <!-- The project reference is what builds core/ with CMake and ships dazzle.dll; the
+    <!-- The project reference is what builds core/ with CMake and ships dazzle_updater.dll; the
          plain reference is what makes the binding a runtime asset of this net9.0-windows
          app, which a net8.0 project reference alone is not. -->
-    <ProjectReference Include="../../bindings/csharp/Dazzle.csproj" ReferenceOutputAssembly="false" />
-    <Reference Include="Dazzle">
-      <HintPath>../../bindings/csharp/bin/$(Configuration)/net8.0/Dazzle.dll</HintPath>
+    <ProjectReference Include="../../bindings/csharp/DazzleUpdater.csproj" ReferenceOutputAssembly="false" />
+    <Reference Include="DazzleUpdater">
+      <HintPath>../../bindings/csharp/bin/$(Configuration)/net8.0/DazzleUpdater.dll</HintPath>
     </Reference>
   </ItemGroup>
 </Project>

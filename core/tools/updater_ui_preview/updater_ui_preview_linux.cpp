@@ -33,10 +33,10 @@
 #include "../../src/updater_ui_state.h"
 #include "../../src/updater_ui_strings.h"
 
-using dazzle::UiPreferences;
-using dazzle::UiPreferencesStore;
-using dazzle::internal::UiRunner;
-using dazzle::internal::UpdaterPort;
+using dazzle_updater::UiPreferences;
+using dazzle_updater::UiPreferencesStore;
+using dazzle_updater::internal::UiRunner;
+using dazzle_updater::internal::UpdaterPort;
 
 namespace {
 
@@ -70,7 +70,7 @@ const char* const kNotes =
     "\n"
     "- **Faster** startup: the window opens in half the time.\n"
     "- Fixed a crash when the last document was closed twice.\n"
-    "- `dazzle` now reports the version it is updating *from*.\n"
+    "- `dazzle_updater` now reports the version it is updating *from*.\n"
     "\n"
     "### Notes\n"
     "\n"
@@ -200,8 +200,8 @@ ScriptedPort g_port;
 /// A runner that reads `g_store` when it first needs it, which is how a round is started
 /// from a given set of user answers. The module's own singleton is never destroyed either.
 UiRunner* NewRunner() {
-  UiRunner* runner = new UiRunner(dazzle::internal::GetUiBackend(), g_port, g_store,
-                                  dazzle::internal::UiStringsFor({PreviewChinese() ? "zh-Hans"
+  UiRunner* runner = new UiRunner(dazzle_updater::internal::GetUiBackend(), g_port, g_store,
+                                  dazzle_updater::internal::UiStringsFor({PreviewChinese() ? "zh-Hans"
                                                                                   : "en"}));
   runner->SetAppName("Dazzle Demo");
   return runner;
@@ -225,9 +225,9 @@ GtkWidget* CurrentWindow() {
 
 /// The labels the state's buttons carry, in the language this run draws: the flow is
 /// driven by pressing the real buttons, so their names have to be the drawn ones.
-const dazzle::internal::UiStrings& Strings() {
-  static const dazzle::internal::UiStrings& strings =
-      dazzle::internal::UiStringsFor({PreviewChinese() ? "zh-Hans" : "en"});
+const dazzle_updater::internal::UiStrings& Strings() {
+  static const dazzle_updater::internal::UiStrings& strings =
+      dazzle_updater::internal::UiStringsFor({PreviewChinese() ? "zh-Hans" : "en"});
   return strings;
 }
 
@@ -278,6 +278,9 @@ void Pump(int milliseconds) {
 /// destroyed as the new one is presented, and a capture taken in between is of the dying
 /// window.
 void Settle() {
+  // A fixed window asks for its size again a moment after its content changed (the
+  // backend's ResizeAgainSoon); the capture waits for that too.
+  Pump(250);
   for (int attempt = 0; attempt < 40; ++attempt) {
     Pump(50);
     GtkWidget* window = CurrentWindow();
@@ -285,8 +288,13 @@ void Settle() {
       continue;
     }
     GtkWidget* before = window;
+    const int width = gtk_widget_get_width(before);
+    const int height = gtk_widget_get_height(before);
     Pump(50);
-    if (CurrentWindow() == before && gtk_widget_get_width(before) > 0) {
+    // The same window at the same size: a window that grew for its new content is resized
+    // through the X server, and a capture taken before that round trip is clipped.
+    if (CurrentWindow() == before && width > 0 && gtk_widget_get_width(before) == width &&
+        gtk_widget_get_height(before) == height) {
       return;
     }
   }
@@ -322,8 +330,20 @@ void Capture(const std::string& name) {
   const std::string file = OutputDirectory() + "/" + PreviewPrefix() + name + ".png";
   const cairo_status_t status = cairo_surface_write_to_png(surface, file.c_str());
   cairo_surface_destroy(surface);
-  std::printf("%-26s %s  %dx%d%s\n", name.c_str(), gtk_window_get_title(GTK_WINDOW(window)),
-              width, height, status == CAIRO_STATUS_SUCCESS ? "" : "  (write failed)");
+  // What the content asks for at the width it has, next to what it got: a window whose
+  // content is given less than it asks for clips it.
+  int natural = 0;
+  int allocated = 0;
+  if (GtkWidget* child = gtk_window_get_child(GTK_WINDOW(window))) {
+    int minimum = 0;
+    gtk_widget_measure(child, GTK_ORIENTATION_VERTICAL, gtk_widget_get_width(child), &minimum,
+                       &natural, nullptr, nullptr);  // margins included
+    allocated = gtk_widget_get_height(child) + gtk_widget_get_margin_top(child) +
+                gtk_widget_get_margin_bottom(child);
+  }
+  std::printf("%-26s %s  %dx%d%s%s\n", name.c_str(), gtk_window_get_title(GTK_WINDOW(window)),
+              width, height, natural > allocated ? "  (CLIPPED: content wants more height)" : "",
+              status == CAIRO_STATUS_SUCCESS ? "" : "  (write failed)");
   std::fflush(stdout);
 }
 

@@ -4,7 +4,7 @@
 
 #include "foundation/updater_ui_preferences.h"
 
-namespace dazzle {
+namespace dazzle_updater {
 namespace internal {
 namespace {
 
@@ -161,4 +161,4 @@ std::string Format(const char* pattern, const std::vector<std::string>& values) 
 }
 
 }  // namespace internal
-}  // namespace dazzle
+}  // namespace dazzle_updater

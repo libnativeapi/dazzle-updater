@@ -36,7 +36,7 @@ dart:
 
 # Test the C# binding and run its example
 csharp:
-	cd bindings/csharp && dotnet test Dazzle.slnx && dotnet run --project examples/UpdaterExample
+	cd bindings/csharp && dotnet test DazzleUpdater.slnx && dotnet run --project examples/UpdaterExample
 
 # Build the Flutter example app (needs the Flutter SDK; not part of `test`)
 flutter:

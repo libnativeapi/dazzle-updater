@@ -10,7 +10,7 @@
 // UpdaterUI adds no update logic: everything here is an existing Updater method, with
 // the same meaning and the same error contract (../specs/updater.md).
 
-namespace dazzle {
+namespace dazzle_updater {
 namespace internal {
 
 class UpdaterPort {
@@ -41,4 +41,4 @@ class UpdaterPort {
 UpdaterPort& GetUpdaterPort();
 
 }  // namespace internal
-}  // namespace dazzle
+}  // namespace dazzle_updater

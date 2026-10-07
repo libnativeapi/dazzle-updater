@@ -8,7 +8,7 @@
  * above the line under it. The check box and the two answers follow in that same column,
  * the answers 14 pt apart and 20 pt from the bottom edge.
  *
- * dazzle does not collect the anonymous system profile, so that part of Sparkle's prompt
+ * dazzle_updater does not collect the anonymous system profile, so that part of Sparkle's prompt
  * is not drawn (specs/updater-ui.md); the rest is Sparkle's own geometry.
  */
 

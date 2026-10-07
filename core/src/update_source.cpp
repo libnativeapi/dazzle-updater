@@ -3,7 +3,7 @@
 #include <map>
 #include <mutex>
 
-namespace dazzle {
+namespace dazzle_updater {
 namespace {
 
 std::mutex& RegistryMutex() {
@@ -32,4 +32,4 @@ UpdateSource* FindUpdateSource(const std::string& name) {
   return found == Registry().end() ? nullptr : found->second;
 }
 
-}  // namespace dazzle
+}  // namespace dazzle_updater

@@ -6,7 +6,7 @@
 
 #include "md4c/md4c.h"
 
-// Markdown → HTML, over md4c's parser (core/third_party/md4c). The writer is dazzle's
+// Markdown → HTML, over md4c's parser (core/third_party/md4c). The writer is dazzle_updater's
 // own, and renders only what ../specs/updater-ui.md lists: what the subset does not
 // cover is dropped rather than passed through.
 //
@@ -14,7 +14,7 @@
 // is a fragment: no <html>, <head> or <body>, no styling — the window applies the
 // platform's own font, size and colors afterwards.
 
-namespace dazzle {
+namespace dazzle_updater {
 namespace {
 
 /// Escapes the characters that would otherwise be read as markup. `&` is escaped even in
@@ -288,4 +288,4 @@ std::string MarkdownToHtml(const std::string& markdown) {
   return writer.html;
 }
 
-}  // namespace dazzle
+}  // namespace dazzle_updater

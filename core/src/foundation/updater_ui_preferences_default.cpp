@@ -11,7 +11,7 @@
 // DAZZLE_WITH_UPDATER_UI=OFF compiles. Tests inject their own store for the same reason
 // (see ../tests/updater_ui_test.cpp).
 
-namespace dazzle {
+namespace dazzle_updater {
 namespace {
 
 class MemoryPreferencesStore final : public UiPreferencesStore {
@@ -42,4 +42,4 @@ std::vector<std::string> UiPreferredLanguages() {
   return {};  // the windows are worded in English
 }
 
-}  // namespace dazzle
+}  // namespace dazzle_updater

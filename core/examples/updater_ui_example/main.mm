@@ -20,7 +20,7 @@
 
 #import <AppKit/AppKit.h>
 
-#include <dazzle.h>
+#include <dazzle_updater.h>
 
 #include <cstdio>
 #include <string>
@@ -65,7 +65,7 @@ void PrintConfiguration(const std::string& feed, const std::string& key,
 
   // The user started the application, so this is the check they asked for: the window
   // opens at once and walks them through whatever the feed has.
-  dazzle::UpdaterUI::GetInstance().CheckForUpdates();
+  dazzle_updater::UpdaterUI::GetInstance().CheckForUpdates();
 }
 
 - (BOOL)applicationShouldTerminateAfterLastWindowClosed:(NSApplication*)sender {
@@ -73,13 +73,13 @@ void PrintConfiguration(const std::string& feed, const std::string& key,
 }
 
 - (void)checkForUpdates:(id)sender {
-  dazzle::UpdaterUI::GetInstance().CheckForUpdates();
+  dazzle_updater::UpdaterUI::GetInstance().CheckForUpdates();
 }
 
 - (void)checkInBackground:(id)sender {
   // The silent entry point: nothing is shown unless there is something to tell the user
   // about, and the question about automatic checks is asked the first time.
-  dazzle::UpdaterUI::GetInstance().CheckForUpdatesInBackground();
+  dazzle_updater::UpdaterUI::GetInstance().CheckForUpdatesInBackground();
 }
 
 - (void)buildMenu {
@@ -103,7 +103,7 @@ void PrintConfiguration(const std::string& feed, const std::string& key,
 
 - (void)buildWindow {
   const std::string name = InfoString(@"CFBundleName");
-  const std::string version = dazzle::Updater::GetInstance().GetCurrentVersion();
+  const std::string version = dazzle_updater::Updater::GetInstance().GetCurrentVersion();
 
   NSView* content = [[NSView alloc] initWithFrame:NSMakeRect(0, 0, 420, 150)];
 
@@ -114,7 +114,7 @@ void PrintConfiguration(const std::string& feed, const std::string& key,
 
   NSTextField* title = [NSTextField labelWithString:
                                         [NSString stringWithFormat:@"%s %s",
-                                                                   name.empty() ? "Dazzle" : name.c_str(),
+                                                                   name.empty() ? "DazzleUpdater" : name.c_str(),
                                                                    version.c_str()]];
   title.font = [NSFont boldSystemFontOfSize:15];
   title.frame = NSMakeRect(100, 66, 300, 20);
@@ -146,7 +146,7 @@ void PrintConfiguration(const std::string& feed, const std::string& key,
                                                   NSWindowStyleMaskMiniaturizable
                                           backing:NSBackingStoreBuffered
                                             defer:NO];
-  _window.title = [NSString stringWithFormat:@"%s", name.empty() ? "Dazzle" : name.c_str()];
+  _window.title = [NSString stringWithFormat:@"%s", name.empty() ? "DazzleUpdater" : name.c_str()];
   _window.contentView = content;
   _window.releasedWhenClosed = NO;
   [_window center];
@@ -157,8 +157,8 @@ void PrintConfiguration(const std::string& feed, const std::string& key,
 
 int main(int argc, char** argv) {
   @autoreleasepool {
-    dazzle::Updater& updater = dazzle::Updater::GetInstance();
-    dazzle::UpdaterUI& ui = dazzle::UpdaterUI::GetInstance();
+    dazzle_updater::Updater& updater = dazzle_updater::Updater::GetInstance();
+    dazzle_updater::UpdaterUI& ui = dazzle_updater::UpdaterUI::GetInstance();
 
     // The arguments win over the bundle's Info.plist, so the same binary can be pointed
     // at another feed from a terminal.
@@ -187,7 +187,7 @@ int main(int argc, char** argv) {
                    "no release index or public key: pass them as arguments, or run "
                    "demo.sh, which writes them into this bundle's Info.plist\n");
     } else {
-      dazzle::ReleaseIndexSource::GetInstance().SetUrl(feed);
+      dazzle_updater::ReleaseIndexSource::GetInstance().SetUrl(feed);
       updater.SetPublicKey(key);
       // Needed only when the platform cannot tell the version by itself — that is, when
       // the binary runs outside its bundle.

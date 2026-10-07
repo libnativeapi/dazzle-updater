@@ -7,7 +7,7 @@
 
 #include <string>
 
-namespace dazzle {
+namespace dazzle_updater {
 
 /// Calls the progress callback, if the caller installed one: an HttpProgress that is
 /// empty (the release index fetch) must not be invoked.
@@ -36,11 +36,11 @@ struct HttpTransferState {
   std::string error_code;
 };
 
-}  // namespace dazzle
+}  // namespace dazzle_updater
 
 @interface DazzleHttpDelegate : NSObject <NSURLSessionDataDelegate> {
  @public
-  dazzle::HttpTransferState* state;
+  dazzle_updater::HttpTransferState* state;
 }
 @end
 
@@ -55,7 +55,7 @@ struct HttpTransferState {
   }
   const int64_t expected = (int64_t)[response expectedContentLength];
   state->total = expected == (int64_t)NSURLResponseUnknownLength ? 0 : expected;
-  if (!dazzle::ReportProgress(state->progress, 0, state->total)) {
+  if (!dazzle_updater::ReportProgress(state->progress, 0, state->total)) {
     state->cancelled = true;
     completionHandler(NSURLSessionResponseCancel);
     return;
@@ -83,7 +83,7 @@ struct HttpTransferState {
     [state->body appendData:data];
   }
   state->received += length;
-  if (!dazzle::ReportProgress(state->progress, state->received, state->total)) {
+  if (!dazzle_updater::ReportProgress(state->progress, state->received, state->total)) {
     state->cancelled = true;
     [task cancel];
   }
@@ -105,7 +105,7 @@ struct HttpTransferState {
 
 @end
 
-namespace dazzle {
+namespace dazzle_updater {
 namespace {
 
 class MacosHttpImpl final : public HttpClient::Impl {
@@ -187,4 +187,4 @@ HttpClient::HttpClient() : pimpl_(std::make_unique<MacosHttpImpl>()) {}
 
 HttpClient::~HttpClient() = default;
 
-}  // namespace dazzle
+}  // namespace dazzle_updater

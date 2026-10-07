@@ -8,7 +8,7 @@
 // entry points answer false the same way in both, without a single #ifdef in the
 // sources. See src/CMakeLists.txt.
 
-namespace dazzle {
+namespace dazzle_updater {
 namespace internal {
 namespace {
 
@@ -30,4 +30,4 @@ UiBackend& GetUiBackend() {
 }
 
 }  // namespace internal
-}  // namespace dazzle
+}  // namespace dazzle_updater

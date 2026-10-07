@@ -1,4 +1,4 @@
-using Dazzle;
+using DazzleUpdater;
 
 var updater = Updater.Instance;
 var source = ReleaseIndexSource.Instance;

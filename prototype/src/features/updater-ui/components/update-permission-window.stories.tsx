@@ -12,7 +12,7 @@ const meta = {
     docs: {
       description: {
         component:
-          'Sparkle 2.x `Sparkle/SUUpdatePermissionPrompt.xib`, one to one in the parts dazzle keeps: content 437 pt wide, titled with no close button and no title of its own, the icon 64 pt at (23, 18), the text column at 106 pt with the question 20 pt from the top, and the two answers 14 pt apart, 20 pt from the bottom. Sparkle’s anonymous system profile section is not drawn.',
+          'Sparkle 2.x `Sparkle/SUUpdatePermissionPrompt.xib`, one to one in the parts dazzle_updater keeps: content 437 pt wide, titled with no close button and no title of its own, the icon 64 pt at (23, 18), the text column at 106 pt with the question 20 pt from the top, and the two answers 14 pt apart, 20 pt from the bottom. Sparkle’s anonymous system profile section is not drawn.',
       },
     },
   },

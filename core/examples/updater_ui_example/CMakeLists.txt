@@ -12,7 +12,7 @@ if(APPLE)
 
   add_executable(updater_ui_example MACOSX_BUNDLE main.mm)
 
-  target_link_libraries(updater_ui_example PRIVATE dazzle)
+  target_link_libraries(updater_ui_example PRIVATE dazzle_updater)
 
   # A bundle, because UpdaterUI asks the platform for the application's own icon and name,
   # and because the update this example demonstrates replaces a bundle in place. The
@@ -42,5 +42,5 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   # GTK 4 was found.
   add_executable(updater_ui_example main_linux.cpp)
 
-  target_link_libraries(updater_ui_example PRIVATE dazzle)
+  target_link_libraries(updater_ui_example PRIVATE dazzle_updater)
 endif()

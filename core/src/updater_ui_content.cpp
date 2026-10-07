@@ -3,7 +3,7 @@
 #include <cstdio>
 #include <vector>
 
-namespace dazzle {
+namespace dazzle_updater {
 namespace internal {
 namespace {
 
@@ -190,4 +190,4 @@ UiContent BuildContent(const ContentInput& input) {
 }
 
 }  // namespace internal
-}  // namespace dazzle
+}  // namespace dazzle_updater

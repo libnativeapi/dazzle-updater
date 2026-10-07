@@ -43,9 +43,9 @@ def _xml(indent: str, paragraphs: list[str], params: dict[str, str] | None = Non
 
 
 def native_methods(classes: list[Class]) -> str:
-    out = [BANNER, "using System.Runtime.InteropServices;", "", "namespace Dazzle;", "",
-           "/// <summary>", "/// Declarations of the dazzle C ABI (<c>core/src/capi/</c>).", "/// </summary>",
-           "internal static partial class NativeMethods", "{", '    private const string Library = "dazzle";',
+    out = [BANNER, "using System.Runtime.InteropServices;", "", "namespace DazzleUpdater;", "",
+           "/// <summary>", "/// Declarations of the dazzle_updater C ABI (<c>core/src/capi/</c>).", "/// </summary>",
+           "internal static partial class NativeMethods", "{", '    private const string Library = "dazzle_updater";',
            "", "    // string_utils_c.h", "", "    [LibraryImport(Library)]",
            "    internal static partial void dazzle_free_c_str(nint str);"]
     for cls in classes:
@@ -91,7 +91,7 @@ def _refs(cls: Class) -> dict[str, str]:
 def module(cls: Class) -> str:
     properties, actions = cls.properties_and_actions()
     refs = _refs(cls)
-    out = [BANNER, "namespace Dazzle;", "", *_xml("", blocks(cls.doc, refs)), f"public sealed class {cls.name}",
+    out = [BANNER, "namespace DazzleUpdater;", "", *_xml("", blocks(cls.doc, refs)), f"public sealed class {cls.name}",
            "{", f"    private {cls.name}()", "    {", "    }", "",
            "    /// <summary>The process-wide instance.</summary>",
            f"    public static {cls.name} Instance {{ get; }} = new();"]

@@ -7,4 +7,4 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 
 add_executable(updater_c_example main.c)
 
-target_link_libraries(updater_c_example dazzle)
+target_link_libraries(updater_c_example dazzle_updater)

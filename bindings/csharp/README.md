@@ -1,7 +1,7 @@
-# dazzle for C#
+# dazzle updater for C#
 
-.NET bindings for [dazzle](../../README.md), a cross-platform software
-update framework with its own API. The default source reads dazzle's own
+.NET bindings for [dazzle updater](../../README.md), a cross-platform software
+update framework with its own API. The default source reads dazzle updater's own
 [release index](../../specs/release-index.md); an optional `AppcastSource` will read
 [Sparkle](https://sparkle-project.org) appcasts.
 
@@ -15,8 +15,8 @@ platforms answer `"not supported on this platform"` until their implementations 
 - CMake 3.10+
 - A C++17 compiler (Xcode Command Line Tools on macOS, MSVC on Windows, GCC or Clang on Linux)
 
-Building `Dazzle.csproj` compiles the dazzle C++ core from source with CMake and copies
-the shared library next to your app, where `[LibraryImport("dazzle")]` finds it. There is
+Building `DazzleUpdater.csproj` compiles the dazzle updater C++ core from source with CMake and copies
+the shared library next to your app, where `[LibraryImport("dazzle_updater")]` finds it. There is
 no library to copy by hand.
 
 Only the host OS is supported for now: the native library is built for the machine you
@@ -28,14 +28,14 @@ The package is not on NuGet yet. Clone the repository and reference the project:
 
 ```xml
 <ItemGroup>
-  <ProjectReference Include="path/to/dazzle/bindings/csharp/Dazzle.csproj" />
+  <ProjectReference Include="path/to/dazzle_updater/bindings/csharp/DazzleUpdater.csproj" />
 </ItemGroup>
 ```
 
 ## Usage
 
 ```csharp
-using Dazzle;
+using DazzleUpdater;
 
 ReleaseIndexSource.Instance.Url = "https://example.com/myapp/releases.json";
 
@@ -66,8 +66,8 @@ dotnet run --project examples/UpdaterExample
 ## Development
 
 ```bash
-dotnet build Dazzle.slnx
-dotnet test Dazzle.slnx
+dotnet build DazzleUpdater.slnx
+dotnet test DazzleUpdater.slnx
 ```
 
 The library targets `net8.0`; the example and tests target `net10.0`.

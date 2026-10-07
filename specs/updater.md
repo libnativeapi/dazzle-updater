@@ -39,7 +39,7 @@ source、定时自动检查、跳过某个版本、channel、增量更新、分�
   语义（例如 Sparkle 的 `sparkle:os`、版本比较算法）完全封闭在自己的 source 里，不渗入 Updater。
 - 每个 source 是一个独立模块：自己的头文件、自己的单例、自己的配置项
   （`ReleaseIndexSource::SetUrl()`、日后的 `AppcastSource::SetUrl()`）。
-- 目前只有 `ReleaseIndexSource`，读取 dazzle 自有的 release index（JSON），格式见 [release-index.md](release-index.md)。
+- 目前只有 `ReleaseIndexSource`，读取 dazzle updater 自有的 release index（JSON），格式见 [release-index.md](release-index.md)。
 
 Sparkle 兼容层以后作为 `AppcastSource` 模块加入，并可用 CMake 选项
 （如 `DAZZLE_WITH_APPCAST`）裁掉。它不改动 Updater 的任何接口。
@@ -143,7 +143,7 @@ appcast 里的 HTML 转换过来（或只提供 `GetUpdateReleaseNotesUrl()`）�
 #### 下载
 
 ```cpp
-// 下载发现的更新到 dazzle 的缓存目录，并用 GetPublicKey() 校验签名。
+// 下载发现的更新到 dazzle_updater 的缓存目录，并用 GetPublicKey() 校验签名。
 // 返回 true 表示文件已下载且签名有效；false 见 GetErrorMessage()（含被取消）。
 bool DownloadUpdate();
 
@@ -169,7 +169,7 @@ bool IsUpdateDownloaded() const;
 bool InstallUpdate();
 ```
 
-dazzle 不替应用退出：各 UI 框架有自己的退出流程（保存文档、关闭窗口），由应用在
+dazzle updater 不替应用退出：各 UI 框架有自己的退出流程（保存文档、关闭窗口），由应用在
 `InstallUpdate()` 返回 true 后自行调用。
 
 | 平台 | 安装包格式（`Release::format`） | 做法 |
@@ -221,9 +221,9 @@ std::string GetErrorCode() const;
 典型用法：
 
 ```cpp
-dazzle::ReleaseIndexSource::GetInstance().SetUrl("https://example.com/myapp/releases.json");
+dazzle_updater::ReleaseIndexSource::GetInstance().SetUrl("https://example.com/myapp/releases.json");
 
-auto& updater = dazzle::Updater::GetInstance();
+auto& updater = dazzle_updater::Updater::GetInstance();
 updater.SetPublicKey("pfIShU4dEXqPd5ObYNfDBiQWcXozk7estwzTnF9BamQ=");
 
 // 在后台线程：

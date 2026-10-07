@@ -10,17 +10,17 @@
 
 void dazzle_release_index_source_set_url(const char* url) {
   try {
-    dazzle::ReleaseIndexSource::GetInstance().SetUrl(std::string(url ? url : ""));
+    dazzle_updater::ReleaseIndexSource::GetInstance().SetUrl(std::string(url ? url : ""));
   } catch (...) {
-    fprintf(stderr, "[dazzle] %s: unexpected exception\n", "dazzle_release_index_source_set_url");
+    fprintf(stderr, "[dazzle_updater] %s: unexpected exception\n", "dazzle_release_index_source_set_url");
   }
 }
 
 char* dazzle_release_index_source_get_url(void) {
   try {
-    return dazzle::to_c_str(dazzle::ReleaseIndexSource::GetInstance().GetUrl());
+    return dazzle_updater::to_c_str(dazzle_updater::ReleaseIndexSource::GetInstance().GetUrl());
   } catch (...) {
-    fprintf(stderr, "[dazzle] %s: unexpected exception\n", "dazzle_release_index_source_get_url");
+    fprintf(stderr, "[dazzle_updater] %s: unexpected exception\n", "dazzle_release_index_source_get_url");
     return nullptr;
   }
 }

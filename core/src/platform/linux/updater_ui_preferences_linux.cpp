@@ -24,7 +24,7 @@
 // the library — and a file the user can read, edit and delete is the honest Linux
 // equivalent of `NSUserDefaults` and the registry key the other two platforms use.
 
-namespace dazzle {
+namespace dazzle_updater {
 namespace {
 
 const char* const kGroup = "updater-ui";
@@ -159,12 +159,12 @@ class FilePreferencesStore final : public UiPreferencesStore {
     if (path.empty() || !EnsureDirectory(ConfigDirectory() + "/dazzle")) {
       return;  // no home directory to write into: the answers stay in memory
     }
-    // The whole file is rewritten: it holds dazzle's three keys and nothing else.
+    // The whole file is rewritten: it holds dazzle_updater's three keys and nothing else.
     std::ofstream file(path, std::ios::trunc);
     if (!file) {
       return;
     }
-    file << "# dazzle UpdaterUI preferences. Written by the application's own updater.\n";
+    file << "# dazzle_updater UpdaterUI preferences. Written by the application's own updater.\n";
     file << "[" << kGroup << "]\n";
     if (preferences.automatic_checks_answered) {
       file << kAutomaticChecksKey << "=" << FormatBool(preferences.automatic_checks) << "\n";
@@ -232,4 +232,4 @@ std::vector<std::string> UiPreferredLanguages() {
   return languages;
 }
 
-}  // namespace dazzle
+}  // namespace dazzle_updater

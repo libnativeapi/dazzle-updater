@@ -18,14 +18,14 @@
 // blocks and links. Images and raw HTML are dropped, and only http, https and mailto
 // links become links.
 
-namespace dazzle {
+namespace dazzle_updater {
 namespace internal {
 
 /// Renders `markdown` into `buffer`, appending one entry to `urls` per link it draws.
-/// Each link's tag is named "link-<n>" and carries n as its "dazzle-link-index" data,
+/// Each link's tag is named "link-<n>" and carries n as its "dazzle_updater-link-index" data,
 /// which is how the backend finds the target of a click without keeping its own map.
 void RenderNotesInto(GtkTextBuffer* buffer, const std::string& markdown,
                      std::vector<std::string>* urls);
 
 }  // namespace internal
-}  // namespace dazzle
+}  // namespace dazzle_updater

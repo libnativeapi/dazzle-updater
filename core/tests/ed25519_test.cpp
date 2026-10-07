@@ -4,9 +4,9 @@
 
 #include <string>
 
-using dazzle::DecodeBase64;
-using dazzle::IsValidPublicKey;
-using dazzle::VerifySignature;
+using dazzle_updater::DecodeBase64;
+using dazzle_updater::IsValidPublicKey;
+using dazzle_updater::VerifySignature;
 
 namespace {
 

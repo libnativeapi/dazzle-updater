@@ -1,8 +1,8 @@
-# dazzle
+# dazzle updater
 
 A cross-platform software update framework with its own API: `Updater` finds a new version
 through a data source, downloads and verifies it, and hands it to the platform installer.
-The default source reads dazzle's own [release index](../specs/release-index.md); an
+The default source reads dazzle updater's own [release index](../specs/release-index.md); an
 optional `AppcastSource` will read Sparkle appcasts. It is a C++17 library with a C ABI
 for bindings.
 
@@ -17,8 +17,8 @@ implementations land ([plan](../specs/updater.md),
 Requires CMake 3.10+ and a C++17 compiler.
 
 ```cmake
-add_subdirectory(dazzle)
-target_link_libraries(your_app PRIVATE dazzle)
+add_subdirectory(dazzle_updater)
+target_link_libraries(your_app PRIVATE dazzle_updater)
 ```
 
 Options:
@@ -32,12 +32,12 @@ Options:
 
 ```cpp
 #include <iostream>
-#include "dazzle.h"
+#include "dazzle_updater.h"
 
 int main() {
-  dazzle::ReleaseIndexSource::GetInstance().SetUrl("https://example.com/myapp/releases.json");
+  dazzle_updater::ReleaseIndexSource::GetInstance().SetUrl("https://example.com/myapp/releases.json");
 
-  auto& updater = dazzle::Updater::GetInstance();
+  auto& updater = dazzle_updater::Updater::GetInstance();
   updater.SetPublicKey("pfIShU4dEXqPd5ObYNfDBiQWcXozk7estwzTnF9BamQ=");
 
   // CheckForUpdates(), DownloadUpdate() and InstallUpdate() block, so call them from a
@@ -55,8 +55,8 @@ the same round, in the platform's own windows, with the same source and public k
 configured on `Updater` ([spec](../specs/updater-ui.md)).
 
 ```cpp
-dazzle::UpdaterUI::GetInstance().CheckForUpdatesInBackground();  // after start-up
-dazzle::UpdaterUI::GetInstance().CheckForUpdates();              // "Check for Updates…"
+dazzle_updater::UpdaterUI::GetInstance().CheckForUpdatesInBackground();  // after start-up
+dazzle_updater::UpdaterUI::GetInstance().CheckForUpdates();              // "Check for Updates…"
 ```
 
 ## Examples
@@ -92,5 +92,5 @@ index over HTTP, and checks that version 1.0.0 installs the signed 2.0.0 update 
 
 ## Contributing
 
-This library is developed as the `core/` directory of the dazzle workspace, next to its
+This library is developed as the `core/` directory of the dazzle updater workspace, next to its
 language bindings and design specs. See the [workspace README](../README.md).

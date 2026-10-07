@@ -46,7 +46,7 @@ impl Updater {
     /// Set the data source to check for updates.
     ///
     /// The source is chosen by its registered name. "release-index" is the default and
-    /// reads dazzle's own release index; the Sparkle-compatible module, once implemented,
+    /// reads dazzle_updater's own release index; the Sparkle-compatible module, once implemented,
     /// registers itself as "appcast".
     ///
     /// - `name`: The name of a registered source, e.g. "release-index"; "" restores the
@@ -231,7 +231,7 @@ impl Updater {
 
     /// Download the update found by the last check and verify its signature.
     ///
-    /// Blocks until the installer is in dazzle's cache directory and its Ed25519 signature
+    /// Blocks until the installer is in dazzle_updater's cache directory and its Ed25519 signature
     /// has been verified against `public_key()`. Call `cancel_download()` from another thread
     /// to stop it. Fails, and deletes the file, when no public key is set, when the release
     /// carries no signature, or when the signature does not match.
@@ -263,7 +263,7 @@ impl Updater {
     /// Blocks until the installer has been started. The caller must quit the process as
     /// soon as this returns true: the installer waits for this process to exit, then
     /// replaces the application and starts it again (on Windows the installer decides
-    /// whether to start it). dazzle never quits the application itself, so that each UI
+    /// whether to start it). dazzle_updater never quits the application itself, so that each UI
     /// framework can run its own shutdown, saving documents and closing windows.
     ///
     /// Returns true if the installer was started; false if it was not and the application

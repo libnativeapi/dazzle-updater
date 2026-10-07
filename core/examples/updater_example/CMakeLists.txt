@@ -7,4 +7,4 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_executable(updater_example main.cpp)
 
-target_link_libraries(updater_example dazzle)
+target_link_libraries(updater_example dazzle_updater)

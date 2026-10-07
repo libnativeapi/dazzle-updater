@@ -19,7 +19,7 @@ fn main() {
     let mut config = cmake::Config::new(&core_dir);
     config.define("BUILD_TESTING", "OFF");
     let profile = config.get_profile().to_owned();
-    let dst = config.build_target("dazzle").build();
+    let dst = config.build_target("dazzle_updater").build();
 
     let lib_dir = dst.join("build").join("src");
     println!("cargo:rustc-link-search=native={}", lib_dir.display());
@@ -28,7 +28,7 @@ fn main() {
         "cargo:rustc-link-search=native={}",
         lib_dir.join(profile).display()
     );
-    println!("cargo:rustc-link-lib=static=dazzle");
+    println!("cargo:rustc-link-lib=static=dazzle_updater");
 
     // Mirrors the platform libraries in core/src/CMakeLists.txt.
     match env::var("CARGO_CFG_TARGET_OS").unwrap().as_str() {

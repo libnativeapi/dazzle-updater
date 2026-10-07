@@ -51,7 +51,7 @@ secret_key="$(printf '%s\n' "$key_output" | sed -n 's/^secret //p')"
 feed="http://127.0.0.1:${port}/releases.json"
 
 # make_app <directory> <version> [<marker text>]. The binary sits directly in the
-# application directory, which is the directory dazzle replaces: the one holding the
+# application directory, which is the directory dazzle_updater replaces: the one holding the
 # running executable.
 make_app() {
   mkdir -p "$1"

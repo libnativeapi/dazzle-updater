@@ -30,7 +30,7 @@
 // event from inside Draw/Hide/BringToFront/QuitApplication (see
 // foundation/updater_ui_backend.h).
 
-namespace dazzle {
+namespace dazzle_updater {
 namespace internal {
 
 class UiRunner {
@@ -144,4 +144,4 @@ class UiRunner {
 };
 
 }  // namespace internal
-}  // namespace dazzle
+}  // namespace dazzle_updater

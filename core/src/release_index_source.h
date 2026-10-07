@@ -3,12 +3,12 @@
 #include <mutex>
 #include <string>
 
-namespace dazzle {
+namespace dazzle_updater {
 
 /**
  * @brief The release index data source.
  *
- * Reads dazzle's own release index: a `releases.json` JSON document at an HTTP(S)
+ * Reads dazzle_updater's own release index: a `releases.json` JSON document at an HTTP(S)
  * address that lists the application's versions and, for each version, the installer of
  * every platform it ships. Updater asks it for the release to offer this machine; the
  * address lives here, not on Updater, which knows no data format.
@@ -17,7 +17,7 @@ namespace dazzle {
  *
  * Typical usage:
  * @code
- * auto& source = dazzle::ReleaseIndexSource::GetInstance();
+ * auto& source = dazzle_updater::ReleaseIndexSource::GetInstance();
  * source.SetUrl("https://example.com/myapp/releases.json");
  * @endcode
  */
@@ -60,4 +60,4 @@ class ReleaseIndexSource {
   std::string url_;
 };
 
-}  // namespace dazzle
+}  // namespace dazzle_updater

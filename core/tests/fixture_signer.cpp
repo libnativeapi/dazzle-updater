@@ -1,6 +1,6 @@
 // Test fixture for the macOS install end-to-end script: it creates an Ed25519 key pair
 // and signs a package with the same Monocypher build the library verifies with. It is
-// not part of the library or of any binding; it stands in for the `dazzle sign` command
+// not part of the library or of any binding; it stands in for the `dazzle_updater sign` command
 // that ../specs/updater.md plans.
 //
 // Usage:
@@ -53,14 +53,14 @@ int main(int argc, char** argv) {
     uint8_t public_key[32];
     crypto_ed25519_key_pair(secret_key, public_key, seed);
     std::printf("public %s\n",
-                dazzle::EncodeBase64(std::string(reinterpret_cast<char*>(public_key), 32)).c_str());
+                dazzle_updater::EncodeBase64(std::string(reinterpret_cast<char*>(public_key), 32)).c_str());
     std::printf("secret %s\n",
-                dazzle::EncodeBase64(std::string(reinterpret_cast<char*>(secret_key), 64)).c_str());
+                dazzle_updater::EncodeBase64(std::string(reinterpret_cast<char*>(secret_key), 64)).c_str());
     return 0;
   }
   if (argc == 4 && std::string(argv[1]) == "sign") {
     std::string secret_key;
-    if (!dazzle::DecodeBase64(argv[2], &secret_key) || secret_key.size() != 64) {
+    if (!dazzle_updater::DecodeBase64(argv[2], &secret_key) || secret_key.size() != 64) {
       std::fprintf(stderr, "fixture_signer: the secret key is not a Base64 64-byte Ed25519 key\n");
       return 1;
     }
@@ -73,7 +73,7 @@ int main(int argc, char** argv) {
     crypto_ed25519_sign(signature, reinterpret_cast<const uint8_t*>(secret_key.data()),
                         reinterpret_cast<const uint8_t*>(data.data()), data.size());
     std::printf("%s\n",
-                dazzle::EncodeBase64(std::string(reinterpret_cast<char*>(signature), 64)).c_str());
+                dazzle_updater::EncodeBase64(std::string(reinterpret_cast<char*>(signature), 64)).c_str());
     return 0;
   }
   std::fprintf(stderr,

@@ -6,10 +6,10 @@
 // the standard user defaults of the application, so the answers follow the application
 // and are per user.
 //
-// Key names are dazzle's own, as the spec's table lists them. An absent automatic-checks
+// Key names are dazzle_updater's own, as the spec's table lists them. An absent automatic-checks
 // key is "not answered yet", which is what makes the one-time question one time only.
 
-namespace dazzle {
+namespace dazzle_updater {
 namespace {
 
 std::string ToUtf8(NSString* value) {
@@ -73,4 +73,4 @@ std::vector<std::string> UiPreferredLanguages() {
   return languages;
 }
 
-}  // namespace dazzle
+}  // namespace dazzle_updater

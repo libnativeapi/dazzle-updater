@@ -18,7 +18,7 @@
 // tokens (the prototype's "macOS 27" desktop: 28 pt capsules, 16 pt window corners,
 // specular rims), everything older the flat ones (22 pt buttons, 6 pt corners).
 
-namespace dazzle {
+namespace dazzle_updater {
 namespace internal {
 
 /// One generation of the tokens, in one appearance.
@@ -73,7 +73,7 @@ const MacTokens& MacCurrentTokens();
 const MacTokens& MacTokensForAppearance(NSAppearance* appearance);
 
 }  // namespace internal
-}  // namespace dazzle
+}  // namespace dazzle_updater
 
 /// A push button drawn from the tokens: a capsule on Liquid Glass, a rounded bezel
 /// below, with the generation's fill, rims, drop shadow, focus ring and pressed state.

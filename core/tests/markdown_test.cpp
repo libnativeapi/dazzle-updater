@@ -10,7 +10,7 @@
 // shape of the markup matters, not only the text. The expectations spell out the
 // writer's own layout: a block ends with a newline, a soft line break stays one.
 
-using dazzle::MarkdownToHtml;
+using dazzle_updater::MarkdownToHtml;
 
 DAZZLE_TEST(markdown_html_renders_headings_and_paragraphs) {
   EXPECT_EQ(MarkdownToHtml("# Title\n\nSome text.\n"), "<h1>Title</h1>\n<p>Some text.</p>\n");

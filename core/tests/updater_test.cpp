@@ -6,8 +6,8 @@
 #include <cstdint>
 #include <string>
 
-using dazzle::ReleaseIndexSource;
-using dazzle::Updater;
+using dazzle_updater::ReleaseIndexSource;
+using dazzle_updater::Updater;
 
 namespace {
 

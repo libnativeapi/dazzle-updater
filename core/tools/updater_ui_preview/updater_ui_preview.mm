@@ -25,10 +25,10 @@
 #include "../../src/updater_ui_state.h"
 #include "../../src/updater_ui_strings.h"
 
-using dazzle::UiPreferences;
-using dazzle::UiPreferencesStore;
-using dazzle::internal::UiRunner;
-using dazzle::internal::UpdaterPort;
+using dazzle_updater::UiPreferences;
+using dazzle_updater::UiPreferencesStore;
+using dazzle_updater::internal::UiRunner;
+using dazzle_updater::internal::UpdaterPort;
 
 /// Both kinds of pressable view answer these.
 @protocol DazzlePressable <NSObject>
@@ -38,7 +38,7 @@ using dazzle::internal::UpdaterPort;
 
 namespace {
 
-NSString* const kOutputDirectory = @"/Users/lijy91/Projects/fastforgedev/dazzle/core/build/preview";
+NSString* const kOutputDirectory = @"/Users/lijy91/Projects/fastforgedev/dazzle_updater/core/build/preview";
 
 /// DAZZLE_PREVIEW_DARK=1 renders the dark appearance, DAZZLE_PREVIEW_LANG=zh the
 /// Simplified Chinese wording, and DAZZLE_PREVIEW_PREFIX names the files.
@@ -56,7 +56,7 @@ NSString* const kNotes = @"## What's new\n"
                          @"\n"
                          @"- **Faster** startup: the window opens in half the time.\n"
                          @"- Fixed a crash when the last document was closed twice.\n"
-                         @"- `dazzle` now reports the version it is updating *from*.\n"
+                         @"- `dazzle_updater` now reports the version it is updating *from*.\n"
                          @"\n"
                          @"### Notes\n"
                          @"\n"
@@ -185,8 +185,8 @@ ScriptedPort g_port;
 /// A runner that reads `g_store` when it first needs it, which is how a round is started
 /// from a given set of user answers. The module's own singleton is never destroyed either.
 UiRunner* NewRunner() {
-  UiRunner* runner = new UiRunner(dazzle::internal::GetUiBackend(), g_port, g_store,
-                                  dazzle::internal::UiStringsFor({PreviewChinese() ? "zh-Hans"
+  UiRunner* runner = new UiRunner(dazzle_updater::internal::GetUiBackend(), g_port, g_store,
+                                  dazzle_updater::internal::UiStringsFor({PreviewChinese() ? "zh-Hans"
                                                                                   : "en"}));
   runner->SetAppName("Dazzle Demo");
   return runner;

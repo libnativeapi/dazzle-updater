@@ -1,4 +1,4 @@
-"""C ABI: core/src/capi/<module>_c.h and .cpp, plus core/include/dazzle.h."""
+"""C ABI: core/src/capi/<module>_c.h and .cpp, plus core/include/dazzle_updater.h."""
 
 from __future__ import annotations
 
@@ -67,7 +67,7 @@ def source(cls: Class) -> str:
             "  try {",
             body,
             "  } catch (...) {",
-            f'    fprintf(stderr, "[dazzle] %s: unexpected exception\\n", "{c_function(cls, method)}");',
+            f'    fprintf(stderr, "[dazzle_updater] %s: unexpected exception\\n", "{c_function(cls, method)}");',
             *([f"    return {fallback};"] if fallback else []),
             "  }",
             "}",

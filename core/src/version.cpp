@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <cctype>
 
-namespace dazzle {
+namespace dazzle_updater {
 namespace {
 
 std::string Trim(const std::string& text) {
@@ -186,4 +186,4 @@ int Version::CompareTo(const Version& other) const {
   return 0;
 }
 
-}  // namespace dazzle
+}  // namespace dazzle_updater

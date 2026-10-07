@@ -1,11 +1,11 @@
 [package]
-name = "dazzle"
-description = "A cross-platform software update framework that reads Sparkle appcasts"
+name = "dazzle_updater"
+description = "dazzle updater: a cross-platform software update framework"
 version = "0.0.1"
 edition = "2021"
 license = "MIT"
 build = "build.rs"
-links = "dazzle"
+links = "dazzle_updater"
 
 [build-dependencies]
 cmake = "0.1"

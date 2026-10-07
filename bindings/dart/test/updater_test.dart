@@ -1,4 +1,4 @@
-import 'package:dazzle/dazzle.dart';
+import 'package:dazzle_updater/dazzle_updater.dart';
 import 'package:test/test.dart';
 
 void main() {

@@ -57,6 +57,6 @@ green), which is what "GTK 4's own controls, following the theme" looks like.*
 GTK 4's own controls — `GtkWindow` and `GtkHeaderBar`, `GtkLabel`, `GtkButton`,
 `GtkCheckButton`, `GtkProgressBar`, and a read-only `GtkTextView` for the notes — so the
 look, the dark theme, the accent colour, the fonts and accessibility come from the theme
-rather than from dazzle's own drawing. `specs/updater-ui.md` has the metrics and the two
+rather than from dazzle updater's own drawing. `specs/updater-ui.md` has the metrics and the two
 Linux-only differences: the windows are drawn on the application's own GTK main loop, and
 the compositor places them (Wayland does not let a client set a window's position).

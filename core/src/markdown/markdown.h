@@ -15,9 +15,9 @@
 // load a remote resource; a link is only rendered for a scheme the system browser can
 // open safely (http, https, mailto).
 
-namespace dazzle {
+namespace dazzle_updater {
 
 /// `markdown` as an HTML fragment; "" renders to the empty document.
 std::string MarkdownToHtml(const std::string& markdown);
 
-}  // namespace dazzle
+}  // namespace dazzle_updater

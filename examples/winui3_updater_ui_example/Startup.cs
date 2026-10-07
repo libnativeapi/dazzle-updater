@@ -1,10 +1,8 @@
-// A real WinUI 3 host application for dazzle's update windows: it wires the generated
-// C# binding (which builds core/ with CMake and loads dazzle.dll) to a scripted round so
+// A real WinUI 3 host application for dazzle_updater's update windows: it wires the generated
+// C# binding (which builds core/ with CMake and loads dazzle_updater.dll) so
 // the three windows can be looked at on Windows, next to the macOS ones.
-using Microsoft.UI.Dispatching;
-using Microsoft.UI.Xaml;
 
-namespace Dazzle.WinUI3UpdaterUiExample;
+namespace DazzleUpdater.WinUI3UpdaterUiExample;
 
 public static class Startup
 {
@@ -28,12 +26,15 @@ public static class Startup
     }
 
     /// <summary>
-    /// The generated C# binding, loaded and asked for real — this is the C ABI of core, and
-    /// the same calls macOS drives its windows with. Windows has no updater platform layer
-    /// yet, so a check answers that it is unsupported; everything that does exist is asked
-    /// here, and a missing native library only costs the log line.
+    /// The generated C# binding, loaded and configured for real — this is the C ABI of core,
+    /// and the same calls macOS drives its windows with. A missing native library only costs
+    /// the log line.
     /// </summary>
-    private static void ProbeCore() => Startup.Log($"core: {Core.Describe()}");
+    private static void ProbeCore()
+    {
+        Core.Configure();
+        Startup.Log($"core: {Core.Describe()}");
+    }
 
     /// <summary>Everything the XAML-generated entry point cannot know: the log, core.</summary>
     [STAThread]
@@ -50,7 +51,7 @@ public static class Startup
         }
         catch (Exception error)
         {
-            // The windows still work without core; the log says which half is missing.
+            // UpdaterUI is implemented by core; report a missing library in the host log.
             Startup.Log($"core: unavailable ({error.GetType().Name}: {error.Message})");
         }
     }

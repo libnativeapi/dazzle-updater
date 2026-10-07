@@ -1,6 +1,6 @@
 using Xunit;
 
-namespace Dazzle.Tests;
+namespace DazzleUpdater.Tests;
 
 public class UpdaterTests
 {
@@ -66,6 +66,9 @@ public class UpdaterTests
         Assert.False(string.IsNullOrEmpty(updater.ErrorMessage));
 
         updater.Source = null;
+        // This assertion exercises the missing index, so give the singleton a valid
+        // version explicitly instead of depending on another test having set it.
+        updater.CurrentVersion = "1.0.0";
         ReleaseIndexSource.Instance.Url = null;
         Assert.False(updater.CheckForUpdates());
         Assert.Equal("invalid-index", updater.ErrorCode);

@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-namespace dazzle_test {
+namespace dazzle_updater_test {
 namespace {
 
 struct Test {
@@ -58,8 +58,8 @@ int RunAll() {
   return failed_tests;
 }
 
-}  // namespace dazzle_test
+}  // namespace dazzle_updater_test
 
 int main() {
-  return dazzle_test::RunAll() == 0 ? 0 : 1;
+  return dazzle_updater_test::RunAll() == 0 ? 0 : 1;
 }

@@ -11,7 +11,7 @@ extern "C" {
 #include "../third_party/monocypher/monocypher-ed25519.h"
 }
 
-namespace dazzle {
+namespace dazzle_updater {
 namespace {
 
 int DecodeBase64Char(char character) {
@@ -175,4 +175,4 @@ bool VerifyFileSignature(const std::string& public_key, const std::string& signa
   return VerifySignature(public_key, signature, data);
 }
 
-}  // namespace dazzle
+}  // namespace dazzle_updater

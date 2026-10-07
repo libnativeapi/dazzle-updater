@@ -1,4 +1,4 @@
-use dazzle::{ReleaseIndexSource, Updater};
+use dazzle_updater::{ReleaseIndexSource, Updater};
 
 // Updater and ReleaseIndexSource are process-wide and tests run in parallel, so every
 // check that mutates them lives in this one test.

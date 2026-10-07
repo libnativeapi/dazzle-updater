@@ -10,111 +10,95 @@
 
 bool dazzle_updater_ui_check_for_updates(void) {
   try {
-    return dazzle::UpdaterUI::GetInstance().CheckForUpdates();
+    return dazzle_updater::UpdaterUI::GetInstance().CheckForUpdates();
   } catch (...) {
-    fprintf(stderr, "[dazzle] %s: unexpected exception\n", "dazzle_updater_ui_check_for_updates");
+    fprintf(stderr, "[dazzle_updater] %s: unexpected exception\n", "dazzle_updater_ui_check_for_updates");
     return false;
   }
 }
 
 bool dazzle_updater_ui_check_for_updates_in_background(void) {
   try {
-    return dazzle::UpdaterUI::GetInstance().CheckForUpdatesInBackground();
+    return dazzle_updater::UpdaterUI::GetInstance().CheckForUpdatesInBackground();
   } catch (...) {
-    fprintf(stderr, "[dazzle] %s: unexpected exception\n", "dazzle_updater_ui_check_for_updates_in_background");
+    fprintf(stderr, "[dazzle_updater] %s: unexpected exception\n", "dazzle_updater_ui_check_for_updates_in_background");
     return false;
   }
 }
 
 bool dazzle_updater_ui_is_visible(void) {
   try {
-    return dazzle::UpdaterUI::GetInstance().IsVisible();
+    return dazzle_updater::UpdaterUI::GetInstance().IsVisible();
   } catch (...) {
-    fprintf(stderr, "[dazzle] %s: unexpected exception\n", "dazzle_updater_ui_is_visible");
+    fprintf(stderr, "[dazzle_updater] %s: unexpected exception\n", "dazzle_updater_ui_is_visible");
     return false;
-  }
-}
-
-void dazzle_updater_ui_pump(void) {
-  try {
-    dazzle::UpdaterUI::GetInstance().Pump();
-  } catch (...) {
-    fprintf(stderr, "[dazzle] %s: unexpected exception\n", "dazzle_updater_ui_pump");
-  }
-}
-
-void dazzle_updater_ui_set_dispatcher_queue(int64_t queue) {
-  try {
-    dazzle::UpdaterUI::GetInstance().SetDispatcherQueue(queue);
-  } catch (...) {
-    fprintf(stderr, "[dazzle] %s: unexpected exception\n", "dazzle_updater_ui_set_dispatcher_queue");
   }
 }
 
 void dazzle_updater_ui_set_app_name(const char* name) {
   try {
-    dazzle::UpdaterUI::GetInstance().SetAppName(std::string(name ? name : ""));
+    dazzle_updater::UpdaterUI::GetInstance().SetAppName(std::string(name ? name : ""));
   } catch (...) {
-    fprintf(stderr, "[dazzle] %s: unexpected exception\n", "dazzle_updater_ui_set_app_name");
+    fprintf(stderr, "[dazzle_updater] %s: unexpected exception\n", "dazzle_updater_ui_set_app_name");
   }
 }
 
 char* dazzle_updater_ui_get_app_name(void) {
   try {
-    return dazzle::to_c_str(dazzle::UpdaterUI::GetInstance().GetAppName());
+    return dazzle_updater::to_c_str(dazzle_updater::UpdaterUI::GetInstance().GetAppName());
   } catch (...) {
-    fprintf(stderr, "[dazzle] %s: unexpected exception\n", "dazzle_updater_ui_get_app_name");
+    fprintf(stderr, "[dazzle_updater] %s: unexpected exception\n", "dazzle_updater_ui_get_app_name");
     return nullptr;
   }
 }
 
 void dazzle_updater_ui_set_automatic_checks_enabled(bool enabled) {
   try {
-    dazzle::UpdaterUI::GetInstance().SetAutomaticChecksEnabled(enabled);
+    dazzle_updater::UpdaterUI::GetInstance().SetAutomaticChecksEnabled(enabled);
   } catch (...) {
-    fprintf(stderr, "[dazzle] %s: unexpected exception\n", "dazzle_updater_ui_set_automatic_checks_enabled");
+    fprintf(stderr, "[dazzle_updater] %s: unexpected exception\n", "dazzle_updater_ui_set_automatic_checks_enabled");
   }
 }
 
 bool dazzle_updater_ui_is_automatic_checks_enabled(void) {
   try {
-    return dazzle::UpdaterUI::GetInstance().IsAutomaticChecksEnabled();
+    return dazzle_updater::UpdaterUI::GetInstance().IsAutomaticChecksEnabled();
   } catch (...) {
-    fprintf(stderr, "[dazzle] %s: unexpected exception\n", "dazzle_updater_ui_is_automatic_checks_enabled");
+    fprintf(stderr, "[dazzle_updater] %s: unexpected exception\n", "dazzle_updater_ui_is_automatic_checks_enabled");
     return false;
   }
 }
 
 void dazzle_updater_ui_set_automatic_downloads_enabled(bool enabled) {
   try {
-    dazzle::UpdaterUI::GetInstance().SetAutomaticDownloadsEnabled(enabled);
+    dazzle_updater::UpdaterUI::GetInstance().SetAutomaticDownloadsEnabled(enabled);
   } catch (...) {
-    fprintf(stderr, "[dazzle] %s: unexpected exception\n", "dazzle_updater_ui_set_automatic_downloads_enabled");
+    fprintf(stderr, "[dazzle_updater] %s: unexpected exception\n", "dazzle_updater_ui_set_automatic_downloads_enabled");
   }
 }
 
 bool dazzle_updater_ui_is_automatic_downloads_enabled(void) {
   try {
-    return dazzle::UpdaterUI::GetInstance().IsAutomaticDownloadsEnabled();
+    return dazzle_updater::UpdaterUI::GetInstance().IsAutomaticDownloadsEnabled();
   } catch (...) {
-    fprintf(stderr, "[dazzle] %s: unexpected exception\n", "dazzle_updater_ui_is_automatic_downloads_enabled");
+    fprintf(stderr, "[dazzle_updater] %s: unexpected exception\n", "dazzle_updater_ui_is_automatic_downloads_enabled");
     return false;
   }
 }
 
 void dazzle_updater_ui_set_automatic_downloads_allowed(bool allowed) {
   try {
-    dazzle::UpdaterUI::GetInstance().SetAutomaticDownloadsAllowed(allowed);
+    dazzle_updater::UpdaterUI::GetInstance().SetAutomaticDownloadsAllowed(allowed);
   } catch (...) {
-    fprintf(stderr, "[dazzle] %s: unexpected exception\n", "dazzle_updater_ui_set_automatic_downloads_allowed");
+    fprintf(stderr, "[dazzle_updater] %s: unexpected exception\n", "dazzle_updater_ui_set_automatic_downloads_allowed");
   }
 }
 
 bool dazzle_updater_ui_is_automatic_downloads_allowed(void) {
   try {
-    return dazzle::UpdaterUI::GetInstance().IsAutomaticDownloadsAllowed();
+    return dazzle_updater::UpdaterUI::GetInstance().IsAutomaticDownloadsAllowed();
   } catch (...) {
-    fprintf(stderr, "[dazzle] %s: unexpected exception\n", "dazzle_updater_ui_is_automatic_downloads_allowed");
+    fprintf(stderr, "[dazzle_updater] %s: unexpected exception\n", "dazzle_updater_ui_is_automatic_downloads_allowed");
     return false;
   }
 }

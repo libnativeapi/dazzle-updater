@@ -33,7 +33,7 @@ NSColor* Hex(CGFloat red, CGFloat green, CGFloat blue) { return Rgba(red, green,
 
 }  // namespace
 
-namespace dazzle {
+namespace dazzle_updater {
 namespace internal {
 namespace {
 
@@ -141,13 +141,13 @@ const MacTokens& MacTokensForAppearance(NSAppearance* appearance) {
 }
 
 }  // namespace internal
-}  // namespace dazzle
+}  // namespace dazzle_updater
 
 // --- drawing helpers ------------------------------------------------------------------
 
 namespace {
 
-using dazzle::internal::MacTokens;
+using dazzle_updater::internal::MacTokens;
 
 NSBezierPath* RoundedPath(NSRect rect, CGFloat radius) {
   return [NSBezierPath bezierPathWithRoundedRect:rect xRadius:radius yRadius:radius];
@@ -278,7 +278,7 @@ NSFont* ControlFont(CGFloat size, BOOL bold) {
   button->_enabled = YES;
   button->_target = target;
   button->_action = action;
-  button->_tokens = &dazzle::internal::MacCurrentTokens();
+  button->_tokens = &dazzle_updater::internal::MacCurrentTokens();
   [button sizeToFit];
   return button;
 }
@@ -337,7 +337,7 @@ NSFont* ControlFont(CGFloat size, BOOL bold) {
 
 - (void)viewDidChangeEffectiveAppearance {
   [super viewDidChangeEffectiveAppearance];
-  _tokens = &dazzle::internal::MacTokensForAppearance(self.effectiveAppearance);
+  _tokens = &dazzle_updater::internal::MacTokensForAppearance(self.effectiveAppearance);
   [self setNeedsDisplay:YES];
 }
 
@@ -471,7 +471,7 @@ NSFont* ControlFont(CGFloat size, BOOL bold) {
   checkbox->_enabled = YES;
   checkbox->_target = target;
   checkbox->_action = action;
-  checkbox->_tokens = &dazzle::internal::MacCurrentTokens();
+  checkbox->_tokens = &dazzle_updater::internal::MacCurrentTokens();
   [checkbox sizeToFit];
   return checkbox;
 }
@@ -517,7 +517,7 @@ NSFont* ControlFont(CGFloat size, BOOL bold) {
 
 - (void)viewDidChangeEffectiveAppearance {
   [super viewDidChangeEffectiveAppearance];
-  _tokens = &dazzle::internal::MacTokensForAppearance(self.effectiveAppearance);
+  _tokens = &dazzle_updater::internal::MacTokensForAppearance(self.effectiveAppearance);
   [self setNeedsDisplay:YES];
 }
 
@@ -622,7 +622,7 @@ NSFont* ControlFont(CGFloat size, BOOL bold) {
 - (instancetype)initWithFrame:(NSRect)frame {
   self = [super initWithFrame:frame];
   if (self != nil) {
-    _tokens = &dazzle::internal::MacCurrentTokens();
+    _tokens = &dazzle_updater::internal::MacCurrentTokens();
     _fraction = 0.0;
   }
   return self;
@@ -692,7 +692,7 @@ NSFont* ControlFont(CGFloat size, BOOL bold) {
 
 - (void)viewDidChangeEffectiveAppearance {
   [super viewDidChangeEffectiveAppearance];
-  _tokens = &dazzle::internal::MacTokensForAppearance(self.effectiveAppearance);
+  _tokens = &dazzle_updater::internal::MacTokensForAppearance(self.effectiveAppearance);
   [self setNeedsDisplay:YES];
 }
 

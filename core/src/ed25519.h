@@ -6,7 +6,7 @@
 // core/third_party/monocypher). It is not listed in API_HEADERS, so codegen ignores it
 // and it reaches no binding.
 
-namespace dazzle {
+namespace dazzle_updater {
 
 /**
  * @brief Whether `public_key` is a usable Ed25519 public key.
@@ -15,7 +15,7 @@ namespace dazzle {
  * misconfiguration produces.
  *
  * Monocypher checks Ed25519 with the cofactored equation, which by design accepts
- * low-order points; an all-zero key would therefore verify forged signatures. dazzle
+ * low-order points; an all-zero key would therefore verify forged signatures. dazzle_updater
  * rejects the all-zero key and the identity point here. The application embeds this key,
  * so a remote attacker cannot substitute it; the check guards against shipping a key
  * that was never configured.
@@ -67,4 +67,4 @@ bool DecodeBase64(const std::string& text, std::string* bytes);
  */
 std::string EncodeBase64(const std::string& bytes);
 
-}  // namespace dazzle
+}  // namespace dazzle_updater

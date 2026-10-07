@@ -10,7 +10,7 @@ from pathlib import Path
 
 from .model import BOOL, F64, I32, I64, STRING, VOID, Class, Doc, Method, Param
 
-NAMESPACE = "dazzle"
+NAMESPACE = "dazzle_updater"
 
 _TYPES = {
     "void": VOID,

@@ -32,7 +32,7 @@
 // because Linux has no metadata every application carries, so the application sets its
 // own version with Updater::SetCurrentVersion().
 
-namespace dazzle {
+namespace dazzle_updater {
 namespace {
 
 std::string ReadLink(const std::string& path) {
@@ -161,14 +161,14 @@ bool StartInstallHelper(const std::string& app_directory, const std::string& new
                         const std::string& log_path, std::string* error) {
   const char* script_text =
       "#!/bin/sh\n"
-      "# dazzle: replace the application once the old process has exited.\n"
+      "# dazzle_updater: replace the application once the old process has exited.\n"
       "pid=\"$1\"\n"
       "app=\"$2\"\n"
       "new=\"$3\"\n"
       "work=\"$4\"\n"
       "exe=\"$5\"\n"
       "while kill -0 \"$pid\" 2>/dev/null; do sleep 0.2; done\n"
-      "backup=\"$app.dazzle-old.$$\"\n"
+      "backup=\"$app.dazzle_updater-old.$$\"\n"
       "if mv \"$app\" \"$backup\" 2>/dev/null; then\n"
       "  if mv \"$new\" \"$app\" 2>/dev/null; then\n"
       "    rm -rf \"$backup\"\n"
@@ -309,7 +309,7 @@ std::string AppNameFromPlatform() {
 std::string DownloadDirectory() {
   const std::string home = EnvironmentVariable("HOME");
   const std::string directory =
-      XdgDirectory("XDG_CACHE_HOME", home.empty() ? "/tmp" : home + "/.cache") + "/dazzle";
+      XdgDirectory("XDG_CACHE_HOME", home.empty() ? "/tmp" : home + "/.cache") + "/dazzle_updater";
   if (!EnsureDirectory(directory)) {
     return "";
   }
@@ -383,4 +383,4 @@ bool InstallDownloadedUpdate(const std::string& downloaded_path, const std::stri
   return true;
 }
 
-}  // namespace dazzle
+}  // namespace dazzle_updater

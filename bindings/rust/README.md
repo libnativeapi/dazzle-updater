@@ -1,7 +1,7 @@
-# dazzle for Rust
+# dazzle updater for Rust
 
-Rust bindings for [dazzle](../../README.md), a cross-platform software
-update framework with its own API. The default source reads dazzle's own
+Rust bindings for [dazzle updater](../../README.md), a cross-platform software
+update framework with its own API. The default source reads dazzle updater's own
 [release index](../../specs/release-index.md); an optional `AppcastSource` will read
 [Sparkle](https://sparkle-project.org) appcasts.
 
@@ -11,25 +11,25 @@ platforms answer `"not supported on this platform"` until their implementations 
 
 ## Requirements
 
-The crate compiles the dazzle C++ core from source during `cargo build`, so it needs:
+The crate compiles the dazzle updater C++ core from source during `cargo build`, so it needs:
 
 - CMake 3.10+
 - A C++17 compiler (Xcode Command Line Tools on macOS, MSVC on Windows, GCC or Clang on Linux)
 
 ## Installation
 
-The crate is not on crates.io yet. Depend on it from git; Cargo finds the `dazzle`
+The crate is not on crates.io yet. Depend on it from git; Cargo finds the `dazzle_updater`
 package inside the repository:
 
 ```toml
 [dependencies]
-dazzle = { git = "https://github.com/fastforgedev/dazzle" }
+dazzle_updater = { git = "https://github.com/fastforgedev/dazzle" }
 ```
 
 ## Usage
 
 ```rust
-use dazzle::{ReleaseIndexSource, Updater};
+use dazzle_updater::{ReleaseIndexSource, Updater};
 
 fn main() {
     ReleaseIndexSource::instance().set_url("https://example.com/myapp/releases.json");

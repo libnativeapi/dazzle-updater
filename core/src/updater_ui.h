@@ -1,9 +1,8 @@
 #pragma once
 
-#include <cstdint>
 #include <string>
 
-namespace dazzle {
+namespace dazzle_updater {
 
 /**
  * @brief The built-in update windows.
@@ -11,7 +10,7 @@ namespace dazzle {
  * Updater draws no UI, and an application that has its own interface can use Updater
  * directly. UpdaterUI is the optional module for applications that would rather not: it
  * walks the user through checking, reading the release notes, downloading and installing
- * with the platform's own windows (AppKit on macOS, Win32 on Windows).
+ * with the platform's own windows (AppKit on macOS, WinUI 3 on Windows).
  *
  * It is only a user of Updater: every release it shows and every action it takes comes
  * from Updater, and it adds no update logic of its own. Configure Updater's source and
@@ -20,11 +19,11 @@ namespace dazzle {
  * actions directly answers `"another operation is in progress"`, and the other way
  * round.
  *
- * Every method may be called from any thread and returns immediately — which is what
- * makes it usable from Flutter, Qt or Electron, whose code does not always run on the
- * platform's UI thread. Updater's blocking actions run on a thread of this module's own,
- * and the windows are opened on the platform's UI thread. This is the only module in
- * dazzle that owns a thread.
+ * Calls return immediately. Updater's blocking actions run on this module's worker
+ * thread; window work is dispatched internally to the platform's UI thread. On Windows
+ * the first check must run on the WinUI 3 host's XAML thread; later calls may come from
+ * any thread. Linux requires an initialized GTK 4 host and its main loop. This is the
+ * only module in dazzle_updater that owns a thread.
  *
  * What the user answers is remembered in the platform's user preferences
  * (`NSUserDefaults` on macOS, `HKCU` on Windows): whether to check automatically,
@@ -33,14 +32,14 @@ namespace dazzle {
  *
  * Typical usage:
  * @code
- * dazzle::ReleaseIndexSource::GetInstance().SetUrl("https://example.com/myapp/releases.json");
- * dazzle::Updater::GetInstance().SetPublicKey("pfIShU4dEXqPd5ObYNfDBiQWcXozk7estwzTnF9BamQ=");
+ * dazzle_updater::ReleaseIndexSource::GetInstance().SetUrl("https://example.com/myapp/releases.json");
+ * dazzle_updater::Updater::GetInstance().SetPublicKey("pfIShU4dEXqPd5ObYNfDBiQWcXozk7estwzTnF9BamQ=");
  *
  * // After the application has started:
- * dazzle::UpdaterUI::GetInstance().CheckForUpdatesInBackground();
+ * dazzle_updater::UpdaterUI::GetInstance().CheckForUpdatesInBackground();
  *
  * // The "Check for Updates…" menu item:
- * dazzle::UpdaterUI::GetInstance().CheckForUpdates();
+ * dazzle_updater::UpdaterUI::GetInstance().CheckForUpdates();
  * @endcode
  *
  * Building without the module: configure with `-DDAZZLE_WITH_UPDATER_UI=OFF`. The
@@ -79,8 +78,8 @@ class UpdaterUI {
    *
    * @note Platform availability:
    * macOS: ✅ (AppKit)
-   * Windows: ✅ (Win32 windows with the Fluent controls drawn by dazzle)
-   * Linux: ❌ (returns false; the update flow cannot be completed there)
+   * Windows: ⚠️ (WinUI 3 host; first check on its XAML UI thread)
+   * Linux: ⚠️ (GTK 4 host with an initialized main loop)
    * iOS: ❌ (returns false; send the user to the App Store or TestFlight instead)
    * Android: ❌ (returns false)
    * OHOS: ❌ (returns false)
@@ -110,8 +109,8 @@ class UpdaterUI {
    *
    * @note Platform availability:
    * macOS: ✅ (AppKit)
-   * Windows: ✅ (Win32 windows with the Fluent controls drawn by dazzle)
-   * Linux: ❌ (returns false; the update flow cannot be completed there)
+   * Windows: ⚠️ (WinUI 3 host; first check on its XAML UI thread)
+   * Linux: ⚠️ (GTK 4 host with an initialized main loop)
    * iOS: ❌ (returns false; send the user to the App Store or TestFlight instead)
    * Android: ❌ (returns false)
    * OHOS: ❌ (returns false)
@@ -127,26 +126,6 @@ class UpdaterUI {
    * @return true while a window of this module is showing.
    */
   bool IsVisible() const;
-
-  /// @brief Draws whatever the module has been asked for since the last call.
-  ///
-  /// @note Platform availability: Windows. The module's windows belong to the host's UI
-  /// thread, and a state the state machine reached on another thread cannot be drawn there
-  /// until that thread runs again. A host whose loop can call this — a dispatcher timer, a
-  /// frame callback — should; one that does not loses those redraws, not the flow.
-  void Pump();
-
-  /// @brief Hands the module the UI thread its windows must be created on.
-  ///
-  /// @param queue The host's UI thread as an opaque platform handle: on Windows the
-  ///              `IUnknown*` of its `Microsoft.UI.Dispatching.DispatcherQueue`.
-  ///
-  /// @note Platform availability: Windows. XAML in a process belongs to the thread that
-  /// started the Application, so a WinUI 3 host must call this from its UI thread before the
-  /// first window, or the module has nowhere to draw and every entry point answers false.
-  /// Other platforms create their own windows and ignore the call. Call it once.
-  void SetDispatcherQueue(int64_t queue);
-
 
   /**
    * @brief Set the application name the windows use in their wording.
@@ -231,4 +210,4 @@ class UpdaterUI {
   UpdaterUI& operator=(UpdaterUI&&) = delete;
 };
 
-}  // namespace dazzle
+}  // namespace dazzle_updater

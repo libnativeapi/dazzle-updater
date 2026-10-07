@@ -9,7 +9,7 @@
 //
 // See ../specs/updater.md ("内部接口：UpdateSource").
 
-namespace dazzle {
+namespace dazzle_updater {
 
 /**
  * @brief One version a data source offers, with its format removed.
@@ -91,4 +91,4 @@ void RegisterUpdateSource(const std::string& name, UpdateSource* source);
  */
 UpdateSource* FindUpdateSource(const std::string& name);
 
-}  // namespace dazzle
+}  // namespace dazzle_updater

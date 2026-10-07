@@ -1,4 +1,4 @@
-use dazzle::{ReleaseIndexSource, Updater};
+use dazzle_updater::{ReleaseIndexSource, Updater};
 
 fn main() {
     let updater = Updater::instance();
