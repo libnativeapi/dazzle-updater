@@ -84,15 +84,12 @@ manual redraw calls or COM handles. Later checks can run on any thread.
 `HostWindow.cs` builds only the example application's window and calls the C# binding.
 The update windows' layout, styling, Markdown rendering and scheduling all live in core.
 
-## The windows, as rendered on a Windows 11 host (150 %)
+## Looking at the windows
 
-| Available | Available, dark |
-|---|---|
-| ![Available](winui3-available.png) | ![Available, dark](winui3-available-dark.png) |
-
-| Checking | Downloading | Error | Permission |
-|---|---|---|---|
-| ![Checking](winui3-checking.png) | ![Downloading](winui3-downloading.png) | ![Error](winui3-error.png) | ![Permission](winui3-permission.png) |
+Screenshots are not kept in the repository: `run.ps1` captures each window to
+`winui3-<state>.png` beside this file (ignored by git), and the Available, Checking,
+Downloading, Error and Permission windows can be compared with the prototype and with the
+macOS and Linux renderings state by state.
 
 ## Known limits
 

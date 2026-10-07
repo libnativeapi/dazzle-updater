@@ -3,6 +3,11 @@ build/
 tools/codegen/target/
 *.log
 
+# Screenshots of the windows are rendered or captured locally (core/tools/updater_ui_preview,
+# the example READMEs) and are not committed.
+core/examples/**/*.png
+examples/winui3_updater_ui_example/*.png
+
 # Node / frontend
 node_modules/
 dist/
