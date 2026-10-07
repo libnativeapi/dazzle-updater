@@ -235,3 +235,20 @@ Going further than a single screenshot (PipeWire buffers read directly):
 - Build dependencies seen so far: GTK apps need `libgtk-3-dev`; Flutter needs `clang`,
   `ninja`, `pkg-config`; Rust crates need a toolchain (per-user rustup is fine) plus
   `libclang` for any bindgen step.
+
+## Hyprland (Omarchy) — verified 2026-10-07 on an Omarchy host
+
+- `run --gui` works as on GNOME: UWSM imports the session into the systemd user manager,
+  so `WAYLAND_DISPLAY`, `XDG_CURRENT_DESKTOP=Hyprland` and `XDG_SESSION_TYPE` arrive.
+  `HYPRLAND_INSTANCE_SIGNATURE` does **not** (hostrun only forwards the display keys), and
+  `hyprctl` refuses without it — read it back in the script:
+  `export HYPRLAND_INSTANCE_SIGNATURE=$(systemctl --user show-environment | sed -n 's/^HYPRLAND_INSTANCE_SIGNATURE=//p')`.
+- Screenshots: `grim` is installed and needs no portal; `grim -g "X,Y WxH"` crops, and
+  `hyprctl clients -j` gives every window's `at`, `size`, `class`, `title`, `floating`.
+- Input: `wtype -k Return` types into the focused window (`hyprctl dispatch focuswindow
+  address:0x…` to choose). No `ydotool` by default.
+- Tiling: a resizable window is tiled to the full workspace; fixed-size windows and
+  transient dialogs float. A GTK 4 window not attached to the `GtkApplication` reports the
+  program name as its `class` (app id), not the application id — match both.
+- No session cleanup on `TIMEOUT`: a demo left waiting for its window keeps the job
+  alive; `pkill` it before the next run.
