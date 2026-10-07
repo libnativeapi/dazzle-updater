@@ -226,4 +226,33 @@ public sealed class UpdaterUI
     /// <returns>true when the call was handled; false when this platform has no built-in windows, or when the module was left out of the build (<c>DAZZLE_WITH_UPDATER_UI=OFF</c>).</returns>
     public bool CheckForUpdatesInBackground() =>
         NativeMethods.dazzle_updater_ui_check_for_updates_in_background();
+
+    /// <summary>
+    /// Draws whatever the module has been asked for since the last call.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Platform availability: Windows. The module's windows belong to the host's UI
+    /// thread, and a state the state machine reached on another thread cannot be drawn there
+    /// until that thread runs again. A host whose loop can call this — a dispatcher timer, a
+    /// frame callback — should; one that does not loses those redraws, not the flow.
+    /// </para>
+    /// </remarks>
+    public void Pump() =>
+        NativeMethods.dazzle_updater_ui_pump();
+
+    /// <summary>
+    /// Hands the module the UI thread its windows must be created on.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Platform availability: Windows. XAML in a process belongs to the thread that
+    /// started the Application, so a WinUI 3 host must call this from its UI thread before the
+    /// first window, or the module has nowhere to draw and every entry point answers false.
+    /// Other platforms create their own windows and ignore the call. Call it once.
+    /// </para>
+    /// </remarks>
+    /// <param name="queue">The host's UI thread as an opaque platform handle: on Windows the <c>IUnknown*</c> of its <c>Microsoft.UI.Dispatching.DispatcherQueue</c>.</param>
+    public void SetDispatcherQueue(long queue) =>
+        NativeMethods.dazzle_updater_ui_set_dispatcher_queue(queue);
 }

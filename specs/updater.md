@@ -297,13 +297,19 @@ source 需要的 HTTP 能力由内部的 `src/foundation/http.h` 提供（平台
 |---|---|---|---|---|
 | macOS | ✅ | ✅ | ✅ | NSURLSession |
 | Windows | ✅ | ✅ | ✅ | WinHTTP |
-| Linux | ✅ | ✅ | ❌ | libcurl |
+| Linux | ✅ | ✅ | ✅ | libcurl（构建时找不到 libcurl 时退回跨平台默认实现，于是检查与下载都不可用） |
 | iOS | ✅ | ❌ | ❌ | NSURLSession |
 | Android | ❌ | ❌ | ❌ | 桩 |
 | OHOS | ❌ | ❌ | ❌ | 桩 |
 
 ❌ 的平台返回 false，`GetErrorMessage()` 为 `"not supported on this platform"`。
 iOS 上检查仍有用：应用发现新版本后引导用户去 App Store / TestFlight。
+
+Linux 的安装是"替换应用自己的目录再重启"：Linux 桌面应用就是一个目录（可执行文件加它旁边
+的东西），安装包是那个目录的新版本（`format` 为 `zip`，内含恰好一个顶层目录）。解压发生在下载
+目录里，随后由一个脱离进程的辅助脚本等本进程退出，再把新目录换上去并重新启动同一个可执行文件，
+失败时把旧目录放回去。因此 `SystemSupportsInstall()` 在 Linux 上为 true，安装不需要包管理器，
+也不需要 root——但它要求应用自己所在目录的父目录可写，否则报 `permission`。
 
 ## 实现分层
 
@@ -332,6 +338,9 @@ platform"`。Flutter 示例已改到新流程，但本机没有 Flutter SDK，�
    CLAUDE.md、`specs/README.md`、各 binding 与 Flutter 示例中对 feed URL 的引用。
 3. macOS 实现（NSURLSession、zip 安装）；`flutter_updater_example` 走完整流程。
 4. Windows 实现（WinHTTP、安装程序启动）。
-5. Linux / iOS 的检查与下载。
+5. ✅ Linux 实现：libcurl 的 HTTP 缝、`system_linux.cpp`（uname 架构、`/etc/os-release` 版本、
+   XDG 下载目录、zip 安装与脱离式辅助脚本）与 GTK 4 的内置界面（见
+   [updater-ui.md](updater-ui.md)）。`core/tests/linux_install_e2e.sh` 端到端覆盖下载、签名校验、
+   目录替换与重启。iOS 的检查与下载仍未做。
 6. 各 binding 的示例与测试补上检查流程（指向本地起的静态 releases.json）。
 7. 另起 `AppcastSource` 模块（单独的设计文档）。

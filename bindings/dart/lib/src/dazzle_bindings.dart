@@ -96,6 +96,12 @@ external bool dazzle_updater_ui_check_for_updates_in_background();
 @Native<Bool Function()>()
 external bool dazzle_updater_ui_is_visible();
 
+@Native<Void Function()>()
+external void dazzle_updater_ui_pump();
+
+@Native<Void Function(Int64)>()
+external void dazzle_updater_ui_set_dispatcher_queue(int queue);
+
 @Native<Void Function(Pointer<Char>)>()
 external void dazzle_updater_ui_set_app_name(Pointer<Char> name);
 

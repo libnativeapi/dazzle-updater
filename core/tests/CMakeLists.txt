@@ -28,15 +28,28 @@ target_link_libraries(dazzle_tests PRIVATE dazzle)
 add_test(NAME dazzle_tests COMMAND dazzle_tests)
 
 # A stand-in for the `dazzle sign` command specs/updater.md plans: it signs a package the
-# way a release would, with the same Monocypher build the library verifies with.
-if(APPLE)
+# way a release would, with the same Monocypher build the library verifies with. Both
+# end-to-end install tests need it.
+if(APPLE OR CMAKE_SYSTEM_NAME STREQUAL "Linux")
   add_executable(fixture_signer fixture_signer.cpp)
   target_link_libraries(fixture_signer PRIVATE dazzle)
+endif()
 
+if(APPLE)
   # The end-to-end install test builds, replaces and relaunches application bundles, so
   # it is opt-in: ctest -R dazzle_macos_install_e2e
   add_test(NAME dazzle_macos_install_e2e
     COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/macos_install_e2e.sh"
             "$<TARGET_FILE:updater_example>" "$<TARGET_FILE:fixture_signer>")
   set_tests_properties(dazzle_macos_install_e2e PROPERTIES LABELS "e2e" TIMEOUT 180)
+endif()
+
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  # The Linux one replaces an application directory in place and starts it again; also
+  # opt-in: ctest -R dazzle_linux_install_e2e
+  add_test(NAME dazzle_linux_install_e2e
+    COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/linux_install_e2e.sh"
+            "$<$<TARGET_EXISTS:updater_example>:$<TARGET_FILE:updater_example>>"
+            "$<TARGET_FILE:fixture_signer>")
+  set_tests_properties(dazzle_linux_install_e2e PROPERTIES LABELS "e2e" TIMEOUT 180)
 endif()

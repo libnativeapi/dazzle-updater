@@ -93,6 +93,17 @@ class HttpClient {
 };
 
 /**
+ * @brief Whether this build has an HTTP stack behind HttpClient::Get().
+ *
+ * `system_<os>` reports capabilities from it: a platform whose HTTP implementation the
+ * build left out — Linux without libcurl today — can neither check nor download, exactly
+ * as if it had no implementation at all. The cross-platform default answers false.
+ *
+ * @return true when a GET on this platform can reach the network.
+ */
+bool HttpIsAvailable();
+
+/**
  * @brief Whether `url` is an absolute HTTP or HTTPS address.
  *
  * Sources use it to reject a malformed address before starting a transfer, and to keep

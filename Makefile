@@ -1,4 +1,4 @@
-.PHONY: build examples demo core-tests rust dart csharp flutter codegen check test clean
+.PHONY: build examples demo demo-linux core-tests rust dart csharp flutter codegen check test clean
 
 BUILD_DIR := core/build
 
@@ -20,6 +20,11 @@ examples: build
 # UpdaterUI example application (macOS; not part of `test`, it needs a desktop session)
 demo: build
 	cd core && ./examples/updater_ui_example/demo.sh
+
+# The same walk on Linux, around an application directory rather than a bundle (GTK 4,
+# also needs a desktop session)
+demo-linux: build
+	cd core && ./examples/updater_ui_example/demo_linux.sh
 
 # Test the Rust binding and run its example
 rust:

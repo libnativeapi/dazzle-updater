@@ -30,6 +30,10 @@ UpdaterUI& UpdaterUI::GetInstance() {
   return instance;
 }
 
+void UpdaterUI::SetDispatcherQueue(int64_t queue) { internal::GetUiBackend().SetHostUiQueue(queue); }
+
+void UpdaterUI::Pump() { internal::GetUiBackend().Pump(); }
+
 bool UpdaterUI::CheckForUpdates() { return Runner().CheckForUpdates(); }
 
 bool UpdaterUI::CheckForUpdatesInBackground() { return Runner().CheckForUpdatesInBackground(); }

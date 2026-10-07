@@ -616,9 +616,13 @@ DAZZLE_TEST(updater_ui_skipping_a_downloaded_update_drops_it) {
   EXPECT_EQ(fixture.Preferences().skipped_version, "1.2.3");
 
   // The package is still in Updater's cache, but this module stops offering it: the next
-  // check is a check, not the window it left behind.
+  // check is a check, not the window it left behind. The check is held on the port, so the
+  // window the check opens is the one drawn when this line runs — the worker would
+  // otherwise be free to finish and draw the Available window first.
+  fixture.port.GateChecks();
   fixture.runner->CheckForUpdates();
   EXPECT_EQ(static_cast<int>(fixture.backend.LastState()), static_cast<int>(UiState::kChecking));
+  fixture.port.Release();
   EXPECT_EQ(static_cast<int>(fixture.Settle().state), static_cast<int>(UiState::kAvailable));
 }
 

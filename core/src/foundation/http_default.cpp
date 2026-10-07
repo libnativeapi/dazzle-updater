@@ -19,6 +19,10 @@ class UnsupportedHttpImpl final : public HttpClient::Impl {
 
 }  // namespace
 
+bool HttpIsAvailable() {
+  return false;
+}
+
 HttpClient::HttpClient() : pimpl_(std::make_unique<UnsupportedHttpImpl>()) {}
 
 HttpClient::~HttpClient() = default;

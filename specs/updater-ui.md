@@ -10,7 +10,7 @@
 ## 目标与边界
 
 - 原生外观：macOS 用 AppKit 的系统控件；Windows 用 Win32 窗口，控件按 Windows 11 的 Fluent 规格
-  自绘（见"外观"）。不用 WebView，不引入 UI 框架。
+  自绘；Linux 用 GTK 4 自己的控件（见"外观"）。不用 WebView。
 - 一行代码接入：配好 Updater 的数据源和公钥，菜单项里调用 `CheckForUpdates()` 即可。
 - 任何 UI 框架的应用都能用（Flutter、Qt、Electron、原生），不要求应用配合事件循环。
 
@@ -18,7 +18,7 @@
 例如后台检查发现更新时改用系统通知（macOS 通知中心、Windows toast），而不必改名。
 
 **暂不包含**（后续再设计）：系统通知、定时自动检查的调度、"退出时安装"、匿名系统信息上报、
-自定义文案和配色、自定义窗口内容、Linux 与移动端界面。
+自定义文案和配色、自定义窗口内容、移动端界面。
 
 **不做**：独立的"正在解压"阶段。Sparkle 在下载后先解压再进入 Ready；dazzle 的签名校验在
 `DownloadUpdate()` 里完成，macOS 的解压发生在 `InstallUpdate()` 里（见 [updater.md](updater.md)），
@@ -82,17 +82,22 @@ class UpdaterUI {
 Updater 不持久化任何状态；`UpdaterUI` 要记住三件属于用户的事，存在平台的用户偏好里，
 随应用走、按用户隔离：
 
-| 偏好 | 含义 | macOS（`NSUserDefaults` 标准域） | Windows（`HKCU\Software\{公司名}\{应用名}\dazzle`） |
-|---|---|---|---|
-| 自动检查 | 未回答 / 是 / 否 | `DazzleAutomaticChecks` | `AutomaticChecks`（DWORD，缺省为未回答） |
-| 自动下载 | 是 / 否 | `DazzleAutomaticDownloads` | `AutomaticDownloads`（DWORD） |
-| 跳过的版本 | 版本号或无 | `DazzleSkippedVersion` | `SkippedVersion`（字符串） |
+| 偏好 | 含义 | macOS（`NSUserDefaults` 标准域） | Windows（`HKCU\Software\{公司名}\{应用名}\dazzle`） | Linux（`$XDG_CONFIG_HOME/dazzle/<应用名>.conf`） |
+|---|---|---|---|---|
+| 自动检查 | 未回答 / 是 / 否 | `DazzleAutomaticChecks` | `AutomaticChecks`（DWORD，缺省为未回答） | `AutomaticChecks`（`1`/`0`，缺省为未回答） |
+| 自动下载 | 是 / 否 | `DazzleAutomaticDownloads` | `AutomaticDownloads`（DWORD） | `AutomaticDownloads`（`1`/`0`） |
+| 跳过的版本 | 版本号或无 | `DazzleSkippedVersion` | `SkippedVersion`（字符串） | `SkippedVersion` |
 
-公司名、应用名取自主程序 VERSIONINFO 的 CompanyName、ProductName。
+公司名、应用名取自主程序 VERSIONINFO 的 CompanyName、ProductName；Linux 没有这类应用元数据，
+所以文件名取可执行文件的名字（应用自己的设置放在别处）。三个平台都按应用隔离：回答过一个程序的
+用户，没有回答过下一个。
 
 读写走内部的一条缝（`src/foundation/updater_ui_preferences.h`）：`platform/<os>/updater_ui_preferences_<os>.*`
 给这个平台的存储，没有该文件的平台用跨平台默认实现，把回答留在内存里——一次运行内的行为相同，
-进程退出后不保留。macOS 的存储是应用自己的 `NSUserDefaults` 标准域，键名就是上表列出的三个。
+进程退出后不保留。macOS 的存储是应用自己的 `NSUserDefaults` 标准域，Windows 的存储是注册表，
+键名就是上表列出的三个；Linux 的存储是一个 `[updater-ui]` 组、`key=value` 行的文件
+（`$XDG_CONFIG_HOME/dazzle/<应用名>.conf`，缺省即 `~/.config/dazzle/<应用名>.conf`），
+不依赖 GSettings 或 dconf，所以只链接库、不建 GTK 界面的应用也照样记得住回答。
 
 典型用法：
 
@@ -113,7 +118,10 @@ dazzle::UpdaterUI::GetInstance().CheckForUpdates();
   不一定运行在平台主线程上。
 - 模块内部自己调度：Updater 的阻塞动作在模块自己的工作线程上执行；界面操作切到平台的 UI 线程——
   macOS 投递到主线程（`dispatch_async(dispatch_get_main_queue(), ...)`），Windows 由模块自己的
-  UI 线程创建窗口并运行消息循环，不依赖、也不干扰应用的消息循环。
+  UI 线程创建窗口并运行消息循环，不依赖、也不干扰应用的消息循环。Linux 用
+  `g_main_context_invoke_full()` 把窗口操作投递给**应用自己的 GTK 主线程**：GTK 不是线程安全的，
+  也只能由初始化它的线程使用，所以 Linux 要求应用是 GTK 应用（`gtk_init()` 已经有主循环），
+  否则 `CheckForUpdates()` 与 `CheckForUpdatesInBackground()` 返回 false，什么都不显示。
 - 这是 dazzle 里唯一自带线程的模块；Updater 本身仍然没有线程（见 [updater.md](updater.md)）。
 
 ## 窗口与流程
@@ -235,6 +243,10 @@ Error 状态的说明按 Updater 的 `GetErrorCode()`（见 [updater.md](updater
 | `installer` | 无法启动安装程序。请稍后再试。 |
 | 其它 | 发生了未知错误。请稍后再试。 |
 
+`permission` 与 `app-location` 的文案目前是按 macOS 写的（"系统设置 → 隐私与安全性 → App 管理"、
+移到"应用程序"文件夹），Linux 与 Windows 的同类失败也会显示它——这是已知的粗糙处，两份文案要等
+平台各自的失败方式定下来再分。Linux 今天只会用到 `permission`（应用目录的父目录不可写）。
+
 ## 退出应用
 
 `InstallUpdate()` 返回 true 后必须尽快退出进程。Updater 把这件事留给应用；`UpdaterUI` 为了
@@ -244,6 +256,7 @@ Error 状态的说明按 Updater 的 `GetErrorCode()`（见 [updater.md](updater
 |---|---|
 | macOS | 主线程调用 `[NSApp terminate:nil]`，走应用的 `applicationShouldTerminate:` 流程 |
 | Windows | 向本进程所有可见顶层窗口（本模块的除外）发送 `WM_CLOSE` |
+| Linux | 有 `GApplication` 时调用 `g_application_quit()`，应用的 `shutdown` 处理器照常运行；没有时关闭应用自己的顶层窗口，`gtk_main()` 随最后一个窗口退出 |
 
 如果应用拒绝退出（例如用户在"是否保存"对话框里点了取消），安装器会一直等到进程退出后再替换应用。
 
@@ -258,6 +271,7 @@ Error 状态的说明按 Updater 的 `GetErrorCode()`（见 [updater.md](updater
 |---|---|
 | macOS | Markdown → HTML → `NSAttributedString`（`initWithHTML:`），显示在只读 `NSTextView` 中；导入后统一字体（系统字体 11、标题 12/13.5、代码等宽 10）、颜色和列表缩进，因为 HTML 导入器自带字体、颜色和列表标记 |
 | Windows | Markdown → RTF，显示在只读 RichEdit 控件（`msftedit.dll`，系统自带）中；深色时用 `EM_SETBKGNDCOLOR` 与字符格式设置配色 |
+| Linux | Markdown → `GtkTextBuffer` 的 tag，显示在只读 `GtkTextView`（包在 `GtkScrolledWindow` 里）中：标题、列表缩进、粗体、斜体、行内代码、代码块各是一个 tag，每个链接是名为 `link-<n>` 的 tag，点击时按 tag 找到地址交给桌面打开 |
 
 Markdown 解析用 md4c（`core/third_party/`，单文件、MIT），HTML/RTF 输出由 dazzle 自己实现
 （`src/markdown/`）；md4c 自带的渲染器不使用，所以窗口只能渲染上面这个子集。两个平台都不需要 WebView。
@@ -308,7 +322,8 @@ Markdown 解析用 md4c（`core/third_party/`，单文件、MIT），HTML/RTF �
   - 仍由系统绘制的部分：窗口圆角与标题栏、红绿灯、窗口阴影、缩放。它们带着模块不该重做的行为。
   - 自绘控件的键盘行为与原 AppKit 一致：回车按默认按钮、Esc 与关闭窗口等同、Tab 在控件间移动、
     焦点框只在键盘获得焦点时出现。
-- Windows：Win32 顶层窗口，窗口内的控件（按钮、复选框、进度条、链接）不用 Common Controls，
+- Windows 有两条路，模块本身不引 UI 框架，示例可以：
+  - **自绘（模块内）**：Win32 顶层窗口，窗口内的控件（按钮、复选框、进度条、链接）不用 Common Controls，
   而是由 dazzle 用 Direct2D + DirectWrite 自绘，外观取 WinUI 3 的 Fluent 规格。Common Controls v6
   在 Windows 11 上是旧式外观，且没有公开的深色模式支持；自绘才能与系统其它部分一致并跟随深浅色。
   - 规格以 microsoft-ui-xaml 的主题资源为准（`Common_themeresources_any.xaml`、
@@ -318,11 +333,40 @@ Markdown 解析用 md4c（`core/third_party/`，单文件、MIT），HTML/RTF �
     未勾选描边 `ControlStrongStrokeColorDefault`；进度条轨道 1、指示条 3；正文 Segoe UI Variable 14px。
   - 强调色取系统强调色；深浅色读 `HKCU\…\Themes\Personalize\AppsUseLightTheme`，收到
     `WM_SETTINGCHANGE`（`ImmersiveColorSet`）时重绘。
-  - 标题栏交给 DWM：`DWMWA_USE_IMMERSIVE_DARK_MODE` 跟随深浅色；Windows 11 22H2 起用
-    `DWMWA_SYSTEMBACKDROP_TYPE` 开启 Mica，更早的系统用纯色背景（浅色 `#F3F3F3`、深色 `#202020`）。
-  - 自绘控件自己实现键盘焦点、Tab 顺序和焦点框，并为每个控件提供 UI Automation 提供程序，
-    使读屏软件能读到按钮、复选框和进度。
-  - 按窗口所在显示器的 DPI 缩放（Per-Monitor V2）。应用图标取主程序的第一个图标资源。
+  - **WinUI 3 框架版（模块内已实现）**：`core/src/platform/windows/updater_ui_backend_winui3.cpp`
+    实现同一个 `UiBackend` seam（与 macOS 的 AppKit、Linux 的 GTK 4 并列），由跨平台状态机、
+    `updater_ui_content.cpp` 与 `updater_ui_strings.cpp` 驱动，控件、强调色、深浅色、DPI 与无障碍
+    交给框架。`examples/winui3_updater_ui_example/` 退化为薄宿主（只调 C ABI）。
+    - **窗口属于宿主的 XAML 线程**：XAML 属于启动 `Application` 的那个线程，模块自建线程建窗口会被
+      `RPC_E_WRONG_THREAD` 拒绝。因此后端在**调用线程**上绘制（探测方式是真的建一个窗口），
+      非该线程的状态（检查失败、下载完成）先暂存，等宿主在自己的循环里调 `UpdaterUI::Pump()`
+      时绘制；`UpdaterUI::SetDispatcherQueue()` 供宿主显式声明线程，但**不接收跨 ABI 的对象句柄**
+      （那是 CCW，重入 CLR 会访问违例）。这两个入口都是 Windows 专用，按 `@note Platform availability`
+      记录，其它平台为空实现。
+    - **尺寸按内容区给**（`AppWindow.ResizeClient` + 每显示器 DPI 缩放）：`Resize` 设的是整窗，会让
+      内容少掉标题栏。状态窗口高度按自身组成算（4 + 64 + 8 + 32 + 20 = 128），不是 macOS 的 107。
+      Permission 用**无标题栏的独立窗口**（无关闭按钮、Esc = 不检查、不画标题）。
+    - **尚未完成**：应用图标（`AppIcon()` 暂返回 null，需要安全的 GDI→WriteableBitmap 或 PNG 资源）；
+      Available/Downloaded 的截图需要"索引来自本地"的能力（Windows 没有 HTTP 层，真实检查止于 Error 状态）。
+
+- Linux 用 **GTK 4 自己的控件**（`GtkWindow` + `GtkHeaderBar`、`GtkLabel`、`GtkButton`、
+  `GtkCheckButton`、`GtkProgressBar`、只读 `GtkTextView`），外观、深浅色、强调色、字体与无障碍
+  都由 GTK 和当前主题给出，dazzle 只给尺寸和间距：
+  - UpdateAvailableWindow：默认 532 × 370，最小 462 × 150，可调整大小；更新说明区域最小高 200 pt、
+    6 px 圆角与 1 px 描边（一条 GTK CSS）。
+  - UpdateStatusWindow：宽 400，高按内容（图标 64 + 文字/进度条 + 按钮行 ≈ 150），固定大小。
+  - UpdatePermissionWindow：宽 437，高按内容；标题栏没有关闭按钮（`set_show_title_buttons(FALSE)`
+    与 `set_deletable(FALSE)`），用户必须回答，Esc 等同"不检查"。
+  - 标题栏是 GTK 的客户端装饰：状态窗口显示标题，Available 与 Permission 只把标题留给窗口列表
+    （与原型一致，标题区留空），拖动、缩放与按钮都由系统给。
+  - 强调色与按钮风格取主题：默认按钮加 `suggested-action`、同时**把键盘焦点给它**
+    （`gtk_widget_grab_focus()`）——GTK 默认把焦点给第一个可聚焦的控件，不这样做的话回车会按到
+    "以后再说"，而不是默认按钮；回车由 `gtk_window_set_default_widget()` 承接，Esc 由窗口的按键
+    控制器转成"以后再说/取消"。
+  - 应用图标取图标主题里**应用 id** 命名的图标，取不到时用主题的更新图标（Adwaita 的
+    `software-update-available`），再取不到就是 `dialog-information`：Linux 没有 bundle 里的图标文件。
+  - 窗口位置交给合成器：Wayland 不允许客户端设置窗口位置，所以流程里换窗口时新窗口由合成器放置
+    （通常居中），而不是像 macOS 那样以旧窗口中心为中心。
 - 窗口标题：两个更新窗口在 Checking/UpToDate/Error 时为"软件更新"，在 Downloading/Ready/Installing 时为
   "正在更新{应用名}"（Sparkle 的 `Updating %@`）；UpdatePermissionWindow 没有标题。
 
@@ -334,7 +378,7 @@ Markdown 解析用 md4c（`core/third_party/`，单文件、MIT），HTML/RTF �
 |---|---|---|
 | macOS | ✅ | AppKit |
 | Windows | ✅ | Win32 窗口 + Direct2D 自绘控件 |
-| Linux | ❌ | Updater 在 Linux 上不能安装，完整流程走不通 |
+| Linux | ✅ | GTK 4 窗口；要求应用本身是 GTK 应用（模块画在应用的 GTK 主循环上），构建时找不到 GTK 4 的构建返回 false |
 | iOS | ❌ | 应用应引导用户去 App Store / TestFlight |
 | Android | ❌ | |
 | OHOS | ❌ | |
@@ -356,6 +400,7 @@ src/foundation/updater_ui_backend.h + _default.cpp        窗口缝的声明与�
 src/foundation/updater_ui_preferences.h + _default.cpp    偏好缝的声明与内存实现
 src/platform/<os>/updater_ui_backend_<os>.*               两个窗口、窗口切换、退出应用
 src/platform/<os>/updater_ui_preferences_<os>.*           用户偏好的读写与系统首选语言
+src/platform/linux/updater_ui_notes_linux.*              Markdown → GtkTextBuffer 的 tag（GTK 自己的文本控件没有标记语言）
 ```
 
 - 状态机在跨平台层：它决定"下一步调用 Updater 的哪个方法、显示哪个状态"，平台层只负责
@@ -367,7 +412,8 @@ src/platform/<os>/updater_ui_preferences_<os>.*           用户偏好的读写�
   以及把按钮事件回传给状态机的 `SetEventSink`。实现**不得**在 `Draw`/`Hide` 里回调 sink：
   状态机这时持有自己的锁。
 - 平台界面放进 `platform/<os>/updater_ui_backend_<os>`；没有该文件的平台编译跨平台默认实现，
-  两个 `CheckForUpdates*()` 直接返回 false，所以 Linux 与移动端不需要任何文件。
+  两个 `CheckForUpdates*()` 直接返回 false，所以没有界面实现的平台（今天：iOS、Android、OHOS，
+  以及没找到 GTK 4 或裁掉界面的 Linux 构建）不需要任何文件。
   `-DDAZZLE_WITH_UPDATER_UI=OFF` 把平台目录里的 `updater_ui_*` 从构建里剔除，于是同一个默认实现
   接管——"这个平台没有界面"和"这个构建没有界面"是同一段代码。跨平台的状态机、文案、内容组装和
   C ABI 始终编译，所以两种构建导出的符号相同。
@@ -375,7 +421,8 @@ src/platform/<os>/updater_ui_preferences_<os>.*           用户偏好的读写�
   手动管理。
 - 链接依赖：macOS 在 `DAZZLE_WITH_UPDATER_UI=ON` 时增加 `-framework AppKit`；Windows 增加
   `user32`、`gdi32`、`shell32`、`d2d1`、`dwrite`、`dwmapi`、`uiautomationcore`。裁掉 UI 的构建
-  完全不链接这些系统库。
+  完全不链接这些系统库。Linux 在 `DAZZLE_WITH_UPDATER_UI=ON` 且找到 GTK 4 时增加 GTK 4 的
+  编译与链接参数，找不到 GTK 4 就退回默认界面实现（返回 false）；libcurl 同理只影响 HTTP 缝。
 - 模块自己的线程：一条工作线程按队列跑 Updater 的三个阻塞动作（同时只有一个），下载期间它不阻塞
   等待，而是每 100 ms 把进度画一次；平台层再把每次绘制投递到自己的 UI 线程（macOS 主线程）。
 
@@ -394,7 +441,12 @@ src/platform/<os>/updater_ui_preferences_<os>.*           用户偏好的读写�
    对照（用法见该目录的 README）。
 5. ⏳ Windows 实现：Win32 窗口 + Direct2D 自绘的 Fluent 控件 + UI Automation + 注册表偏好，
    以及 Markdown → RTF。
-6. ✅ C++ 示例：`core/examples/updater_ui_example` 是一个 macOS 应用 bundle，`demo.sh`（`make demo`）
+6. ✅ Linux 界面：`platform/linux/updater_ui_backend_linux.cpp`（GTK 4 的三个窗口）、
+   `updater_ui_notes_linux.*`（Markdown → `GtkTextBuffer`）与 `updater_ui_preferences_linux.cpp`
+   （`$XDG_CONFIG_HOME/dazzle/<应用名>.conf`）。预览工具
+   `core/tools/updater_ui_preview/updater_ui_preview_linux.cpp` 把每个状态渲染成 PNG；
+   `examples/updater_ui_example/demo_linux.sh` 起本地签名 feed 走完整轮次。
+7. ✅ C++ 示例：`core/examples/updater_ui_example` 是一个 macOS 应用 bundle，`demo.sh`（`make demo`）
    起一个本地签名 feed 并运行它，可以点完整个流程，包括"安装更新"把示例 bundle 原地替换成新版本
    再重启。⏳ 各 binding 与 Flutter 示例补上内置界面的用法
    （`examples/flutter_updater_example` 的"检查更新…"按钮）。

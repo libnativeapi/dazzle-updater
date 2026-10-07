@@ -168,4 +168,24 @@ final class UpdaterUI {
   /// OHOS: ❌ (returns false)
   bool checkForUpdatesInBackground() =>
       dazzle_updater_ui_check_for_updates_in_background();
+
+  /// Draws whatever the module has been asked for since the last call.
+  ///
+  /// Platform availability: Windows. The module's windows belong to the host's UI
+  /// thread, and a state the state machine reached on another thread cannot be drawn there
+  /// until that thread runs again. A host whose loop can call this — a dispatcher timer, a
+  /// frame callback — should; one that does not loses those redraws, not the flow.
+  void pump() => dazzle_updater_ui_pump();
+
+  /// Hands the module the UI thread its windows must be created on.
+  ///
+  /// - `queue`: The host's UI thread as an opaque platform handle: on Windows the
+  ///   `IUnknown*` of its `Microsoft.UI.Dispatching.DispatcherQueue`.
+  ///
+  /// Platform availability: Windows. XAML in a process belongs to the thread that
+  /// started the Application, so a WinUI 3 host must call this from its UI thread before the
+  /// first window, or the module has nowhere to draw and every entry point answers false.
+  /// Other platforms create their own windows and ignore the call. Call it once.
+  void setDispatcherQueue(int queue) =>
+      dazzle_updater_ui_set_dispatcher_queue(queue);
 }

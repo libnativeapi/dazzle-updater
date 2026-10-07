@@ -179,6 +179,10 @@ class MacosHttpImpl final : public HttpClient::Impl {
 
 }  // namespace
 
+bool HttpIsAvailable() {
+  return true;
+}
+
 HttpClient::HttpClient() : pimpl_(std::make_unique<MacosHttpImpl>()) {}
 
 HttpClient::~HttpClient() = default;

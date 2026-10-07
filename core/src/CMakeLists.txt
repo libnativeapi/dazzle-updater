@@ -71,6 +71,172 @@ if(PLATFORM_DIR)
     file(GLOB PLATFORM_SOURCES "${PLATFORM_DIR}/*.cpp" "${PLATFORM_DIR}/*.mm")
 endif()
 
+# Linux brings two optional dependencies of its own, and both are found the way Linux
+# finds libraries: libcurl for the HTTP seam, GTK 4 for the built-in windows. Neither is
+# required — without libcurl the HTTP seam falls back to the cross-platform default (and
+# system_linux.cpp then reports that this build cannot check or download), without GTK 4
+# the cross-platform backend answers that there are no built-in windows. So a Linux build
+# with neither still compiles and links, which is what the bindings rely on.
+set(DAZZLE_LINUX_HTTP_AVAILABLE OFF)
+set(DAZZLE_LINUX_GTK4_AVAILABLE OFF)
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    find_package(PkgConfig QUIET)
+    if(PKG_CONFIG_FOUND)
+        pkg_check_modules(LIBCURL QUIET IMPORTED_TARGET libcurl)
+        if(LIBCURL_FOUND)
+            set(DAZZLE_LINUX_HTTP_AVAILABLE ON)
+        endif()
+        pkg_check_modules(GTK4 QUIET IMPORTED_TARGET gtk4)
+        if(GTK4_FOUND)
+            set(DAZZLE_LINUX_GTK4_AVAILABLE ON)
+        endif()
+    endif()
+endif()
+# Published as cache entries, because core/CMakeLists.txt decides whether to build the
+# example from them and a subdirectory's normal variables do not reach their parent.
+set(DAZZLE_LINUX_HTTP_AVAILABLE ${DAZZLE_LINUX_HTTP_AVAILABLE} CACHE INTERNAL
+    "Linux: libcurl was found (HTTP seam)" FORCE)
+set(DAZZLE_LINUX_GTK4_AVAILABLE ${DAZZLE_LINUX_GTK4_AVAILABLE} CACHE INTERNAL
+    "Linux: GTK 4 was found (built-in windows)" FORCE)
+
+# Windows brings one optional dependency of its own, found where the Microsoft.WindowsAppSDK
+# NuGet package leaves it: the C++/WinRT projections and libraries the built-in windows are
+# compiled against. Without them the cross-platform backend answers that there are no
+# built-in windows, exactly as on Linux without GTK 4, so a Windows build with no SDK
+# restored still compiles and links.
+set(DAZZLE_WINDOWS_WINUI3_AVAILABLE OFF)
+set(DAZZLE_WASDK_INCLUDE_DIRS "")
+set(DAZZLE_WASDK_LIB_DIRS "")
+set(DAZZLE_WASDK_METADATA_DIRS "")
+set(DAZZLE_UNION_WINMD "")
+if(WIN32)
+    # The Windows App SDK is a metapackage: the payload lives in component packages, each
+    # with its winmd and its native libraries, and C++/WinRT's projections are generated
+    # from those winmds rather than shipped as headers. cppwinrt comes with the Windows
+    # SDK, which is also where the reference winmd is.
+    file(TO_CMAKE_PATH "$ENV{USERPROFILE}" DAZZLE_USERPROFILE)
+    # The Windows SDK lives under Program Files (x86); the environment variable's name has
+    # parentheses, and a literal path is what every Windows install has anyway.
+    set(DAZZLE_X86 "C:/Program Files (x86)")
+    set(DAZZLE_NUGET "${DAZZLE_USERPROFILE}/.nuget/packages")
+    foreach(component
+            microsoft.windowsappsdk.foundation
+            microsoft.windowsappsdk.interactiveexperiences
+            microsoft.windowsappsdk.winui)
+        file(GLOB versions "${DAZZLE_NUGET}/${component}/1.8.*")
+        if(NOT versions)
+            continue()
+        endif()
+        list(SORT versions)
+        list(GET versions -1 version)
+        if(IS_DIRECTORY "${version}/include")
+            list(APPEND DAZZLE_WASDK_INCLUDE_DIRS "${version}/include")
+        endif()
+        if(IS_DIRECTORY "${version}/lib/native/x64")
+            list(APPEND DAZZLE_WASDK_LIB_DIRS "${version}/lib/native/x64")
+        endif()
+        if(IS_DIRECTORY "${version}/metadata")
+            # One directory per component: the per-TFM one when it holds winmds (those are
+            # the variant for the platform we build), otherwise metadata/ itself. Handing
+            # cppwinrt both would project the same namespaces twice.
+            file(GLOB tfm_dirs "${version}/metadata/10.0.*")
+            set(chosen "")
+            foreach(tfm_dir ${tfm_dirs})
+                file(GLOB tfm_winmds "${tfm_dir}/*.winmd")
+                if(tfm_winmds)
+                    set(chosen "${tfm_dir}")
+                endif()
+            endforeach()
+            if(NOT chosen)
+                file(GLOB metadata_winmds "${version}/metadata/*.winmd")
+                if(metadata_winmds)
+                    set(chosen "${version}/metadata")
+                endif()
+            endif()
+            if(chosen)
+                list(APPEND DAZZLE_WASDK_METADATA_DIRS "${chosen}")
+            endif()
+        endif()
+    endforeach()
+    # Microsoft.UI.Xaml.winmd names WebView2 types; the projections cannot be generated
+    # without its winmd even though the windows here use none of them.
+    # The package puts it in lib/ (not lib/native/), next to the native headers.
+    file(GLOB DAZZLE_WEBVIEW2_WINMDS
+        "${DAZZLE_NUGET}/microsoft.web.webview2/*/lib/*.winmd"
+        "${DAZZLE_NUGET}/microsoft.web.webview2/*/lib/native/*.winmd"
+        "${DAZZLE_NUGET}/microsoft.web.webview2/*/build/native/*.winmd")
+    if(DAZZLE_WEBVIEW2_WINMDS)
+        list(GET DAZZLE_WEBVIEW2_WINMDS 0 DAZZLE_WEBVIEW2_WINMD)
+        list(APPEND DAZZLE_WASDK_METADATA_DIRS "${DAZZLE_WEBVIEW2_WINMD}")
+    endif()
+    # C++/WinRT's generator and its own winrt/ headers ship together in one package, and
+    # that pair is what the projections are meant to be compiled against. Prefer it over
+    # the SDK's generator and the SDK's headers, which are not necessarily the same
+    # generation — mixing them is what makes MSVC report that IVector::Append "returns auto
+    # and must be defined first" for an ordinary call.
+    file(GLOB_RECURSE DAZZLE_CPPWINRT_NUGET
+        "${DAZZLE_NUGET}/microsoft.windows.cppwinrt/*/bin/cppwinrt.exe")
+    if(DAZZLE_CPPWINRT_NUGET)
+        list(SORT DAZZLE_CPPWINRT_NUGET)
+        list(GET DAZZLE_CPPWINRT_NUGET -1 DAZZLE_CPPWINRT_NUGET_EXE)
+        get_filename_component(DAZZLE_CPPWINRT_BIN "${DAZZLE_CPPWINRT_NUGET_EXE}" DIRECTORY)
+        get_filename_component(DAZZLE_CPPWINRT_ROOT "${DAZZLE_CPPWINRT_BIN}" DIRECTORY)
+        file(GLOB_RECURSE DAZZLE_CPPWINRT_BASES "${DAZZLE_CPPWINRT_ROOT}/*/winrt/base.h")
+        if(DAZZLE_CPPWINRT_BASES)
+            # The package normally carries the generator only, in which case the SDK's pair
+            # is the one to use: its generator and its headers belong together.
+            list(GET DAZZLE_CPPWINRT_BASES 0 DAZZLE_CPPWINRT_BASE)
+            get_filename_component(DAZZLE_CPPWINRT_INCLUDE "${DAZZLE_CPPWINRT_BASE}" DIRECTORY)
+            get_filename_component(DAZZLE_CPPWINRT_INCLUDE "${DAZZLE_CPPWINRT_INCLUDE}" DIRECTORY)
+            set(DAZZLE_CPPWINRT "${DAZZLE_CPPWINRT_NUGET_EXE}")
+            message(STATUS "C++/WinRT from NuGet: ${DAZZLE_CPPWINRT} headers ${DAZZLE_CPPWINRT_INCLUDE}")
+        endif()
+    endif()
+
+    # The generated code and winrt/base.h have to be the same generation: the newest SDK's
+    # own projections go on the include path, ahead of whatever the environment offers.
+    file(GLOB DAZZLE_SDK_INCLUDES "${DAZZLE_X86}/Windows Kits/10/Include/10.0.*")
+    if(DAZZLE_SDK_INCLUDES)
+        list(SORT DAZZLE_SDK_INCLUDES)
+        list(GET DAZZLE_SDK_INCLUDES -1 DAZZLE_SDK_INCLUDE)
+        list(APPEND DAZZLE_WASDK_INCLUDE_DIRS "${DAZZLE_SDK_INCLUDE}/cppwinrt")
+    endif()
+    file(GLOB DAZZLE_UNION_CANDIDATES "${DAZZLE_X86}/Windows Kits/10/UnionMetadata/10.0.*")
+    if(DAZZLE_UNION_CANDIDATES)
+        list(SORT DAZZLE_UNION_CANDIDATES)
+        list(GET DAZZLE_UNION_CANDIDATES -1 DAZZLE_UNION_DIR)
+        set(DAZZLE_UNION_WINMD "${DAZZLE_UNION_DIR}/Windows.winmd")
+    endif()
+    # cppwinrt's generated code and the winrt/base.h it is compiled against have to be the
+    # same generation: the newest SDK's generator, because that SDK's headers are the ones
+    # the toolchain puts on the include path.
+    file(GLOB DAZZLE_CPPWINRT_CANDIDATES "${DAZZLE_X86}/Windows Kits/10/bin/10.0.*/x64/cppwinrt.exe")
+    if(DAZZLE_CPPWINRT_CANDIDATES)
+        list(SORT DAZZLE_CPPWINRT_CANDIDATES)
+        list(GET DAZZLE_CPPWINRT_CANDIDATES -1 DAZZLE_CPPWINRT)
+    else()
+        find_program(DAZZLE_CPPWINRT cppwinrt)
+    endif()
+    if(DAZZLE_WASDK_METADATA_DIRS AND DAZZLE_UNION_WINMD AND DAZZLE_CPPWINRT)
+        set(DAZZLE_WINDOWS_WINUI3_AVAILABLE ON)
+    endif()
+endif()
+set(DAZZLE_WINDOWS_WINUI3_AVAILABLE ${DAZZLE_WINDOWS_WINUI3_AVAILABLE} CACHE INTERNAL
+    "Windows: the Windows App SDK payload was found (built-in windows)" FORCE)
+
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND NOT DAZZLE_LINUX_HTTP_AVAILABLE)
+    list(FILTER PLATFORM_SOURCES EXCLUDE REGEX "http_linux")
+endif()
+if(WIN32 AND NOT DAZZLE_WINDOWS_WINUI3_AVAILABLE)
+    list(FILTER PLATFORM_SOURCES EXCLUDE REGEX "updater_ui_backend_winui3")
+endif()
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND NOT DAZZLE_LINUX_GTK4_AVAILABLE)
+    # The GTK 4 windows and the Markdown renderer they use; the preference store is a
+    # plain file and stays, so a build without GTK still remembers the user's answers.
+    list(FILTER PLATFORM_SOURCES EXCLUDE REGEX "updater_ui_backend_linux")
+    list(FILTER PLATFORM_SOURCES EXCLUDE REGEX "updater_ui_notes_linux")
+endif()
+
 # A build without the built-in UI drops this platform's windows and its preference store,
 # so that the same fallbacks below answer for it. The globs above pick every file up by
 # extension, so this is the only place the option has to be considered.
@@ -145,6 +311,7 @@ target_include_directories(dazzle PUBLIC
 # The vendored headers stay an implementation detail of the library.
 target_include_directories(dazzle PRIVATE "${THIRD_PARTY_INCLUDE_DIR}")
 
+
 # Link required frameworks and libraries
 if(ANDROID)
     target_link_libraries(dazzle PUBLIC log android)
@@ -153,6 +320,16 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "iOS")
     target_compile_options(dazzle PRIVATE "-x" "objective-c++")
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     target_link_libraries(dazzle PUBLIC pthread)
+    # libcurl carries the HTTP seam; the include directories and link flags come with the
+    # pkg-config imported target, which is also what makes the build work from a prefix
+    # (PKG_CONFIG_PATH) rather than from /usr.
+    if(DAZZLE_LINUX_HTTP_AVAILABLE)
+        target_link_libraries(dazzle PUBLIC PkgConfig::LIBCURL)
+    endif()
+    # The windows are GTK 4's; a build without them links nothing of it.
+    if(DAZZLE_WITH_UPDATER_UI AND DAZZLE_LINUX_GTK4_AVAILABLE)
+        target_link_libraries(dazzle PUBLIC PkgConfig::GTK4)
+    endif()
 elseif(APPLE)
     target_link_libraries(dazzle PUBLIC "-framework Foundation")
     # The Objective-C++ files are the platform ones, and the `.mm` extension is already
@@ -166,6 +343,43 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "OHOS")
     target_link_libraries(dazzle PUBLIC hilog_ndk.z)
 elseif(WIN32)
     target_link_libraries(dazzle PUBLIC kernel32)
+    # C++/WinRT wants C++20 (or /await), and the projections come from the Windows App SDK
+    # payload. Only the backend files take the newer mode: the rest of core is C++17.
+    if(DAZZLE_WITH_UPDATER_UI AND DAZZLE_WINDOWS_WINUI3_AVAILABLE)
+        # The projections the backend includes are generated once, into the build tree.
+        set(DAZZLE_WINRT_GENERATED "${CMAKE_BINARY_DIR}/winrt-generated")
+        set(DAZZLE_WINRT_STAMP "${DAZZLE_WINRT_GENERATED}/winrt/Microsoft.UI.Xaml.h")
+        set(DAZZLE_WINRT_LOG "${CMAKE_BINARY_DIR}/winrt-generated.log")
+        configure_file("${CMAKE_CURRENT_SOURCE_DIR}/../cmake/generate_winrt.cmake.in"
+                       "${CMAKE_BINARY_DIR}/generate-winrt.cmake" @ONLY)
+        add_custom_command(
+            OUTPUT "${DAZZLE_WINRT_STAMP}"
+            COMMAND "${CMAKE_COMMAND}" -P "${CMAKE_BINARY_DIR}/generate-winrt.cmake"
+            COMMENT "Generating the C++/WinRT projections for the Windows App SDK"
+            VERBATIM)
+        add_custom_target(dazzle_winrt_projections DEPENDS "${DAZZLE_WINRT_STAMP}")
+        add_dependencies(dazzle dazzle_winrt_projections)
+        foreach(source ${PLATFORM_SOURCES})
+            if(source MATCHES "updater_ui_backend_winui3")
+                set_source_files_properties("${source}" PROPERTIES
+                    COMPILE_OPTIONS "/std:c++17;/await;/permissive;/EHsc;/bigobj;/D_WIN32_WINNT=0x0A00")
+            endif()
+        endforeach()
+        target_include_directories(dazzle PRIVATE
+            "${DAZZLE_WINRT_GENERATED}" ${DAZZLE_WASDK_INCLUDE_DIRS})
+        if(DAZZLE_CPPWINRT_INCLUDE)
+            # Ahead of everything: the matching base.h decides whether the projections
+            # compile.
+            target_include_directories(dazzle BEFORE PRIVATE "${DAZZLE_CPPWINRT_INCLUDE}")
+        endif()
+        # C++/WinRT's own entry points (RoGetActivationFactory, RoOriginateLanguageException)
+        # come from the Windows Runtime umbrella library.
+        target_link_libraries(dazzle PRIVATE windowsapp)
+        foreach(lib_dir ${DAZZLE_WASDK_LIB_DIRS})
+            file(GLOB component_libs "${lib_dir}/*.lib")
+            target_link_libraries(dazzle PRIVATE ${component_libs})
+        endforeach()
+    endif()
     # The windows draw their own Fluent controls (Direct2D + DirectWrite), follow the
     # system theme through DWM and expose themselves to UI Automation.
     if(DAZZLE_WITH_UPDATER_UI)

@@ -151,6 +151,22 @@ class UiBackend {
 
   /// The sink button presses are reported to. Set once, before the first Draw().
   virtual void SetEventSink(std::function<void(const UiEvent&)> sink) = 0;
+
+  /// Tells the backend which thread its windows belong to, as an opaque platform handle:
+  /// on Windows the IUnknown* of the host's DispatcherQueue. A platform whose windows it
+  /// creates itself ignores this; Windows cannot, because XAML in a process belongs to the
+  /// thread that started the Application, and creating a window anywhere else answers
+  /// RPC_E_WRONG_THREAD. Until a host hands its queue over, the Windows backend reports
+  /// itself unavailable rather than lying about having windows.
+  virtual void SetHostUiQueue(int64_t queue) { (void)queue; }
+
+  /// Draws on the calling thread whatever the state machine asked for from another one.
+  ///
+  /// A platform whose windows live on a thread it does not own cannot always draw when it is
+  /// told to: the Windows backend refuses to build XAML off the host's UI thread (XAML
+  /// answers RPC_E_WRONG_THREAD, or worse), so it keeps the last content and a host that
+  /// pumps — a timer, a message, whatever its loop offers — gets it drawn there.
+  virtual void Pump() {}
 };
 
 }  // namespace internal

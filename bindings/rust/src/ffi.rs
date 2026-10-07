@@ -44,6 +44,8 @@ extern "C" {
     pub fn dazzle_updater_ui_check_for_updates() -> bool;
     pub fn dazzle_updater_ui_check_for_updates_in_background() -> bool;
     pub fn dazzle_updater_ui_is_visible() -> bool;
+    pub fn dazzle_updater_ui_pump();
+    pub fn dazzle_updater_ui_set_dispatcher_queue(queue: i64);
     pub fn dazzle_updater_ui_set_app_name(name: *const c_char);
     pub fn dazzle_updater_ui_get_app_name() -> *mut c_char;
     pub fn dazzle_updater_ui_set_automatic_checks_enabled(enabled: bool);

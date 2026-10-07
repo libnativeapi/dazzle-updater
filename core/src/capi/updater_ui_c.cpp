@@ -35,6 +35,22 @@ bool dazzle_updater_ui_is_visible(void) {
   }
 }
 
+void dazzle_updater_ui_pump(void) {
+  try {
+    dazzle::UpdaterUI::GetInstance().Pump();
+  } catch (...) {
+    fprintf(stderr, "[dazzle] %s: unexpected exception\n", "dazzle_updater_ui_pump");
+  }
+}
+
+void dazzle_updater_ui_set_dispatcher_queue(int64_t queue) {
+  try {
+    dazzle::UpdaterUI::GetInstance().SetDispatcherQueue(queue);
+  } catch (...) {
+    fprintf(stderr, "[dazzle] %s: unexpected exception\n", "dazzle_updater_ui_set_dispatcher_queue");
+  }
+}
+
 void dazzle_updater_ui_set_app_name(const char* name) {
   try {
     dazzle::UpdaterUI::GetInstance().SetAppName(std::string(name ? name : ""));

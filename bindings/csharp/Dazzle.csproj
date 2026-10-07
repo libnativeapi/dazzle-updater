@@ -32,6 +32,11 @@
     <DazzleLibraryName Condition="$([MSBuild]::IsOSPlatform('Windows'))">dazzle.dll</DazzleLibraryName>
     <DazzleLibraryName Condition="$([MSBuild]::IsOSPlatform('OSX'))">libdazzle.dylib</DazzleLibraryName>
     <DazzleLibraryName Condition="'$(DazzleLibraryName)' == ''">libdazzle.so</DazzleLibraryName>
+    <!-- Windows filesystems do not distinguish dazzle.dll (the C ABI) from Dazzle.dll
+         (this assembly): the native library is deployed beside it under its own name, and
+         NativeLibraryResolver.cs points the DllImport at it. -->
+    <DazzleDeployedLibraryName Condition="$([MSBuild]::IsOSPlatform('Windows'))">dazzle_native.dll</DazzleDeployedLibraryName>
+    <DazzleDeployedLibraryName Condition="'$(DazzleDeployedLibraryName)' == ''">$(DazzleLibraryName)</DazzleDeployedLibraryName>
     <!-- Visual Studio generators add a per-configuration directory. -->
     <DazzleLibraryPath Condition="$([MSBuild]::IsOSPlatform('Windows'))">$(DazzleCMakeDir)/src/Release/$(DazzleLibraryName)</DazzleLibraryPath>
     <DazzleLibraryPath Condition="'$(DazzleLibraryPath)' == ''">$(DazzleCMakeDir)/src/$(DazzleLibraryName)</DazzleLibraryPath>
@@ -40,10 +45,10 @@
 
   <ItemGroup>
     <None Include="$(DazzleLibraryPath)"
-          Link="$(DazzleLibraryName)"
+          Link="$(DazzleDeployedLibraryName)"
           CopyToOutputDirectory="PreserveNewest"
           Pack="true"
-          PackagePath="runtimes/$(DazzleRuntimeId)/native/" />
+          PackagePath="runtimes/$(DazzleRuntimeId)/native/$(DazzleDeployedLibraryName)" />
   </ItemGroup>
 
   <Target Name="BuildDazzleCore" BeforeTargets="BeforeBuild">
