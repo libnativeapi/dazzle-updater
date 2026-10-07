@@ -19,6 +19,8 @@
     <UseWinUI>true</UseWinUI>
     <WindowsPackageType>None</WindowsPackageType>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <!-- The brand mark on its tile (branding/dazzle); UpdaterUI shows the executable's icon. -->
+    <ApplicationIcon>DazzleDemo.ico</ApplicationIcon>
     <EnableMsixTooling>false</EnableMsixTooling>
     <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>

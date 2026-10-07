@@ -12,7 +12,8 @@ directory on Linux (`main_linux.cpp`).
 | `main_linux.cpp` | Linux: a `GtkApplication`, and its own window |
 | `demo.sh` | macOS: a local signed feed, run end to end |
 | `demo_linux.sh` | Linux: the same, around an application directory |
-| `DazzleDemo.icns` | the icon the macOS windows show |
+| `DazzleDemo.icns` | the macOS icon: the brand mark on its dark tile, on Apple's icon grid |
+| `icons/` | the Linux icon on the GNOME grid, in hicolor layout (PNGs, scalable, symbolic), copied beside the binary by the demo |
 
 ## Run it
 
@@ -32,6 +33,9 @@ starts it again, and the copy that comes back reports 2.0.0. **Reset Demo** (a b
 a menu item on macOS) calls `UpdaterUI::ResetPreferences()` and sets the version back to
 1.0.0, so the next check finds 2.0.0 again — after an install, after Skip This Version, or
 after answering the automatic-checks question.
+
+The icons (and the WinUI example's `DazzleDemo.ico`) are generated from the brand mark by
+`branding/dazzle/make-icons.py`, one per platform's icon grid; rerun it after changing the mark.
 
 On Linux the application is a directory (the executable plus whatever sits beside it), so
 the demo copies the binary into its own directory and the release is a zip holding that

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="dazzle updater app icon, Windows">
+  <title>dazzle updater</title>
+  <defs>
+    <linearGradient id="g" gradientUnits="userSpaceOnUse" x1="20" y1="108" x2="104" y2="12">
+      <stop offset="0" stop-color="#5599F5"/><stop offset=".55" stop-color="#67E8F9"/><stop offset="1" stop-color="#A5F3FC"/>
+    </linearGradient>
+  </defs>
+  <rect x="0" y="0" width="256" height="256" rx="51.2" ry="51.2" fill="#07111f"/>
+  <g transform="translate(44.800 44.800) scale(1.300000)" fill="url(#g)">
+    <path d="M111.32 29.6 A58.5 58.5 0 0 1 43.97 118.96 Q43.04 118.61 42.68 119.55 L41.37 122.96 Q40.71 124.68 39.62 123.19 L27.6 106.62 Q26.69 105.38 28.2 105.06 L48.22 100.79 Q50.02 100.41 49.36 102.13 L48.05 105.54 Q47.69 106.48 48.63 106.83 A45.5 45.5 0 0 0 100.93 37.42 Q100.34 36.62 101.14 36.02 L109.92 29.4 Q110.72 28.79 111.32 29.6 Z"/>
+    <path d="M16.68 98.4 A58.5 58.5 0 0 1 84.03 9.04 Q84.96 9.39 85.32 8.45 L86.63 5.04 Q87.29 3.32 88.38 4.81 L100.4 21.38 Q101.31 22.62 99.8 22.94 L79.78 27.21 Q77.98 27.59 78.64 25.87 L79.95 22.46 Q80.31 21.52 79.37 21.17 A45.5 45.5 0 0 0 27.07 90.58 Q27.66 91.38 26.86 91.98 L18.08 98.6 Q17.28 99.21 16.68 98.4 Z"/>
+    <path d="M64 33 Q68 60 95 64 Q68 68 64 95 Q60 68 33 64 Q60 60 64 33 Z"/>
+  </g>
+</svg>

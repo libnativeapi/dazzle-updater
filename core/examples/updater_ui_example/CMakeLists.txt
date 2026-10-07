@@ -23,8 +23,9 @@ if(APPLE)
     MACOSX_BUNDLE_GUI_IDENTIFIER "com.example.dazzle-ui-example"
     MACOSX_BUNDLE_BUNDLE_VERSION "1.0.0"
     MACOSX_BUNDLE_SHORT_VERSION_STRING "1.0.0"
-    # The update windows show the application's own icon, so the example ships one
-    # (DazzleDemo.icns, drawn after the prototype's placeholder artwork).
+    # The update windows show the application's own icon, so the example ships one:
+    # DazzleDemo.icns, the dazzle updater brand mark on its tile
+    # (branding/dazzle/dazzle-updater-app-icon.svg).
     MACOSX_BUNDLE_ICON_FILE "DazzleDemo.icns"
   )
 

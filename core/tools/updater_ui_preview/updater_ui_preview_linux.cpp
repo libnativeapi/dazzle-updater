@@ -359,6 +359,10 @@ int main() {
     std::fprintf(stderr, "no display: run this inside a session (or under Xvfb)\n");
     return 1;
   }
+  // The demo's icon, as the demo application would have it (run from core/).
+  gtk_icon_theme_add_search_path(gtk_icon_theme_get_for_display(gdk_display_get_default()),
+                                 "examples/updater_ui_example/icons");
+  gtk_window_set_default_icon_name("com.example.dazzle-demo");
   if (PreviewDark()) {
     g_object_set(gtk_settings_get_default(), "gtk-application-prefer-dark-theme", TRUE, nullptr);
   }

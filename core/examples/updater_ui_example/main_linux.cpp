@@ -189,6 +189,15 @@ void BuildHostWindow(GtkApplication* application) {
 
 void OnActivate(GtkApplication* application, gpointer user_data) {
   (void)user_data;
+  // The application's icon: the brand mark in an icons/ directory beside the binary
+  // (demo_linux.sh copies it there), named after the application id, which is how both
+  // GTK and UpdaterUI look an application's icon up.
+  const std::string directory = ApplicationDirectory();
+  if (!directory.empty()) {
+    GtkIconTheme* theme = gtk_icon_theme_get_for_display(gdk_display_get_default());
+    gtk_icon_theme_add_search_path(theme, (directory + "/icons").c_str());
+  }
+  gtk_window_set_default_icon_name(kApplicationId);
   BuildHostWindow(application);
 
   // The user started the application, so this is the check they asked for: the window

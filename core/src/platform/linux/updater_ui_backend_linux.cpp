@@ -516,6 +516,13 @@ const char* AppIconName() {
     name = id;
     return name.c_str();
   }
+  // What the application told GTK its windows' icon is (gtk_window_set_default_icon_name),
+  // for a process without a GApplication.
+  const char* default_name = gtk_window_get_default_icon_name();
+  if (default_name != nullptr && gtk_icon_theme_has_icon(theme, default_name)) {
+    name = default_name;
+    return name.c_str();
+  }
   for (const char* fallback :
        {"software-update-available", "system-software-update", "dialog-information"}) {
     if (gtk_icon_theme_has_icon(theme, fallback)) {

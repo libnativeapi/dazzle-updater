@@ -297,6 +297,11 @@ int main() {
   @autoreleasepool {
     [NSApplication sharedApplication];
     [NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
+    // The demo's icon, as a bundled application would have: the tool itself is no bundle.
+    NSImage* icon = [[NSImage alloc] initWithContentsOfFile:@"examples/updater_ui_example/DazzleDemo.icns"];
+    if (icon != nil) {
+      [NSApp setApplicationIconImage:icon];
+    }
     if (PreviewDark()) {
       [NSApp setAppearance:[NSAppearance appearanceNamed:NSAppearanceNameDarkAqua]];
     }

@@ -60,6 +60,14 @@ void PrintConfiguration(const std::string& feed, const std::string& key,
 }
 
 - (void)applicationDidFinishLaunching:(NSNotification*)notification {
+  // The icon straight from this bundle: macOS caches application icons by bundle
+  // identifier, and the demo is rebuilt under the same identifier again and again, so a
+  // changed icon would otherwise keep showing its predecessor.
+  NSString* icns = [[NSBundle mainBundle] pathForResource:@"DazzleDemo" ofType:@"icns"];
+  NSImage* icon = icns != nil ? [[NSImage alloc] initWithContentsOfFile:icns] : nil;
+  if (icon != nil) {
+    [NSApp setApplicationIconImage:icon];
+  }
   [self buildMenu];
   [self buildWindow];
   [NSApp activateIgnoringOtherApps:YES];

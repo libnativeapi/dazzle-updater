@@ -56,6 +56,7 @@ feed="http://127.0.0.1:${port}/releases.json"
 make_app() {
   mkdir -p "$1"
   cp "$app" "$1/DazzleDemo"
+  cp -R "$here/icons" "$1/icons"  # the brand icon, found through the application id
   printf '%s\n' "$2" > "$1/version"
   cat > "$1/dazzle-demo.conf" <<CONF
 feed=$feed
