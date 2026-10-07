@@ -1,15 +1,23 @@
 /*
- * The Available state: the heading beside the icon, the release notes box
- * (Sparkle's `SUUpdateAlert.xib`: 6pt corners, a 1pt separator border, the
- * text background) and Later · Install Update.
+ * SUUpdateAlert: one line per constraint, from Sparkle 2.x `Sparkle/SUUpdateAlert.xib`.
+ *
+ * The window is 532 × 370 with a 462 × 150 minimum, resizable and miniaturisable, and its
+ * title bar is transparent — the content starts right under it, so there is no top inset.
+ * Inside, a vertical stack with an 8 pt gap holds four rows: the icon and the version
+ * (64 pt row, icon 64 pt wide at 20, text 8 pt after it, everything 20 from the trailing
+ * edge), the release notes box (flexible, never below 200), the automatic-downloads check
+ * box (14 pt row, the same 20 pt leading edge) and the buttons (24 pt tall with 20 pt
+ * under them, 12 pt apart, Skip at least as wide as Install, Later exactly as wide as
+ * Install — which is never below 120).
  */
 
 .update-available-window {
   display: flex;
   flex: 1;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
   min-height: 0;
+  /* Top 0: the title bar is transparent and the content begins under it. */
   padding: 0 20px 20px;
 }
 
@@ -17,6 +25,8 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  /* The row is the icon's own height (constraint 66j-dF-FGm: width == height == 64). */
+  min-height: 64px;
 }
 
 .update-available-window__title-view > .update-heading {
@@ -24,7 +34,7 @@
   min-width: 0;
 }
 
-/* NSBox, custom: 6pt corners, a 1pt separator border, the text background. */
+/* NSBox, custom: the text background, a 1 pt separator border, the notes radius. */
 .update-available-window__notes-status {
   display: grid;
   place-items: center;
@@ -37,6 +47,8 @@
   color: var(--text-secondary);
 }
 
+/* Height 235 was an Interface Builder placeholder, not a runtime constraint; the real
+   ones are "at least 200" (g5s-9E-8SF) and "take what is left". */
 .update-available-window__notes {
   flex: 1;
   min-height: 200px;
@@ -46,6 +58,7 @@
   border-radius: var(--notes-radius);
 }
 
+/* The link stands where the notes' text column starts: 20 + 64 + 8. */
 .update-available-window__notes-link {
   align-self: flex-start;
   margin-inline-start: 72px;
@@ -61,8 +74,9 @@
 
 .update-available-window__options {
   display: flex;
-  /* The check box sits closer to the buttons than to the notes: 8pt, not 12pt. */
-  margin-bottom: -4px;
+  align-items: center;
+  /* The check box's row is 14 pt tall (constraint for the small square button). */
+  height: 14px;
 }
 
 .update-available-window__buttons {
@@ -75,13 +89,20 @@
   flex: 1;
 }
 
-/* Later and Install Update share a width; the default is at least 120pt. */
-.update-available-window__paired {
-  flex-basis: 127px;
+/* Skip This Version: at least as wide as the install button (ZG6-hO-ueO). */
+.update-available-window__skip {
+  min-width: 120px;
 }
 
-.update-available-window__primary {
-  min-width: 120px;
+/* Remind Me Later and Install Update are equal in width (EWD-pD-s8E): equal grid
+   columns size both to the wider of the two, and the 120 pt floor is Install's own
+   minimum (Gsu-Ko-2TJ; Later's is 90, 8FZ-lB-M5G). */
+.update-available-window__pair {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(120px, 1fr);
+  gap: 12px;
+  flex-shrink: 0;
 }
 
 :root[data-platform='windows'] .update-available-window__buttons {

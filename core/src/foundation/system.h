@@ -41,6 +41,11 @@ std::string SystemVersion();
 /// platform has no such metadata.
 std::string AppVersionFromPlatform();
 
+/// The running application's name, read from the platform's own metadata; "" when the
+/// platform has no such metadata. UpdaterUI uses it in its wording when the application
+/// has set none of its own.
+std::string AppNameFromPlatform();
+
 /// A directory dazzle may write downloads into, without a trailing separator; created
 /// when missing. "" when the platform provides none.
 std::string DownloadDirectory();

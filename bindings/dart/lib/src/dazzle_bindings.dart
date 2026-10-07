@@ -84,3 +84,38 @@ external void dazzle_release_index_source_set_url(Pointer<Char> url);
 
 @Native<Pointer<Char> Function()>()
 external Pointer<Char> dazzle_release_index_source_get_url();
+
+// updater_ui_c.h
+
+@Native<Bool Function()>()
+external bool dazzle_updater_ui_check_for_updates();
+
+@Native<Bool Function()>()
+external bool dazzle_updater_ui_check_for_updates_in_background();
+
+@Native<Bool Function()>()
+external bool dazzle_updater_ui_is_visible();
+
+@Native<Void Function(Pointer<Char>)>()
+external void dazzle_updater_ui_set_app_name(Pointer<Char> name);
+
+@Native<Pointer<Char> Function()>()
+external Pointer<Char> dazzle_updater_ui_get_app_name();
+
+@Native<Void Function(Bool)>()
+external void dazzle_updater_ui_set_automatic_checks_enabled(bool enabled);
+
+@Native<Bool Function()>()
+external bool dazzle_updater_ui_is_automatic_checks_enabled();
+
+@Native<Void Function(Bool)>()
+external void dazzle_updater_ui_set_automatic_downloads_enabled(bool enabled);
+
+@Native<Bool Function()>()
+external bool dazzle_updater_ui_is_automatic_downloads_enabled();
+
+@Native<Void Function(Bool)>()
+external void dazzle_updater_ui_set_automatic_downloads_allowed(bool allowed);
+
+@Native<Bool Function()>()
+external bool dazzle_updater_ui_is_automatic_downloads_allowed();

@@ -1,4 +1,4 @@
-.PHONY: build examples core-tests rust dart csharp flutter codegen check test clean
+.PHONY: build examples demo core-tests rust dart csharp flutter codegen check test clean
 
 BUILD_DIR := core/build
 
@@ -15,6 +15,11 @@ core-tests: build
 examples: build
 	$(BUILD_DIR)/examples/updater_example/updater_example
 	$(BUILD_DIR)/examples/updater_c_example/updater_c_example
+
+# Walk through the built-in update windows: starts a local signed feed and runs the
+# UpdaterUI example application (macOS; not part of `test`, it needs a desktop session)
+demo: build
+	cd core && ./examples/updater_ui_example/demo.sh
 
 # Test the Rust binding and run its example
 rust:

@@ -34,11 +34,13 @@ export interface UpdateStatusWindowProps {
 }
 
 /**
- * The window for every other state — Sparkle's `SUStatusController`,
- * NetSparkle's checking, download-progress and message windows, AutoUpdater.NET's
- * `DownloadUpdateDialog`: the icon, a message or a progress bar, and the state's
- * buttons, in one fixed 400pt compact layout. Its title is "Software Update"
- * while nothing has been found, and "<app> Update" once there is an update.
+ * The window for every other state — Sparkle's `SUStatusController`: the icon, a
+ * message or a progress bar, and the state's buttons, in one 400 × 107 layout (see
+ * update-status-window.css for the constraint each measurement comes from).
+ *
+ * Sparkle reports "up to date" and update errors in an NSAlert rather than in this
+ * window; specs/updater-ui.md keeps them here so that the flow has one place to
+ * look, which is the one place this window knowingly departs from Sparkle.
  */
 export function UpdateStatusWindow({ appName, currentVersion, status, onInstallAndRelaunch, onDismiss }: UpdateStatusWindowProps) {
   const t = useStrings()
@@ -86,7 +88,8 @@ export function UpdateStatusWindow({ appName, currentVersion, status, onInstallA
       // The text by error code, and GetErrorMessage() under it for a bug report.
       const texts = t.errorText(appName)
       body = (
-        <UpdateHeading title={t.errorTitle[status.step]} detail={(status.code && texts[status.code]) || texts.other}>
+        // Sparkle titles every update failure "Update Error!" and explains it below.
+        <UpdateHeading title={t.errorTitle} detail={(status.code && texts[status.code]) || texts.other}>
           <p className="update-status-window__message">{status.message}</p>
         </UpdateHeading>
       )
@@ -147,7 +150,9 @@ export function UpdateStatusWindow({ appName, currentVersion, status, onInstallA
 
   return (
     <Window
-      title={found ? t.appUpdate(appName) : t.softwareUpdate}
+      // SUStatusController.m: 400 × 107 with a 213 × 107 minimum. "Software Update"
+      // while checking; "Updating <app>" once an update is on its way.
+      title={found ? t.updating(appName) : t.softwareUpdate}
       controls={{ close: dismissible, minimize: false, zoom: false }}
       width={400}
     >

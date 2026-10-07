@@ -38,3 +38,18 @@ extern "C" {
     pub fn dazzle_release_index_source_set_url(url: *const c_char);
     pub fn dazzle_release_index_source_get_url() -> *mut c_char;
 }
+
+// updater_ui_c.h
+extern "C" {
+    pub fn dazzle_updater_ui_check_for_updates() -> bool;
+    pub fn dazzle_updater_ui_check_for_updates_in_background() -> bool;
+    pub fn dazzle_updater_ui_is_visible() -> bool;
+    pub fn dazzle_updater_ui_set_app_name(name: *const c_char);
+    pub fn dazzle_updater_ui_get_app_name() -> *mut c_char;
+    pub fn dazzle_updater_ui_set_automatic_checks_enabled(enabled: bool);
+    pub fn dazzle_updater_ui_is_automatic_checks_enabled() -> bool;
+    pub fn dazzle_updater_ui_set_automatic_downloads_enabled(enabled: bool);
+    pub fn dazzle_updater_ui_is_automatic_downloads_enabled() -> bool;
+    pub fn dazzle_updater_ui_set_automatic_downloads_allowed(allowed: bool);
+    pub fn dazzle_updater_ui_is_automatic_downloads_allowed() -> bool;
+}

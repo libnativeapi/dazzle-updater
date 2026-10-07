@@ -5,13 +5,23 @@ project(dazzle_tests LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-add_executable(dazzle_tests
+# The state machine, its content and its wording are part of the library either way, so
+# their tests run in both builds. The Markdown renderer is compiled only with the windows
+# (see ../src/CMakeLists.txt), so its test goes with it.
+set(DAZZLE_TEST_SOURCES
   test_support.cpp
   version_test.cpp
   ed25519_test.cpp
   release_index_parse_test.cpp
   updater_test.cpp
+  updater_ui_test.cpp
+  updater_ui_content_test.cpp
 )
+if(DAZZLE_WITH_UPDATER_UI)
+  list(APPEND DAZZLE_TEST_SOURCES markdown_test.cpp)
+endif()
+
+add_executable(dazzle_tests ${DAZZLE_TEST_SOURCES})
 
 target_link_libraries(dazzle_tests PRIVATE dazzle)
 

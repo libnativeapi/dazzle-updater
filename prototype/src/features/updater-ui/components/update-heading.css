@@ -1,6 +1,7 @@
 /*
- * The heading both windows draw: a bold line over a small one. Metrics after
- * Sparkle's windows, which are AppKit's own.
+ * The heading both windows draw: a bold line over a small one. Sparkle's windows
+ * build it from two labels 8 pt apart — SUUpdateAlert.xib constrains the question's
+ * top to the version label's bottom + 8 — in the system font at 13 and 11 pt.
  */
 
 .update-heading__title {
@@ -9,6 +10,7 @@
 }
 
 .update-heading__detail {
+  /* 8 pt, not the 4 the window used to leave: SUUpdateAlert.xib, constraint 9M6-6n-Bro. */
   margin: 8px 0 0;
   font-size: var(--font-size-small);
   line-height: var(--line-height-small);

@@ -1,14 +1,23 @@
 /*
- * Every state but Available: Sparkle's `SUStatusController` layout. The icon
- * 4pt from the top; the message or progress centred on it; the buttons 8pt
- * under that, 20pt from the bottom and trailing edges, at least 100pt wide;
- * the status text on the buttons' baseline in tabular digits.
+ * SUStatusController: one line per constraint, from Sparkle 2.x
+ * `Sparkle/SUStatusController.m`, which builds this window in code.
+ *
+ * The window is 400 × 107 with a 213 × 107 minimum. The icon is 64 pt at (20, 4). The
+ * title-and-progress container is centred on the icon, 8 pt after it and 20 pt from the
+ * trailing edge; the title is bold system size and the bar sits 8 pt under it. The status
+ * text shares the action button's baseline, starts where the container does, and keeps
+ * 25 pt clear of the button. The button is 8 pt under the container, 20 pt from the
+ * bottom and trailing edges, and at least 100 pt wide.
+ *
+ * Sparkle switches the button to the large control size on macOS 26
+ * (`actionButton.controlSize = NSControlSizeLarge`), which is why the window is a few
+ * points taller there: 82 + the button's height.
  */
 
 .update-status-window {
   display: grid;
   grid-template-columns: 64px 1fr;
-  /* At least the icon's height; a long error message makes it taller rather than running under the buttons. */
+  /* A message or a bar is centred on the icon, whatever its length. */
   grid-template-rows: minmax(64px, auto) auto;
   column-gap: 8px;
   min-height: 107px;
@@ -29,53 +38,34 @@
   min-width: 0;
 }
 
+/*
+ * The action row begins 8 pt under the container, and the container is the title and the
+ * bar centred in the icon's row: row 1 ends 64 pt below the icon's top, the container
+ * 6 pt above that.
+ */
 .update-status-window__footer {
   display: flex;
   align-items: baseline;
   justify-content: flex-end;
-  gap: 12px;
+  gap: 25px;
   grid-row: 2;
-  /*
-   * Across both columns: Ready carries two buttons (Later · Install and
-   * Relaunch), which in a wide font — Omarchy's monospace, GNOME's bold — do
-   * not fit beside the icon and would run into the right inset. The status
-   * text still starts under the progress bar (64pt icon + 8pt gap).
-   */
   grid-column: 1 / -1;
-  /* The stack ends 22pt under the icon's centre; the button starts 8pt below it. */
   min-height: var(--button-height);
-  margin-top: -2px;
+  margin-top: -6px;
 }
 
 .update-status-window__footer > .button {
   min-width: 100px;
 }
 
-/*
- * A message (Up to Date, Error) starts 12pt under the icon's top edge whatever
- * its length. Centred on the icon, a message longer than the icon would start
- * flush with the window's top inset instead, and the title would sit higher
- * than in every other state.
- */
-.update-status-window[data-body='message'] .update-status-window__body {
-  justify-content: flex-start;
-  padding-top: 12px;
-}
-
-/*
- * A message ends at its last line of text, not in a progress bar's frame, so
- * the buttons keep the 12pt a group of controls keeps from the text above it.
- */
-.update-status-window[data-body='message'] .update-status-window__footer {
-  margin-top: 12px;
-}
-
+/* The status never wraps: SUStatusController makes it resist compression. */
 .update-status-window__status {
   flex: 1;
-  /* The status never wraps: SUStatusController makes it resist compression. */
   white-space: nowrap;
+  /* 20 + 64 + 8, the same column the container starts in. */
   margin-inline-start: 72px;
-  margin-inline-end: 13px;
+  /* The status text is the system size, in tabular digits. */
+  font-size: var(--font-size);
   font-variant-numeric: tabular-nums;
 }
 
@@ -91,9 +81,15 @@
   white-space: nowrap;
 }
 
+/* The container's bottom is the bar's bottom, and an AppKit bar progress indicator is
+   12 pt tall — the 20 pt this used to be came from nowhere. */
 .update-status-window__bar {
   display: flex;
   align-items: center;
+  height: 12px;
+}
+
+:root[data-platform='windows'] .update-status-window__bar {
   height: 20px;
 }
 

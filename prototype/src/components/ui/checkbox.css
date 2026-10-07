@@ -3,8 +3,11 @@
  * only its size and corner are its own, per desktop below.
  */
 .checkbox {
-  --check-size: 14px;
-  --check-radius: 3.5px;
+  /* NSButton's own control sizes, measured on macOS 26: mini 12, small 14, regular 16,
+     large 18. Sparkle's windows ask for `controlSize=small`, which is why the check box
+     row is 14 pt tall in SUUpdateAlert.xib. */
+  --check-size: 16px;
+  --check-radius: 4px;
 
   display: inline-flex;
   align-items: center;
@@ -13,8 +16,8 @@
 }
 
 .checkbox[data-size='small'] {
-  --check-size: 12px;
-  --check-radius: 3px;
+  --check-size: 14px;
+  --check-radius: 3.5px;
 
   gap: 5px;
   font-size: var(--font-size-small);

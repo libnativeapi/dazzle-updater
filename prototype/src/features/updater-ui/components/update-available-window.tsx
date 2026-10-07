@@ -36,12 +36,12 @@ export interface UpdateAvailableWindowProps {
 }
 
 /**
- * The window for the Available and Downloaded states — Sparkle's
- * `SUUpdateAlert`, NetSparkle's `UpdateAvailableWindow`, AutoUpdater.NET's
- * `UpdateForm`: what the new version is, its release notes, the
- * automatic-downloads check box, and Skip This Version ··· Later · **Install**.
- * With notes it is 532 × 370pt and resizable; when the notes are empty it
- * links the notes page instead and keeps its size.
+ * The window for the Available and Downloaded states — Sparkle's `SUUpdateAlert`:
+ * what the new version is, its release notes, the automatic-downloads check box,
+ * and Skip This Version ··· Remind Me Later · **Install**. Every measurement is
+ * the xib's: see update-available-window.css for the constraint each one comes
+ * from. It is 532 × 370pt with a 462 × 150 minimum and always resizable; when the
+ * notes are empty the notes page is linked instead and the window keeps its size.
  */
 export function UpdateAvailableWindow({
   appName,
@@ -76,17 +76,15 @@ export function UpdateAvailableWindow({
 
   return (
     <Window
-      title={t.appUpdate(appName)}
-      // As Sparkle's update alert: the title is kept for accessibility but not
-      // drawn, and the window moves by its background.
-      titleHidden
+      // SUUpdateAlert.xib: "Software Update" in a transparent title bar, 532 × 370 with a
+      // 462 × 150 minimum, resizable and miniaturisable.
+      title={t.softwareUpdate}
       movableByBackground
-      // Titled | Closable, and Resizable only while release notes are shown.
-      controls={{ close: !critical, minimize: false, zoom: showsNotes }}
+      controls={{ close: !critical, minimize: true, zoom: true }}
       width={532}
-      height={showsNotes ? 370 : undefined}
+      height={370}
       // The notes box keeps 200pt, so the window cannot shrink past its parts.
-      resizable={showsNotes ? { minWidth: 462, minHeight: 342 } : undefined}
+      resizable={{ minWidth: 462, minHeight: 150 }}
     >
       <div className="update-available-window">
         <div className="update-available-window__title-view">
@@ -126,16 +124,28 @@ export function UpdateAvailableWindow({
           </div>
         )}
         <div className="update-available-window__buttons">
-          {!critical && <Button onClick={onSkip}>{t.skip}</Button>}
-          <span className="update-available-window__spacer" />
           {!critical && (
-            <Button className="update-available-window__paired" onClick={onLater}>
-              {t.later}
+            <Button className="update-available-window__skip" onClick={onSkip}>
+              {t.skip}
             </Button>
           )}
-          <Button isDefault className="update-available-window__paired update-available-window__primary" onClick={onInstall}>
-            {install}
-          </Button>
+          <span className="update-available-window__spacer" />
+          {!critical && (
+            // Remind Me Later and Install Update are equal in width: SUUpdateAlert.xib
+            // constrains their widths to each other (EWD-pD-s8E), which is what the pair
+            // wrapper's equal columns reproduce.
+            <span className="update-available-window__pair">
+              <Button onClick={onLater}>{t.later}</Button>
+              <Button isDefault onClick={onInstall}>
+                {install}
+              </Button>
+            </span>
+          )}
+          {critical && (
+            <Button isDefault onClick={onInstall}>
+              {install}
+            </Button>
+          )}
         </div>
       </div>
     </Window>

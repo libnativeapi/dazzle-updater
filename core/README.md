@@ -7,9 +7,10 @@ optional `AppcastSource` will read Sparkle appcasts. It is a C++17 library with 
 for bindings.
 
 **Status**: macOS works end to end (check, download, Ed25519 verification, zip install and
-relaunch). Windows, Linux, iOS, Android and OHOS answer
-`"not supported on this platform"` until their implementations land
-([plan](../specs/updater.md)).
+relaunch). The optional built-in interface, `UpdaterUI`, has its macOS windows; Windows,
+Linux, iOS, Android and OHOS answer `"not supported on this platform"` until their
+implementations land ([plan](../specs/updater.md),
+[interface plan](../specs/updater-ui.md)).
 
 ## Installation
 
@@ -19,6 +20,13 @@ Requires CMake 3.10+ and a C++17 compiler.
 add_subdirectory(dazzle)
 target_link_libraries(your_app PRIVATE dazzle)
 ```
+
+Options:
+
+| Option | Default | Effect |
+| --- | --- | --- |
+| `DAZZLE_BUILD_SHARED` | `OFF` | Build a shared library instead of a static one |
+| `DAZZLE_WITH_UPDATER_UI` | `ON` | Build `UpdaterUI`'s native windows. `OFF` leaves their implementation, the Markdown renderer and the system UI frameworks out of the library; the entry points stay and answer false, as they do on a platform without windows ([spec](../specs/updater-ui.md)) |
 
 ## Quick Start
 
@@ -40,6 +48,17 @@ int main() {
 }
 ```
 
+### Built-in interface
+
+An application that would rather not draw the update interface itself can use `UpdaterUI`:
+the same round, in the platform's own windows, with the same source and public key
+configured on `Updater` ([spec](../specs/updater-ui.md)).
+
+```cpp
+dazzle::UpdaterUI::GetInstance().CheckForUpdatesInBackground();  // after start-up
+dazzle::UpdaterUI::GetInstance().CheckForUpdates();              // "Check for Updates…"
+```
+
 ## Examples
 
 ```bash
@@ -47,6 +66,17 @@ cmake -S . -B build
 cmake --build build
 ./build/examples/updater_example/updater_example https://example.com/myapp/releases.json <public-key>
 ./build/examples/updater_c_example/updater_c_example https://example.com/myapp/releases.json <public-key>
+```
+
+`examples/updater_ui_example` is the one to run to *see* the module. It is a macOS
+application bundle that shows the built-in windows; `demo.sh` next to it builds a local,
+signed release of the example itself and runs it, so the whole round can be clicked
+through — including "Install and Update", which replaces the demo bundle in place and
+relaunches it:
+
+```bash
+make demo          # from the repository root; or, from core/:
+./examples/updater_ui_example/demo.sh
 ```
 
 ## Tests

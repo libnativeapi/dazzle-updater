@@ -90,4 +90,45 @@ internal static partial class NativeMethods
 
     [LibraryImport(Library)]
     internal static partial nint dazzle_release_index_source_get_url();
+
+    // updater_ui_c.h
+
+    [LibraryImport(Library)]
+    [return: MarshalAs(UnmanagedType.U1)]
+    internal static partial bool dazzle_updater_ui_check_for_updates();
+
+    [LibraryImport(Library)]
+    [return: MarshalAs(UnmanagedType.U1)]
+    internal static partial bool dazzle_updater_ui_check_for_updates_in_background();
+
+    [LibraryImport(Library)]
+    [return: MarshalAs(UnmanagedType.U1)]
+    internal static partial bool dazzle_updater_ui_is_visible();
+
+    [LibraryImport(Library, StringMarshalling = StringMarshalling.Utf8)]
+    internal static partial void dazzle_updater_ui_set_app_name(string? name);
+
+    [LibraryImport(Library)]
+    internal static partial nint dazzle_updater_ui_get_app_name();
+
+    [LibraryImport(Library)]
+    internal static partial void dazzle_updater_ui_set_automatic_checks_enabled([MarshalAs(UnmanagedType.U1)] bool enabled);
+
+    [LibraryImport(Library)]
+    [return: MarshalAs(UnmanagedType.U1)]
+    internal static partial bool dazzle_updater_ui_is_automatic_checks_enabled();
+
+    [LibraryImport(Library)]
+    internal static partial void dazzle_updater_ui_set_automatic_downloads_enabled([MarshalAs(UnmanagedType.U1)] bool enabled);
+
+    [LibraryImport(Library)]
+    [return: MarshalAs(UnmanagedType.U1)]
+    internal static partial bool dazzle_updater_ui_is_automatic_downloads_enabled();
+
+    [LibraryImport(Library)]
+    internal static partial void dazzle_updater_ui_set_automatic_downloads_allowed([MarshalAs(UnmanagedType.U1)] bool allowed);
+
+    [LibraryImport(Library)]
+    [return: MarshalAs(UnmanagedType.U1)]
+    internal static partial bool dazzle_updater_ui_is_automatic_downloads_allowed();
 }

@@ -28,7 +28,14 @@ export function UpdatePermissionWindow({ appName, automaticDownloadsAllowed = tr
   useWindowKeys(() => onAllow(downloads), onDeny)
 
   return (
-    <Window title={t.softwareUpdate} titleHidden controls={{ close: true, minimize: false, zoom: false }} width={440}>
+    <Window
+      // SUUpdatePermissionPrompt.xib: Titled alone — no close button, no resize and no
+      // title of its own — with a 437 pt content. Sparkle's anonymous system profile
+      // section is not drawn: dazzle does not collect one (specs/updater-ui.md).
+      title=""
+      controls={{ close: false, minimize: false, zoom: false }}
+      width={437}
+    >
       <div className="update-permission-window">
         <AppIcon size={64} />
         <div className="update-permission-window__body">

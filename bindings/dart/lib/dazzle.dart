@@ -5,3 +5,4 @@ library;
 
 export 'src/updater.dart' show Updater;
 export 'src/release_index_source.dart' show ReleaseIndexSource;
+export 'src/updater_ui.dart' show UpdaterUI;

@@ -172,6 +172,14 @@ std::string AppVersionFromPlatform() {
   return ToUtf8([[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"]);
 }
 
+std::string AppNameFromPlatform() {
+  std::string name = ToUtf8([[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleName"]);
+  if (name.empty()) {
+    name = ToUtf8([[NSProcessInfo processInfo] processName]);
+  }
+  return name;
+}
+
 std::string DownloadDirectory() {
   NSFileManager* manager = [NSFileManager defaultManager];
   NSURL* caches = [manager URLForDirectory:NSCachesDirectory

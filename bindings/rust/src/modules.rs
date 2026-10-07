@@ -5,3 +5,5 @@ mod updater;
 pub use updater::Updater;
 mod release_index_source;
 pub use release_index_source::ReleaseIndexSource;
+mod updater_ui;
+pub use updater_ui::UpdaterUI;

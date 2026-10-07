@@ -8,6 +8,14 @@ const meta = {
   id: 'features-updater-ui-update-available-window',
   title: 'Components/Update Available Window',
   component: UpdateAvailableWindow,
+  parameters: {
+    docs: {
+      description: {
+        component:
+          'Sparkle 2.x `Sparkle/SUUpdateAlert.xib`, one to one: content 532 × 370 (462 × 150 minimum), an 8 pt stack of a 64 pt icon row, the release notes box (at least 200 pt), the 14 pt automatic-downloads row and the 24 pt button row with 20 pt under it. Every measurement in `update-available-window.css` names the constraint it comes from.',
+      },
+    },
+  },
   args: {
     appName,
     currentVersion,

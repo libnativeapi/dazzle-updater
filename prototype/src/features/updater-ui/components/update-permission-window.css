@@ -1,9 +1,22 @@
-/* SUUpdatePermissionPrompt: the icon beside the question, the check box, the two buttons at the trailing edge. */
+/*
+ * SUUpdatePermissionPrompt: from Sparkle 2.x `Sparkle/SUUpdatePermissionPrompt.xib`.
+ *
+ * The window's content is 437 pt wide and its style mask is Titled alone — no close
+ * button, no resize: the user answers it. The icon is 64 pt at (23, 18); the text column
+ * begins 19 pt after it, which is 106 pt from the window's edge, and the content stops
+ * 20 pt from the trailing edge. The question is 13 pt bold, 20 pt from the top and 8 pt
+ * above the line under it. The check box and the two answers follow in that same column,
+ * the answers 14 pt apart and 20 pt from the bottom edge.
+ *
+ * dazzle does not collect the anonymous system profile, so that part of Sparkle's prompt
+ * is not drawn (specs/updater-ui.md); the rest is Sparkle's own geometry.
+ */
+
 .update-permission-window {
   display: flex;
   align-items: flex-start;
-  gap: 16px;
-  padding: 4px 20px 20px;
+  gap: 19px;
+  padding: 18px 20px 20px 23px;
 }
 
 .update-permission-window__body {
@@ -12,20 +25,22 @@
   flex-direction: column;
   gap: 14px;
   min-width: 0;
+  /* The question sits 20 pt from the top; the icon 18, and the difference is here. */
+  padding-top: 2px;
 }
 
 .update-permission-window__buttons {
   display: flex;
   justify-content: flex-end;
-  gap: 12px;
+  gap: 14px;
   margin-top: 4px;
 }
 
 .update-permission-window__buttons > .button {
-  min-width: 100px;
+  min-width: 101px;
 }
 
-/* Omarchy: no titlebar, so the window's own top inset replaces the 4pt under it. */
+/* Omarchy: no titlebar, so the window's own top inset replaces the 18pt under it. */
 :root[data-desktop='omarchy'] .update-permission-window {
   padding-top: 0;
 }

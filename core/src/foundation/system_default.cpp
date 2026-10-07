@@ -40,6 +40,10 @@ std::string AppVersionFromPlatform() {
   return "";
 }
 
+std::string AppNameFromPlatform() {
+  return "";
+}
+
 std::string DownloadDirectory() {
   return "";
 }

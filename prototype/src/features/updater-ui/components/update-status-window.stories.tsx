@@ -19,6 +19,14 @@ const meta = {
   id: 'features-updater-ui-update-status-window',
   title: 'Components/Update Status Window',
   component: UpdateStatusWindow,
+  parameters: {
+    docs: {
+      description: {
+        component:
+          'Sparkle 2.x `Sparkle/SUStatusController.m`, one to one: content 400 × 107 (213 × 107 minimum), the icon 64 pt at (20, 4), the title and progress container centred on it with the status text on the button’s baseline, and the button 8 pt under the container, 20 pt from the bottom and trailing edges. Sparkle reports “up to date” and errors in an alert; this window keeps them, which is the one deliberate departure.',
+      },
+    },
+  },
   args: {
     appName,
     currentVersion,

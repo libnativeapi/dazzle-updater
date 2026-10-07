@@ -6,6 +6,7 @@
 // C++ API
 #include "../src/release_index_source.h"
 #include "../src/updater.h"
+#include "../src/updater_ui.h"
 #endif
 
 // C API (usable from both C and C++)
@@ -13,3 +14,4 @@
 #include "../src/capi/release_index_source_c.h"
 #include "../src/capi/string_utils_c.h"
 #include "../src/capi/updater_c.h"
+#include "../src/capi/updater_ui_c.h"

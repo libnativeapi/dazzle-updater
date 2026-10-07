@@ -5,7 +5,7 @@
 | 文档 | 内容 |
 |---|---|
 | [updater.md](updater.md) | Updater API 设计：Updater 与 source 的分工、签名、线程模型、平台可用性 |
-| [updater-ui.md](updater-ui.md) | 内置更新界面 UpdaterUI：窗口流程、跳过版本、自动下载、首次询问、用户偏好、错误文案、线程、退出应用、更新说明渲染、平台可用性 |
+| [updater-ui.md](updater-ui.md) | 内置更新界面 UpdaterUI：窗口流程、跳过版本、自动下载、首次询问、用户偏好、错误文案、线程、退出应用、更新说明渲染、平台可用性、`DAZZLE_WITH_UPDATER_UI` 编译开关与两条平台缝 |
 | [release-index.md](release-index.md) | dazzle 自有的数据源格式 release index（`releases.json`）：字段、选择规则、版本比较、签名 |
 | [prototype-architecture.md](prototype-architecture.md) | 交互原型 `prototype/`（Storybook）的目录职责、命名、依赖边界、侧边栏分组与验证 |
 
@@ -23,7 +23,9 @@ src/capi/           C ABI 层
 - 公共头文件里不出现任何平台类型、平台头文件或 `#ifdef` 平台分支。
 - 公共类是一份跨平台实现，不携带平台缝（不声明 `class Impl`、不持有 `pimpl_`）。
   平台差异用内部自由函数表达，声明在 `src/foundation/<缝>.h`（如 `system.h`、`http.h`），
-  缝的用法写在头注释里。
+  缝的用法写在头注释里。缝可以由一个内部类承载，由自由函数取回（如
+  `foundation/updater_ui_backend.h` 的 `GetUiBackend()`）：平台侧的东西要活过一次调用
+  （窗口就是这样）时用对象，否则用自由函数。接口本身仍是内部的，公共类不持有它。
 - 平台实现放在 `src/platform/<os>/<缝>_<os>.<ext>`，只写这个平台真正实现的部分：
   每个缝都有一份跨平台默认实现 `src/foundation/<缝>_default.cpp`，构建时只在平台目录没有
   对应文件时才编译它（见 `core/src/CMakeLists.txt`）。于是不支持某个能力的平台不需要任何
