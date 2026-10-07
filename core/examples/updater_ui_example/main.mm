@@ -56,6 +56,7 @@ void PrintConfiguration(const std::string& feed, const std::string& key,
 
 @implementation DazzleDemoHost {
   NSWindow* _window;
+  NSTextField* _title;
 }
 
 - (void)applicationDidFinishLaunching:(NSNotification*)notification {
@@ -76,6 +77,27 @@ void PrintConfiguration(const std::string& feed, const std::string& key,
   dazzle_updater::UpdaterUI::GetInstance().CheckForUpdates();
 }
 
+/// Back to the first run: the answers UpdaterUI stored (the automatic-checks question, the
+/// skipped version) are forgotten, and the version this copy reports goes back to the one
+/// the demo started with — so the next check finds the 2.0.0 release again, whether or not
+/// it was installed in between.
+- (void)resetDemoState:(id)sender {
+  dazzle_updater::UpdaterUI::GetInstance().ResetPreferences();
+  const std::string reset = InfoString(@"DazzleDemoResetVersion");
+  if (!reset.empty()) {
+    dazzle_updater::Updater::GetInstance().SetCurrentVersion(reset);
+  }
+  [self refreshTitle];
+}
+
+- (void)refreshTitle {
+  const std::string name = InfoString(@"CFBundleName");
+  const std::string version = dazzle_updater::Updater::GetInstance().GetCurrentVersion();
+  _title.stringValue = [NSString stringWithFormat:@"%s %s",
+                                                  name.empty() ? "DazzleUpdater" : name.c_str(),
+                                                  version.c_str()];
+}
+
 - (void)checkInBackground:(id)sender {
   // The silent entry point: nothing is shown unless there is something to tell the user
   // about, and the question about automatic checks is asked the first time.
@@ -94,6 +116,10 @@ void PrintConfiguration(const std::string& feed, const std::string& key,
                               action:@selector(checkInBackground:)
                        keyEquivalent:@""];
   [application_menu addItem:[NSMenuItem separatorItem]];
+  [application_menu addItemWithTitle:@"Reset Demo State"
+                              action:@selector(resetDemoState:)
+                       keyEquivalent:@"r"];
+  [application_menu addItem:[NSMenuItem separatorItem]];
   NSString* quit = [NSString stringWithFormat:@"Quit %@",
                                               [[NSProcessInfo processInfo] processName]];
   [application_menu addItemWithTitle:quit action:@selector(terminate:) keyEquivalent:@"q"];
@@ -105,7 +131,7 @@ void PrintConfiguration(const std::string& feed, const std::string& key,
   const std::string name = InfoString(@"CFBundleName");
   const std::string version = dazzle_updater::Updater::GetInstance().GetCurrentVersion();
 
-  NSView* content = [[NSView alloc] initWithFrame:NSMakeRect(0, 0, 420, 150)];
+  NSView* content = [[NSView alloc] initWithFrame:NSMakeRect(0, 0, 520, 150)];
 
   NSImage* icon = [NSApp applicationIconImage];
   NSImageView* icon_view = [[NSImageView alloc] initWithFrame:NSMakeRect(20, 20, 64, 64)];
@@ -117,30 +143,37 @@ void PrintConfiguration(const std::string& feed, const std::string& key,
                                                                    name.empty() ? "DazzleUpdater" : name.c_str(),
                                                                    version.c_str()]];
   title.font = [NSFont boldSystemFontOfSize:15];
-  title.frame = NSMakeRect(100, 66, 300, 20);
+  title.frame = NSMakeRect(100, 66, 400, 20);
   [content addSubview:title];
+  _title = title;
 
   NSTextField* detail = [NSTextField
-      labelWithString:@"A host application: the update windows on top are UpdaterUI's."];
+      labelWithString:@"This window is the demo's own; what opens on top is UpdaterUI."];
   detail.textColor = [NSColor secondaryLabelColor];
   detail.font = [NSFont systemFontOfSize:11];
-  detail.frame = NSMakeRect(100, 44, 300, 18);
+  detail.frame = NSMakeRect(100, 44, 400, 18);
   [content addSubview:detail];
+
+  NSButton* reset = [NSButton buttonWithTitle:@"Reset Demo"
+                                       target:self
+                                       action:@selector(resetDemoState:)];
+  reset.frame = NSMakeRect(100, 16, 96, 24);
+  [content addSubview:reset];
 
   NSButton* background = [NSButton buttonWithTitle:@"Check in Background"
                                             target:self
                                             action:@selector(checkInBackground:)];
-  background.frame = NSMakeRect(100, 16, 180, 24);
+  background.frame = NSMakeRect(202, 16, 158, 24);
   [content addSubview:background];
 
   NSButton* check = [NSButton buttonWithTitle:@"Check for Updates…"
                                        target:self
                                        action:@selector(checkForUpdates:)];
-  check.frame = NSMakeRect(288, 16, 112, 24);
+  check.frame = NSMakeRect(366, 16, 144, 24);
   check.keyEquivalent = @"\r";
   [content addSubview:check];
 
-  _window = [[NSWindow alloc] initWithContentRect:NSMakeRect(0, 0, 420, 150)
+  _window = [[NSWindow alloc] initWithContentRect:NSMakeRect(0, 0, 520, 150)
                                         styleMask:NSWindowStyleMaskTitled |
                                                   NSWindowStyleMaskClosable |
                                                   NSWindowStyleMaskMiniaturizable

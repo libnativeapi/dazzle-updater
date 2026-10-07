@@ -201,6 +201,25 @@ class UpdaterUI {
    */
   bool IsAutomaticDownloadsAllowed() const;
 
+  /**
+   * @brief Forget what the user answered: the automatic-checks question, the
+   *   automatic-downloads choice and the skipped version.
+   *
+   * Afterwards the module behaves as on a first run: the next
+   * CheckForUpdatesInBackground() asks the permission question again, and a version the
+   * user skipped is offered again. Meant for an application's own "reset" path, and for
+   * demos and tests that want to walk the flow more than once.
+   *
+   * @note Platform availability:
+   * macOS: ✅ (clears the keys in NSUserDefaults)
+   * Windows: ✅ (clears the registry values)
+   * Linux: ✅ (rewrites the preferences file)
+   * iOS: ⚠️ (the in-memory answers of this process)
+   * Android: ⚠️ (the in-memory answers of this process)
+   * OHOS: ⚠️ (the in-memory answers of this process)
+   */
+  void ResetPreferences();
+
  private:
   UpdaterUI();
   ~UpdaterUI();

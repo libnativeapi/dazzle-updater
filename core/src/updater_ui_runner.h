@@ -56,6 +56,8 @@ class UiRunner {
   bool IsAutomaticDownloadsEnabled() const;
   void SetAutomaticDownloadsAllowed(bool allowed);
   bool IsAutomaticDownloadsAllowed() const;
+  /// Back to the answers of a first run, in memory and in the store.
+  void ResetPreferences();
 
   /// Waits until every queued job has finished. The backend draws asynchronously, so
   /// this says nothing about the windows; tests use it to know that a scripted round has

@@ -50,6 +50,8 @@ void UpdaterUI::SetAutomaticDownloadsEnabled(bool enabled) {
   Runner().SetAutomaticDownloadsEnabled(enabled);
 }
 
+void UpdaterUI::ResetPreferences() { Runner().ResetPreferences(); }
+
 bool UpdaterUI::IsAutomaticDownloadsEnabled() const { return Runner().IsAutomaticDownloadsEnabled(); }
 
 void UpdaterUI::SetAutomaticDownloadsAllowed(bool allowed) {

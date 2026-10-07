@@ -40,6 +40,7 @@ bool IsLinkableScheme(const std::string& url) {
 struct RenderState {
   GtkTextBuffer* buffer = nullptr;
   std::vector<std::string>* urls = nullptr;
+  const char* link_color = "#1c71d8";
   /// The tag of the block being drawn, applied to everything inside it.
   std::string block_tag;
   /// The tags the enclosing spans opened, innermost last.
@@ -231,8 +232,8 @@ int EnterSpan(MD_SPANTYPE type, void* detail, void* userdata) {
       state->urls->push_back(url);
       const std::string tag = "link-" + std::to_string(state->urls->size() - 1);
       GtkTextTag* text_tag = gtk_text_buffer_create_tag(state->buffer, tag.c_str(), "foreground",
-                                                        "#1c71d8", "underline", PANGO_UNDERLINE_SINGLE,
-                                                        nullptr);
+                                                        state->link_color, "underline",
+                                                        PANGO_UNDERLINE_SINGLE, nullptr);
       // The index travels on the tag, so a click can find its target without parsing names
       // (GTK 4 has no gtk_text_tag_get_name()).
       g_object_set_data(G_OBJECT(text_tag), "dazzle_updater-link-index",
@@ -301,7 +302,7 @@ int TextCallback(MD_TEXTTYPE type, const MD_CHAR* text, MD_SIZE size, void* user
 }  // namespace
 
 void RenderNotesInto(GtkTextBuffer* buffer, const std::string& markdown,
-                     std::vector<std::string>* urls) {
+                     std::vector<std::string>* urls, const char* link_color) {
   if (buffer == nullptr) {
     return;
   }
@@ -311,6 +312,9 @@ void RenderNotesInto(GtkTextBuffer* buffer, const std::string& markdown,
   RenderState state;
   state.buffer = buffer;
   state.urls = urls;
+  if (link_color != nullptr) {
+    state.link_color = link_color;
+  }
 
   MD_PARSER parser;
   std::memset(&parser, 0, sizeof(parser));

@@ -9,7 +9,7 @@
 
 ## 目标与边界
 
-- 原生外观：macOS 用 AppKit 的系统控件；Windows 用 Windows App SDK 的 WinUI 3 控件；
+- 原生外观：macOS 用 AppKit 的系统控件，三个窗口 1:1 复刻 Sparkle 2.x；Windows 用 Windows App SDK 的 WinUI 3 控件；
   Linux 用 GTK 4 自己的控件（见"外观"）。不用 WebView。
 - 一行代码接入：配好 Updater 的数据源和公钥，菜单项里调用 `CheckForUpdates()` 即可。
 - 窗口实现和调度由 core 负责。macOS 可用于 Flutter、Qt、Electron 和原生应用；
@@ -66,6 +66,11 @@ class UpdaterUI {
   // IsAutomaticDownloadsEnabled() 恒为 false。默认 true。
   void SetAutomaticDownloadsAllowed(bool allowed);
   bool IsAutomaticDownloadsAllowed() const;
+
+  // 忘掉用户的回答——自动检查的回答、自动下载的选择、跳过的版本——回到首次运行的状态：
+  // 下一次 CheckForUpdatesInBackground() 会重新询问，跳过的版本会再次被提示。
+  // 供应用自己的"重置"路径以及演示、测试重复走流程时使用；三个桌面平台都写回各自的存储。
+  void ResetPreferences();
 };
 ```
 
@@ -284,45 +289,50 @@ Markdown 解析用 md4c（`core/third_party/`，单文件、MIT），HTML/RTF �
 
 ## 外观
 
-- macOS：窗口是标准 `NSWindow`（标题栏、红绿灯、阴影、缩放都交给系统），窗口内的控件由 dazzle updater 按
-  原型的 token 自绘，跟随浅色/深色模式（`platform/macos/updater_ui_controls_macos.*`）。这样做的原因是
-  原型对 macOS 的按钮、复选框和进度条有自己的度量（macOS 27 一代是 28 pt 胶囊，15 一代是 22 pt 圆角），
-  而 AppKit 的标准控件画不出这些值；自绘的每个控件仍然实现 AppKit 的约定：动作/目标、第一响应者、
-  焦点框（只在键盘获得焦点时画）、以及无障碍角色与取值。窗口自己仍由系统绘制，所以拖动、缩放、
-  红绿灯、窗口菜单这些行为不用重做。应用图标取 `[NSApp applicationIconImage]`。
-  - UpdateAvailableWindow：`Titled | Closable | Miniaturizable | Resizable`，标题栏透明；内容区
-    532 × 370 pt、最小 462 × 150 pt，更新说明区域最小高 200 pt（与 Sparkle 的 xib 一致）。
-  - UpdateStatusWindow：`Titled | Closable`（按状态决定能否关闭），内容区 400 × 107 pt、最小
-    213 × 107 pt。
-  - UpdatePermissionWindow：`Titled`，没有关闭按钮，内容区宽 437 pt，高随内容（Esc 等同于"不检查"，
-    这是 dazzle updater 自己的键盘路径）。
-  - 尺寸与间距参照 Sparkle 的同类窗口：64 pt 应用图标，四周 20 pt 边距，更新说明区域为 6 pt 圆角、
-    1 pt 分隔线边框。
-  - 窗口内部按 Sparkle 2.x 自己的约束，逐条取自它的源码；原型 `prototype/src/features/updater-ui/
-    components/*.css` 每个数值旁都注明是哪条约束。原子来源：
-    - **UpdateAvailableWindow** = `Sparkle/SUUpdateAlert.xib`：内容 532 × 370、最小 462 × 150、
-      可缩放、可最小化、标题栏透明；图标 64 pt 在左边 20 pt 处，正文列从 92 pt 起（间距 8 pt），
-      标题 13 pt 粗体、说明 11 pt、两者相距 8 pt；说明框下可伸缩且不低于 200 pt；复选框那一行 14 pt
-      （AppKit 的 small 控件：勾选框 14 pt、文字 11 pt）、与说明框同一条左边线；按钮高 24 pt（macOS 26 起 `NSControlSizeLarge` = 28 pt）、距底 20 pt、
-      间距 12 pt，跳过此版本不窄于安装按钮，稍后提醒与安装按钮等宽且不窄于 120 pt。
-    - **UpdateStatusWindow** = `Sparkle/SUStatusController.m`：内容 400 × 107（最小 213 × 107）；
-      图标 64 pt 在 (20, 4)；标题与进度条组成的块在图标那一行内垂直居中、左边线 92 pt、右边距 20 pt；
-      进度条在标题下 8 pt；状态文字与按钮同一条基线、与正文同一条左边线、与按钮至少相距 25 pt，
-      字号取系统字号（13 pt，等宽数字）；按钮距底 20 pt、右边距 20 pt、宽度不小于 100 pt。
-    - **UpdatePermissionWindow** = `Sparkle/SUUpdatePermissionPrompt.xib`：内容 437 pt 宽，
-      `Titled` 且没有关闭按钮（用户必须回答）、窗口无标题；图标 64 pt 在 (23, 18)；正文列从 106 pt 起
-      （间距 19 pt），问题距顶 20 pt、13 pt 粗体，说明在它下面 8 pt；两个按钮相距 14 pt、距底 20 pt，
-      宽度不小于 101 pt。dazzle updater 不收集匿名系统信息，所以 Sparkle 那个区域不画。
+- macOS：**1:1 复刻 Sparkle 2.x 的三个窗口**。窗口是标准 `NSWindow`，窗口内全部是 AppKit 自己的控件
+  （`NSButton` 圆角按钮、small 尺寸的勾选框、bar 风格的 `NSProgressIndicator`、`NSBox` 包着只读
+  `NSTextView`），字体、颜色、尺寸都取系统值，dazzle updater 不画任何一个控件，所以每一代 macOS 上它们
+  都和 Sparkle 的窗口长得一样——系统怎么画 Sparkle 的，就怎么画这里的。Sparkle 用 Auto Layout 排版，
+  这里按同样的常量手工排在**对齐矩形**（Auto Layout 约束的就是对齐矩形）上，于是 Sparkle 某条约束里
+  的数字在这里含义不变（`platform/macos/updater_ui_backend_macos.mm`）。原型 `prototype/` 里的 macOS
+  自绘 token 不再约束 macOS 实现，只作设计参考。
+  - 字体与颜色：窗口标题行 `systemBold`（13 pt 粗体）、其下说明 `smallSystem`（11 pt）、状态文字
+    `monospacedDigitSystemFont` 13 pt，均为 `controlTextColor`；错误详情（dazzle updater 自己的）用
+    11 pt `secondaryLabelColor`、可选中。窗口与说明框背景是系统的 `windowBackgroundColor` /
+    `textBackgroundColor`。默认按钮带 `\r` 键等价符，由 AppKit 画成强调色；状态的"退路"（以后再说/
+    跳过/取消）带 `\033`，Esc 等同于按它。应用图标取 `[NSApp applicationIconImage]`。
+  - **UpdateAvailableWindow** = `Sparkle/SUUpdateAlert.xib`：`Titled | Closable | Miniaturizable |
+    Resizable`，标题栏透明、标题隐藏（留给窗口列表与无障碍）、可按背景拖动；内容 532 × 370，最小
+    462 × 150。一个竖向 stack（默认间距 8，标题行之后与说明框之后各 12）：标题行 64 高——图标 64 在
+    左边 20 处，标题与说明组成的块以图标为中心垂直居中、从 92 起、右边距 20、两行相距 8；说明框左右
+    各 20，吃掉其余高度且不低于 200；勾选框一行紧贴左边距 20；按钮行：跳过此版本靠左、另两个靠右、
+    底边距 20、相距 12，稍后提醒与安装按钮等宽、安装按钮不窄于 120、跳过按钮不窄于安装按钮；
+    macOS 26 起三个按钮都是 `NSControlSizeLarge`（`SUUpdateAlert.m`），更早的系统是常规尺寸。没有
+    说明时不画说明框，窗口按各行的高度收紧。
+  - **UpdateStatusWindow** = `Sparkle/SUStatusController.m`：`Titled | Closable`，内容 400 宽、
+    107 高（最小 213 × 107）；图标在 (20, 4)；标题（粗体）与其下 8 pt 的进度条组成的块以图标为中心
+    垂直居中、左边线 92、右边距 20；按钮在该块下 8 pt、距底与距右各 20、宽度不小于 100，macOS 26
+    起为 `NSControlSizeLarge`；状态文字与按钮**同一条基线**、从 92 起、与按钮至少相距 25。
+  - **UpdatePermissionWindow** = `Sparkle/SUUpdatePermissionPrompt.xib`：仅 `Titled`，没有关闭按钮，
+    无标题；内容 437 宽，一个间距为 0 的 stack：提问行——图标在 (23, 18)，问题距顶 20、13 pt 粗体，
+    说明在其下 8 pt、11 pt、不低于 34 高，两者从 106 起到右边距 20；勾选框行——勾选框上方 6 pt、
+    从 106 起；回答行——按钮上方 15 pt、下方 20 pt，"自动检查"靠右边距 20、不窄于 150，"不检查"在
+    其左 14 pt、不窄于 101。dazzle updater 不收集匿名系统信息，Sparkle 那两行不画。
+  - **更新说明** = `Sparkle/SUTextViewReleaseNotesView.m`（Sparkle 用 `NSTextView` 显示 Markdown
+    说明的那条路径；不用 WebView）：macOS 12 起由 Foundation 解析 Markdown
+    （`-initWithMarkdownString:`），再按它留下的 presentation intent 排版——正文系统字体 13 pt，
+    标题为粗体的 1.5/1.3/1.2/1.1 倍、上下各 0.8 em，段落上下各 0.5 em（列表项内的段落只在下方
+    0.3 em），列表项每层缩进 1.5 em、Menlo 的"•"或序号后接一个制表位（制表距 1.38 em），代码块
+    等宽系统字体、下方 0.25 em；粗体、斜体、行内代码与链接由属性字符串携带、TextKit 绘制（链接
+    是 AppKit 默认的链接样式）。macOS 12 以下走 Markdown → HTML → `NSAttributedString`
+    （`initWithHTML:`），再改成同样的字号与间距。文本视图 inset 4 × 8、只有竖向滚动条、
+    `usesAdaptiveColorMappingForDarkAppearance`；外面的 `NSBox` 为 custom 类型、6 pt 圆角、
+    1 pt `separatorColor` 边框、`textBackgroundColor` 填充，内容视图按 5 pt 圆角裁切。
   - 文案也取自 Sparkle：`Sparkle/Base.lproj/Sparkle.strings` 与 `Sparkle/zh_CN.lproj/Sparkle.strings`
     （"Remind Me Later/稍后提醒我"、"Installing update…/正在安装更新…"、"Update Error!/更新错误！"、
-    各错误码的整句文案等）。窗口标题：检查、已是最新、出错为"软件更新"，下载/就绪/安装为"正在更新{应用名}"；
-    两个更新窗口的标题栏都显示这个标题（不隐藏）。
-  - 两代度量按系统版本选：macOS 26 及以上用 Liquid Glass 一代（28 pt 胶囊按钮、16 pt 窗口圆角、
-    14 px 红绿灯、32 pt 标题栏），更早的系统用扁平一代（22 pt 圆角按钮、10 pt 窗口圆角、12 px 红绿灯、
-    28 pt 标题栏），取值与原型 `native.css` 的 `macos27` 与默认 macOS 块一致。强调色取系统强调色。
-  - 仍由系统绘制的部分：窗口圆角与标题栏、红绿灯、窗口阴影、缩放。它们带着模块不该重做的行为。
-  - 自绘控件的键盘行为与原 AppKit 一致：回车按默认按钮、Esc 与关闭窗口等同、Tab 在控件间移动、
-    焦点框只在键盘获得焦点时出现。
+    各错误码的整句文案等）。窗口标题：检查、已是最新、出错为"软件更新"，下载/就绪/安装为"正在更新{应用名}"。
+  - 由系统绘制、模块不重做的部分：控件本身、窗口圆角与标题栏、红绿灯、窗口阴影、缩放；缩放时说明框
+    跟着窗口伸缩，其余各行贴着自己的边（autoresizing）。
 - Windows 的已实现后端使用 WinUI 3，位于 core；以下自绘路线为设计参考：
   - **自绘（模块内）**：Win32 顶层窗口，窗口内的控件（按钮、复选框、进度条、链接）不用 Common Controls，
   而是由 dazzle updater 用 Direct2D + DirectWrite 自绘，外观取 WinUI 3 的 Fluent 规格。Common Controls v6
@@ -373,6 +383,39 @@ Markdown 解析用 md4c（`core/third_party/`，单文件、MIT），HTML/RTF �
     `software-update-available`），再取不到就是 `dialog-information`：Linux 没有 bundle 里的图标文件。
   - 窗口位置交给合成器：Wayland 不允许客户端设置窗口位置，所以流程里换窗口时新窗口由合成器放置
     （通常居中），而不是像 macOS 那样以旧窗口中心为中心。
+  - 应用是 `GtkApplication` 且有活动窗口时，更新窗口设为该窗口的 transient（对话框）：停留在应用窗口
+    之上，Hyprland 这类平铺合成器会把它浮动显示而不是平铺成整屏；被替换的旧窗口不作父窗口，新窗口
+    继承旧窗口的父窗口。
+  - **Omarchy**（Hyprland 桌面，不是 GNOME）只通过 gsettings 告诉 GTK 深色或浅色（Adwaita /
+    Adwaita-dark），主题本身的配色 GTK 并不知道，所以一个普通 GTK 4 窗口在 Omarchy 上是 Adwaita
+    的灰与蓝，而周围的状态栏、启动器、终端都是主题色。模块直接读 Omarchy 的调色板文件
+    `~/.local/state/omarchy/current/theme/colors.toml`（3.x 之前在
+    `~/.config/omarchy/current/theme/`），键名按 omarchy-theme-color 的别名顺序解析
+    （`background`→`bg`→`color0` 等），缺的派生色按同样的规则补，然后生成一份只作用于本模块窗口的
+    CSS（选择器都以 `window.dazzle_updater` 开头，宿主自己的窗口不受影响），**按 Omarchy shell
+    自己的控件库来画**（`/usr/share/omarchy/shell`：`Commons/Style.qml`、`Ui/Button.qml`、
+    `Ui/Toggle.qml`、`Ui/ToggleSwitch.qml`，以及 `shell.toml` 的 `[controls]`）：
+    - 字体：全部用 fontconfig 的 `monospace` 别名（Omarchy 的字体设置写的就是它）、12 px 基准；
+      标题行 16 px 粗体、`bright_foreground`，说明 12 px，状态文字 11 px、`dark_foreground`。
+    - 控件状态：静止是前景色 4% 的填充加 1 px、40% 的描边；悬停与键盘焦点 8% / 25%；按下 22%；
+      "选中"（默认按钮）是 18% 填充、文字为 `accent` 粗体。没有焦点环，焦点就是控件自己的
+      填充与描边。按钮高 28 px（内容 14 + 上下各 6 的内边距 + 1 px 边）、左右内边距 10 px。
+    - 圆角跟随 Hyprland 的 `decoration:rounding`（`hyprctl getoption`，每个进程问一次，拿不到按 0），
+      标准 Omarchy 是 0，即直角。
+    - 布尔选项不是勾选框：Omarchy 的控件库里没有勾选框，用的是 **Toggle 行**——整行是一个控件
+      （同样的填充与描边，上下内边距 16 px），标签 13 px 粗体靠左，右端一个 42 × 22 的开关
+      （`GtkSwitch`）：未选中是 4% 填充、40% 描边、16 px 的旋钮取前景色变暗 1.25 倍；选中是
+      18% 填充、无描边、旋钮取前景色；圆角大于 0 时是胶囊，否则是方的；点行内任意处都能切换。
+    - 更新说明框用 `dark_background`、同一种描边；链接、进度条用 `accent`，文本选区用 `selection`。
+    - 窗口**不装 GtkHeaderBar**：Omarchy 的窗口没有标题栏（Hyprland 只画边框），GTK 在合成器要求
+      服务端装饰时自己也不画头栏，除非被强塞一个标题栏控件；三个窗口因此和桌面上其他窗口一样是
+      一块光板，用合成器的快捷键关闭，标题仍留给窗口列表。
+    - 文件在每次画窗口时重读、变了才换 CSS，所以运行中切换主题会落到下一个窗口。
+      `XDG_CURRENT_DESKTOP` 含 GNOME 时不读该文件，GNOME 下的行为不变；
+      `DAZZLE_OMARCHY_COLORS=<colors.toml>` 可在任何机器上指定一份调色板，供预览工具使用。
+  - 应用是 `GtkApplication` 且有活动窗口时，更新窗口设为该窗口的 transient（对话框）：停留在应用窗口
+    之上，Hyprland 这类平铺合成器会把它浮动显示而不是平铺成整屏；被替换的旧窗口不作父窗口，新窗口
+    继承旧窗口的父窗口。
 - 窗口标题：两个更新窗口在 Checking/UpToDate/Error 时为"软件更新"，在 Downloading/Ready/Installing 时为
   "正在更新{应用名}"（Sparkle 的 `Updating %@`）；UpdatePermissionWindow 没有标题。
 

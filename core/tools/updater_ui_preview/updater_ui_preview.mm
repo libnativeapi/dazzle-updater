@@ -30,15 +30,15 @@ using dazzle_updater::UiPreferencesStore;
 using dazzle_updater::internal::UiRunner;
 using dazzle_updater::internal::UpdaterPort;
 
-/// Both kinds of pressable view answer these.
-@protocol DazzlePressable <NSObject>
-- (void)performClick;
-- (NSString*)title;
-@end
 
 namespace {
 
-NSString* const kOutputDirectory = @"/Users/lijy91/Projects/fastforgedev/dazzle_updater/core/build/preview";
+/// DAZZLE_PREVIEW_OUT names the directory the pictures land in; the default is
+/// build/preview under the current directory (the README runs the tool from core/).
+NSString* OutputDirectory() {
+  const char* directory = getenv("DAZZLE_PREVIEW_OUT");
+  return directory != nullptr ? [NSString stringWithUTF8String:directory] : @"build/preview";
+}
 
 /// DAZZLE_PREVIEW_DARK=1 renders the dark appearance, DAZZLE_PREVIEW_LANG=zh the
 /// Simplified Chinese wording, and DAZZLE_PREVIEW_PREFIX names the files.
@@ -205,10 +205,10 @@ NSWindow* CurrentWindow() {
   return nil;
 }
 
-/// Everything that can be pressed: the module's own buttons, and an NSButton for the
-/// "View Release Notes" link.
+/// Everything that can be pressed: the windows are AppKit's own NSButtons, the
+/// "View Release Notes" link included.
 void CollectClickable(NSView* view, NSMutableArray* found) {
-  if ([view respondsToSelector:@selector(performClick)]) {
+  if ([view isKindOfClass:[NSButton class]]) {
     [found addObject:view];
   }
   for (NSView* child in view.subviews) {
@@ -228,7 +228,7 @@ void Click(NSString* title) {
   for (id button in buttons) {
     NSString* button_title = [button respondsToSelector:@selector(title)] ? (NSString*)[button title] : nil;
     if ([button_title isEqualToString:title]) {
-      [(id<DazzlePressable>)button performClick];
+      [(NSButton*)button performClick:nil];
       return;
     }
   }
@@ -253,7 +253,11 @@ void SendKey(NSString* characters, unsigned short key_code) {
                  charactersIgnoringModifiers:characters
                                    isARepeat:NO
                                      keyCode:key_code];
-  [window sendEvent:event];
+  // What NSApplication does with a key press: the key equivalents first (the default
+  // button's return, the way out's escape), then the first responder.
+  if (![window performKeyEquivalent:event]) {
+    [window sendEvent:event];
+  }
 }
 
 void Capture(NSString* name) {
@@ -262,14 +266,20 @@ void Capture(NSString* name) {
     std::printf("no window to capture for %s\n", name.UTF8String);
     return;
   }
-  NSView* view = window.contentView;
+  // The window's frame view, not just the content: it draws the window's own background
+  // and its title bar, which the content view leaves transparent.
+  NSView* view = window.contentView.superview != nil ? window.contentView.superview : window.contentView;
   const NSRect bounds = view.bounds;
   NSBitmapImageRep* rep = [view bitmapImageRepForCachingDisplayInRect:bounds];
   [view cacheDisplayInRect:bounds toBitmapImageRep:rep];
   NSData* png = [rep representationUsingType:NSBitmapImageFileTypePNG properties:@{}];
   const std::string prefix = PreviewPrefix();
   NSString* file = [NSString stringWithFormat:@"%s%s.png", prefix.c_str(), name.UTF8String];
-  NSString* path = [kOutputDirectory stringByAppendingPathComponent:file];
+  [[NSFileManager defaultManager] createDirectoryAtPath:OutputDirectory()
+                            withIntermediateDirectories:YES
+                                             attributes:nil
+                                                  error:nil];
+  NSString* path = [OutputDirectory() stringByAppendingPathComponent:file];
   [png writeToFile:path atomically:YES];
   std::printf("%-24s %s  %gx%g  app_active=%d window_key=%d\n", name.UTF8String,
               window.title.UTF8String, bounds.size.width, bounds.size.height,

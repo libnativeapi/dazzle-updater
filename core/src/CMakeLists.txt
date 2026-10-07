@@ -278,7 +278,6 @@ endif()
 if(APPLE AND DAZZLE_WITH_UPDATER_UI)
     set_source_files_properties(
       "${CMAKE_CURRENT_SOURCE_DIR}/platform/macos/updater_ui_backend_macos.mm"
-      "${CMAKE_CURRENT_SOURCE_DIR}/platform/macos/updater_ui_controls_macos.mm"
       "${CMAKE_CURRENT_SOURCE_DIR}/platform/macos/updater_ui_preferences_macos.mm"
       PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
 endif()

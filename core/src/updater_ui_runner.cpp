@@ -98,6 +98,13 @@ bool UiRunner::IsAutomaticDownloadsEnabled() const {
   return automatic_downloads_allowed_ && preferences_.automatic_downloads;
 }
 
+void UiRunner::ResetPreferences() {
+  std::lock_guard<std::mutex> lock(mutex_);
+  preferences_ = UiPreferences{};
+  preferences_loaded_ = true;  // these defaults are the answers now, not a stale read
+  preferences_store_.Write(preferences_);
+}
+
 void UiRunner::SetAutomaticDownloadsAllowed(bool allowed) {
   std::lock_guard<std::mutex> lock(mutex_);
   automatic_downloads_allowed_ = allowed;

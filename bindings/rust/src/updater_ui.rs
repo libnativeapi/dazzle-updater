@@ -192,4 +192,23 @@ impl UpdaterUI {
     pub fn check_for_updates_in_background(&self) -> bool {
         unsafe { ffi::dazzle_updater_ui_check_for_updates_in_background() }
     }
+
+    /// Forget what the user answered: the automatic-checks question, the
+    ///   automatic-downloads choice and the skipped version.
+    ///
+    /// Afterwards the module behaves as on a first run: the next
+    /// `check_for_updates_in_background()` asks the permission question again, and a version the
+    /// user skipped is offered again. Meant for an application's own "reset" path, and for
+    /// demos and tests that want to walk the flow more than once.
+    ///
+    /// Platform availability:
+    /// macOS: ✅ (clears the keys in NSUserDefaults)
+    /// Windows: ✅ (clears the registry values)
+    /// Linux: ✅ (rewrites the preferences file)
+    /// iOS: ⚠️ (the in-memory answers of this process)
+    /// Android: ⚠️ (the in-memory answers of this process)
+    /// OHOS: ⚠️ (the in-memory answers of this process)
+    pub fn reset_preferences(&self) {
+        unsafe { ffi::dazzle_updater_ui_reset_preferences() }
+    }
 }

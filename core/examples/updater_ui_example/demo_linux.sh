@@ -60,6 +60,7 @@ make_app() {
   cat > "$1/dazzle-demo.conf" <<CONF
 feed=$feed
 publicKey=$public_key
+resetVersion=1.0.0
 CONF
   if [ -n "${3:-}" ]; then
     printf '%s\n' "$3" > "$1/version-marker"
@@ -84,7 +85,7 @@ cat > "$work/releases.json" <<JSON
     {
       "version": "2.0.0",
       "displayVersion": "2.0",
-      "releaseNotes": "## What's new in 2.0\n\n- **Faster** startup: the window opens in half the time.\n- Fixed a crash when the last document was closed twice.\n- The update now reports the version it is updating *from*.\n\n### Notes\n\nRead the [full announcement](https://example.com/releases/2.0) for the details.\n\n\`\`\`\ndazzle updater --check\n\`\`\`\n",
+      "releaseNotes": "## What's new in 2.0\n\n- **Faster startup.** The main window now opens in about half the time.\n- **Fixed** a crash when the last document was closed twice.\n- The update window now shows the version you are updating *from*.\n\n### Under the hood\n\nEvery release is signed, and the signature is checked before anything is installed. The [full changelog](https://example.com/releases/2.0) lists the smaller fixes.\n\n\`\`\`\n$ dazzle-demo --version\nDazzle Demo 2.0.0\n\`\`\`\n",
       "assets": [
         {
           "platform": "linux",
@@ -117,12 +118,13 @@ done
 }
 
 echo "demo application: $work/DazzleDemo   (version 1.0.0)"
-echo "release index:    $feed              (offers 2.0.0, signed)"
+echo "release index:    $feed   (offers 2.0.0, signed)"
 echo
-echo "UpdaterUI opens its window on the check the application starts with."
-echo "Click through it: Install Update → Install and Relaunch replaces and restarts this"
-echo "application directory, which then reports 2.0.0. Quit that restarted window when you"
-echo "are done (its close button); this script waits for it and then cleans up."
+echo "The application checks for updates as it starts, and UpdaterUI shows what it finds."
+echo "Click Install Update, then Install and Relaunch: the application directory is replaced"
+echo "in place and restarted, and the copy that comes back reports 2.0.0. Reset Demo forgets"
+echo "the answers and goes back to 1.0.0, so the next check finds 2.0.0 again. Close the window"
+echo "when you are done; this script waits for it and then cleans up."
 
 # 4. Run it, and wait for it to be quit — including the copy the installer restarts, so
 #    the wait covers the whole round. Nothing is passed in: the application reads its own
@@ -132,7 +134,7 @@ app_pid=$!
 wait "$app_pid" || true
 
 echo
-echo "the application quit"
+echo "The application quit."
 
 # The install helper waits for this process to exit and only then swaps the directory, so
 # the replacement lands a moment after the application is gone.
@@ -155,12 +157,12 @@ if [ -n "$replaced" ]; then
 fi
 
 if [ -n "$replaced" ]; then
-  echo "the application directory was replaced in place and now reports version $(cat "$work/DazzleDemo/version")"
+  echo "The update went through: the application directory was replaced in place and now reports version $(cat "$work/DazzleDemo/version")."
 else
-  echo "the application directory was not replaced (the update was not installed)"
+  echo "The update was not installed: the application directory is unchanged."
 fi
 if [ -s "$work/app.log" ]; then
   echo
-  echo "the application printed:"
+  echo "The application printed:"
   sed 's/^/  /' "$work/app.log"
 fi

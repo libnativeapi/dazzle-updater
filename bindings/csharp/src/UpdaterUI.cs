@@ -226,4 +226,28 @@ public sealed class UpdaterUI
     /// <returns>true when the call was handled; false when this platform has no built-in windows, or when the module was left out of the build (<c>DAZZLE_WITH_UPDATER_UI=OFF</c>).</returns>
     public bool CheckForUpdatesInBackground() =>
         NativeMethods.dazzle_updater_ui_check_for_updates_in_background();
+
+    /// <summary>
+    /// Forget what the user answered: the automatic-checks question, the
+    ///   automatic-downloads choice and the skipped version.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Afterwards the module behaves as on a first run: the next
+    /// <c>CheckForUpdatesInBackground()</c> asks the permission question again, and a version the
+    /// user skipped is offered again. Meant for an application's own "reset" path, and for
+    /// demos and tests that want to walk the flow more than once.
+    /// </para>
+    /// <para>
+    /// Platform availability:
+    /// macOS: ✅ (clears the keys in NSUserDefaults)
+    /// Windows: ✅ (clears the registry values)
+    /// Linux: ✅ (rewrites the preferences file)
+    /// iOS: ⚠️ (the in-memory answers of this process)
+    /// Android: ⚠️ (the in-memory answers of this process)
+    /// OHOS: ⚠️ (the in-memory answers of this process)
+    /// </para>
+    /// </remarks>
+    public void ResetPreferences() =>
+        NativeMethods.dazzle_updater_ui_reset_preferences();
 }

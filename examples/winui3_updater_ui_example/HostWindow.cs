@@ -22,10 +22,19 @@ internal sealed class HostWindow : Window
             TextWrapping = TextWrapping.Wrap,
         });
 
+        var buttons = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 12 };
+        var reset = new Button { Content = "Reset Demo" };
+        reset.Click += (_, _) =>
+        {
+            Core.ResetDemo();
+            Startup.Log("reset: UpdaterUI.ResetPreferences(); " + Core.Describe());
+        };
+        buttons.Children.Add(reset);
         var check = new Button { Content = "Check for Updates…" };
         check.Click += (_, _) =>
             Startup.Log($"check: UpdaterUI.CheckForUpdates() -> {Core.CheckForUpdates()}");
-        panel.Children.Add(check);
+        buttons.Children.Add(check);
+        panel.Children.Add(buttons);
 
         Content = panel;
         AppWindow.Resize(new SizeInt32(640, 300));

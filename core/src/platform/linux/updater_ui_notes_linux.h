@@ -24,8 +24,10 @@ namespace internal {
 /// Renders `markdown` into `buffer`, appending one entry to `urls` per link it draws.
 /// Each link's tag is named "link-<n>" and carries n as its "dazzle_updater-link-index" data,
 /// which is how the backend finds the target of a click without keeping its own map.
+/// `link_color` is the colour links are drawn in (a Pango colour string); nullptr draws
+/// them in GTK's own link blue.
 void RenderNotesInto(GtkTextBuffer* buffer, const std::string& markdown,
-                     std::vector<std::string>* urls);
+                     std::vector<std::string>* urls, const char* link_color = nullptr);
 
 }  // namespace internal
 }  // namespace dazzle_updater

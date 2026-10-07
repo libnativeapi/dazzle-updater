@@ -75,6 +75,9 @@ plutil -replace CFBundleIdentifier -string "$bundle_id" \
 plutil -replace DazzleDemoFeedURL -string "$feed" "$work/DazzleDemo.app/Contents/Info.plist"
 plutil -replace DazzleDemoPublicKey -string "$public_key" \
   "$work/DazzleDemo.app/Contents/Info.plist"
+# What "Reset Demo" goes back to; the 2.0.0 copy below inherits it, so the demo can be
+# walked again after the update was installed.
+plutil -replace DazzleDemoResetVersion -string "1.0.0" "$work/DazzleDemo.app/Contents/Info.plist"
 set_version "$work/DazzleDemo.app" "1.0.0"
 
 # 2. The release: the same bundle at 2.0.0, zipped the way a release ships it and signed
@@ -95,7 +98,7 @@ cat > "$work/releases.json" <<JSON
     {
       "version": "2.0.0",
       "displayVersion": "2.0",
-      "releaseNotes": "## What's new in 2.0\n\n- **Faster** startup: the window opens in half the time.\n- Fixed a crash when the last document was closed twice.\n- The update now reports the version it is updating *from*.\n\n### Notes\n\nRead the [full announcement](https://example.com/releases/2.0) for the details.\n\n\`\`\`\ndazzle updater --check\n\`\`\`\n",
+      "releaseNotes": "## What's new in 2.0\n\n- **Faster startup.** The main window now opens in about half the time.\n- **Fixed** a crash when the last document was closed twice.\n- The update window now shows the version you are updating *from*.\n\n### Under the hood\n\nEvery release is signed, and the signature is checked before anything is installed. The [full changelog](https://example.com/releases/2.0) lists the smaller fixes.\n\n\`\`\`\n$ dazzle-demo --version\nDazzle Demo 2.0.0\n\`\`\`\n",
       "assets": [
         {
           "platform": "macos",
@@ -128,11 +131,13 @@ done
 }
 
 echo "demo application: $work/DazzleDemo.app   (version 1.0.0)"
-echo "release index:    $feed                  (offers 2.0.0, signed)"
+echo "release index:    $feed   (offers 2.0.0, signed)"
 echo
-echo "UpdaterUI opens its window on the check the application starts with."
-echo "Click through it: Install Update → Install and Relaunch replaces and relaunches"
-echo "this bundle, which then reports 2.0.0. Quit the application when you are done."
+echo "The application checks for updates as it starts, and UpdaterUI shows what it finds."
+echo "Click Install Update, then Install and Relaunch: the bundle is replaced in place and"
+echo "relaunched, and the copy that comes back reports 2.0.0. Reset Demo forgets the answers"
+echo "and goes back to 1.0.0, so the next check finds 2.0.0 again. Quit the application when"
+echo "you are done; this script waits for it and then cleans up."
 
 # 4. Launch it as a real application (frontmost, with its own Dock icon), then wait for
 #    the launch to happen and for the application to be quit — including the copy the
@@ -161,16 +166,16 @@ while pgrep -f "$pattern" > /dev/null 2>&1; do
 done
 
 echo
-echo "the application quit"
+echo "The application quit."
 if [ -f "$work/DazzleDemo.app/Contents/version-marker" ]; then
   installed="$(plutil -extract CFBundleShortVersionString raw -o - \
     "$work/DazzleDemo.app/Contents/Info.plist")"
-  echo "the bundle was replaced in place and now reports version $installed"
+  echo "The update went through: the bundle was replaced in place and now reports version $installed."
 else
-  echo "the bundle was not replaced (the update was not installed)"
+  echo "The update was not installed: the bundle is unchanged."
 fi
 if [ -s "$work/app.log" ]; then
   echo
-  echo "the application printed:"
+  echo "The application printed:"
   sed 's/^/  /' "$work/app.log"
 fi

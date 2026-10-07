@@ -28,29 +28,21 @@ Both scripts build a throwaway copy of the application, write the feed URL and t
 key into it — an `Info.plist` on macOS, a `dazzle-demo.conf` beside the binary on Linux —
 serve a signed 2.0.0 package of the same application at a higher version, and run it.
 Clicking through **Install Update → Install and Relaunch** replaces the copy in place and
-starts it again, and the copy that comes back reports 2.0.0.
+starts it again, and the copy that comes back reports 2.0.0. **Reset Demo** (a button, and
+a menu item on macOS) calls `UpdaterUI::ResetPreferences()` and sets the version back to
+1.0.0, so the next check finds 2.0.0 again — after an install, after Skip This Version, or
+after answering the automatic-checks question.
 
 On Linux the application is a directory (the executable plus whatever sits beside it), so
 the demo copies the binary into its own directory and the release is a zip holding that
 directory at a higher version.
 
-| Available | Downloading | Ready | Permission |
-|---|---|---|---|
-| ![Available](linux-available.png) | ![Downloading](linux-downloading.png) | ![Ready](linux-ready.png) | ![Permission](linux-permission.png) |
-
-*Built and run on a remote Ubuntu 24.04 host (GTK 4.14): the Available window is the real
-one — a real signed release index over HTTP, the real notes, and the real buttons; the
-other three were rendered by
-[`core/tools/updater_ui_preview`](../../tools/updater_ui_preview/README.md), which can
-draw every state without a desktop session and is how these pictures were taken. The
-download, install and restart behind them are covered by
-`core/tests/linux_install_e2e.sh`.*
-
-![The same window on the host's Wayland session](linux-available-wayland.png)
-
-*The same Available window rendered inside the host's own GNOME session on Wayland: the
-accent colour, the header buttons and the fonts are the system's (this desktop's accent is
-green), which is what "GTK 4's own controls, following the theme" looks like.*
+Pictures of the windows are not kept in the repository. To look at them, render every
+state with [`core/tools/updater_ui_preview`](../../tools/updater_ui_preview/README.md),
+which needs no desktop session (its README has the Xvfb line), or run the demo on a real
+session: there the accent colour, the header buttons and the fonts are the system's, which
+is what "GTK 4's own controls, following the theme" looks like. The download, install and
+restart behind the windows are covered by `core/tests/linux_install_e2e.sh`.
 
 ## What the Linux windows are
 
@@ -60,3 +52,11 @@ look, the dark theme, the accent colour, the fonts and accessibility come from t
 rather than from dazzle updater's own drawing. `specs/updater-ui.md` has the metrics and the two
 Linux-only differences: the windows are drawn on the application's own GTK main loop, and
 the compositor places them (Wayland does not let a client set a window's position).
+
+On [Omarchy](https://omarchy.org) the theme never reaches GTK beyond "light or dark", so
+the windows read the theme's own palette (`~/.local/state/omarchy/current/theme/colors.toml`)
+and draw themselves with Omarchy's own control kit — the monospace face, square
+bordered buttons, a toggle instead of a check box, no title bar — scoped to their own
+windows, the way Omarchy's bar and launcher look. GNOME is left exactly as
+before. `specs/updater-ui.md` has the mapping; to look at a palette anywhere, point
+`DAZZLE_OMARCHY_COLORS` at a `colors.toml` when running the demo or the preview tool.

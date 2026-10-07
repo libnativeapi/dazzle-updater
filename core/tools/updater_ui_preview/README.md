@@ -49,20 +49,25 @@ DISPLAY=:99 GDK_BACKEND=x11 GSK_RENDERER=cairo DAZZLE_PREVIEW_OUT=build/preview-
   ./build/preview-linux/preview
 ```
 
-The environment variables are the macOS ones, plus `DAZZLE_PREVIEW_OUT` for the directory
-(the macOS file has one hard-coded): `DAZZLE_PREVIEW_DARK=1`, `DAZZLE_PREVIEW_LANG=zh`,
-`DAZZLE_PREVIEW_PREFIX=dark-`. Each captured window reports its own size, and the window
+The environment variables are the macOS ones: `DAZZLE_PREVIEW_OUT` for the directory, `DAZZLE_PREVIEW_DARK=1`, `DAZZLE_PREVIEW_LANG=zh`,
+`DAZZLE_PREVIEW_PREFIX=dark-`. `DAZZLE_OMARCHY_COLORS=<path to a colors.toml>` renders the
+windows the way they come out on Omarchy with that theme (the backend reads the palette
+from the Omarchy state directory on a real Omarchy desktop; the variable points it at any
+palette, on any machine). The tool also builds against Homebrew's GTK 4 on macOS, which is
+a quick way to look at a palette without a Linux host. Each captured window reports its own size, and the window
 is the real `GtkWindow` — client-side decorations included — while the picture itself is
 GTK's own rendering of it.
 
 Notes on what the pictures show:
 
-- Only a window's content view is captured, so the title bar is missing. The window
-  titles are printed next to each file name.
-- The buttons, check boxes and progress bars are dazzle updater's own, drawn from the same
-  tokens on both sides of the comparison, so they are exact. The window around them
-  (title bar, traffic lights, shadow, corners) is the real NSWindow, which a command-line
-  tool still gets; it is the one part the prototype does not model.
+- The whole window is captured — its background and title bar included, which is where
+  the traffic lights and the window's corners come from. The window titles are printed
+  next to each file name.
+- The buttons, check boxes and progress bars are AppKit's own, laid out as Sparkle 2.x lays
+  out its windows (specs/updater-ui.md, "外观"), so a picture is what the system draws on
+  this macOS release — compare it with Sparkle's windows, not with the prototype's tokens.
+  The window around them (title bar, traffic lights, shadow, corners) is the real NSWindow,
+  which a command-line tool still gets.
 - The states are reached by the real flow: the check and the download are held on the
   scripted port so the short-lived states (Checking, Downloading, Installing) can be
   looked at.

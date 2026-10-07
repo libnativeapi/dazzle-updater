@@ -59,6 +59,11 @@ void dazzle_updater_ui_set_automatic_downloads_allowed(bool allowed);
 DAZZLE_EXPORT
 bool dazzle_updater_ui_is_automatic_downloads_allowed(void);
 
+/// Forget what the user answered: the automatic-checks question, the
+///   automatic-downloads choice and the skipped version.
+DAZZLE_EXPORT
+void dazzle_updater_ui_reset_preferences(void);
+
 #ifdef __cplusplus
 }
 #endif

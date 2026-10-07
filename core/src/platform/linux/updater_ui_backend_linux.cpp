@@ -4,8 +4,14 @@
 
 #include <gtk/gtk.h>
 
+#include <algorithm>
+#include <cctype>
+#include <cstdio>
 #include <cstdlib>
+#include <cstring>
 #include <functional>
+#include <initializer_list>
+#include <map>
 #include <string>
 #include <vector>
 
@@ -146,6 +152,355 @@ void EnsureStyles() {
   g_object_unref(provider);
 }
 
+// --- Omarchy ---------------------------------------------------------------------------
+//
+// On Omarchy (a Hyprland desktop, not GNOME) GTK is told only light or dark:
+// omarchy-theme-set writes Adwaita or Adwaita-dark into gsettings and nothing more, so a
+// plain GTK 4 window comes out in Adwaita's greys and blue while the bar, the launcher and
+// the terminals around it wear the theme. The theme's palette is a file —
+// ~/.local/state/omarchy/current/theme/colors.toml, ~/.config/omarchy/current/theme/ on
+// releases before 3.x — that Omarchy's own templates read, and the windows read the same
+// file and dress themselves from it, in the roles Omarchy gives its own surfaces
+// (shell.toml: a control is the foreground at 4 % over the background with a 40 %
+// border, 8 % on hover, 22 % pressed; a chosen control is the accent with the background
+// as its text; a sunken view is dark_background). The CSS is scoped to this module's
+// windows (`window.dazzle_updater`), so the host application's own windows are left to
+// their theme. Under GNOME nothing is read and nothing changes: there the desktop's theme
+// already reaches the controls.
+//
+// DAZZLE_OMARCHY_COLORS=<path to a colors.toml> uses that palette anywhere, for previews.
+
+struct OmarchyPalette {
+  std::string background;
+  std::string dark_background;
+  std::string foreground;
+  std::string dark_foreground;
+  std::string bright_foreground;
+  std::string accent;
+  std::string selection;
+};
+
+bool IsHexColor(const std::string& value) {
+  if (value.size() != 7 || value[0] != '#') {
+    return false;
+  }
+  for (size_t index = 1; index < value.size(); ++index) {
+    if (!std::isxdigit(static_cast<unsigned char>(value[index]))) {
+      return false;
+    }
+  }
+  return true;
+}
+
+std::string Trim(const std::string& text) {
+  const size_t first = text.find_first_not_of(" \t\r");
+  if (first == std::string::npos) {
+    return "";
+  }
+  const size_t last = text.find_last_not_of(" \t\r");
+  return text.substr(first, last - first + 1);
+}
+
+/// colors.toml is flat `key = "value"` lines. They are read the way omarchy-theme-color
+/// reads them: the value is what sits between the first pair of quotes (so a comment after
+/// it is ignored), an unquoted value is trimmed, and keys are kept as written.
+std::map<std::string, std::string> ReadColorsFile(const std::string& path) {
+  std::map<std::string, std::string> values;
+  gchar* contents = nullptr;
+  gsize length = 0;
+  if (!g_file_get_contents(path.c_str(), &contents, &length, nullptr)) {
+    return values;
+  }
+  const std::string text(contents, length);
+  g_free(contents);
+  size_t position = 0;
+  while (position < text.size()) {
+    size_t newline = text.find('\n', position);
+    if (newline == std::string::npos) {
+      newline = text.size();
+    }
+    const std::string line = text.substr(position, newline - position);
+    position = newline + 1;
+    const size_t equals = line.find('=');
+    if (equals == std::string::npos) {
+      continue;
+    }
+    const std::string key = Trim(line.substr(0, equals));
+    if (key.empty() || key[0] == '#' || key[0] == '[') {
+      continue;
+    }
+    std::string value = Trim(line.substr(equals + 1));
+    const size_t quote = value.find_first_of("\"'");
+    if (quote != std::string::npos) {
+      const size_t close = value.find(value[quote], quote + 1);
+      value = value.substr(quote + 1, close == std::string::npos ? std::string::npos
+                                                                 : close - quote - 1);
+    }
+    for (char& character : value) {
+      character = static_cast<char>(std::tolower(static_cast<unsigned char>(character)));
+    }
+    values[key] = value;
+  }
+  return values;
+}
+
+/// The first of `keys` the file defines as a colour, or "": the canonical name first, then
+/// the legacy short name and the ANSI slot omarchy-theme-color falls back to.
+std::string PickColor(const std::map<std::string, std::string>& values,
+                      std::initializer_list<const char*> keys) {
+  for (const char* key : keys) {
+    const auto found = values.find(key);
+    if (found != values.end() && IsHexColor(found->second)) {
+      return found->second;
+    }
+  }
+  return "";
+}
+
+int HexChannel(const std::string& hex, size_t index) {
+  return static_cast<int>(std::strtol(hex.substr(1 + 2 * index, 2).c_str(), nullptr, 16));
+}
+
+/// `from` blended `amount` of the way towards `to`, as a hex colour.
+std::string MixHex(const std::string& from, const std::string& to, double amount) {
+  char buffer[8];
+  int channels[3];
+  for (size_t index = 0; index < 3; ++index) {
+    const double value = HexChannel(from, index) * (1.0 - amount) + HexChannel(to, index) * amount;
+    channels[index] = static_cast<int>(value + 0.5);
+  }
+  std::snprintf(buffer, sizeof buffer, "#%02x%02x%02x", channels[0], channels[1], channels[2]);
+  return buffer;
+}
+
+/// A hex colour at an opacity, spelled out: GTK 4.16 deprecates alpha() and mix() in CSS.
+std::string Rgba(const std::string& hex, double alpha) {
+  char buffer[40];
+  std::snprintf(buffer, sizeof buffer, "rgba(%d,%d,%d,%.2f)", HexChannel(hex, 0),
+                HexChannel(hex, 1), HexChannel(hex, 2), alpha);
+  return buffer;
+}
+
+bool LoadOmarchyPalette(const std::string& path, OmarchyPalette* palette) {
+  const std::map<std::string, std::string> values = ReadColorsFile(path);
+  palette->background = PickColor(values, {"background", "bg", "color0"});
+  palette->foreground = PickColor(values, {"foreground", "fg", "color7"});
+  if (palette->background.empty() || palette->foreground.empty()) {
+    return false;  // not a palette: the windows keep the theme GTK gives them
+  }
+  palette->dark_background = PickColor(values, {"dark_background", "dark_bg"});
+  if (palette->dark_background.empty()) {
+    palette->dark_background = MixHex(palette->background, "#000000", 0.25);
+  }
+  palette->dark_foreground = PickColor(values, {"dark_foreground", "dark_fg", "color8"});
+  if (palette->dark_foreground.empty()) {
+    palette->dark_foreground = palette->foreground;
+  }
+  palette->bright_foreground = PickColor(values, {"bright_foreground", "bright_fg", "color15"});
+  if (palette->bright_foreground.empty()) {
+    palette->bright_foreground = palette->foreground;
+  }
+  palette->accent = PickColor(values, {"accent", "blue", "color4"});
+  if (palette->accent.empty()) {
+    palette->accent = palette->foreground;
+  }
+  palette->selection = PickColor(values, {"selection", "selection_background", "color8"});
+  if (palette->selection.empty()) {
+    palette->selection = MixHex(palette->background, palette->foreground, 0.2);
+  }
+  return true;
+}
+
+/// Hyprland's `decoration:rounding`, which the Omarchy shell mirrors as the corner radius
+/// of every control (0 on a stock Omarchy: square). Asked once per process; hyprctl needs
+/// the instance variable the session exports, and without it the answer is 0.
+int HyprlandRounding() {
+  static const int rounding = [] {
+    if (g_getenv("HYPRLAND_INSTANCE_SIGNATURE") == nullptr) {
+      return 0;
+    }
+    const gchar* argv[] = {"hyprctl", "getoption", "decoration:rounding", "-j", nullptr};
+    gchar* output = nullptr;
+    gint status = 0;
+    const gboolean ran = g_spawn_sync(
+        nullptr, const_cast<gchar**>(argv), nullptr,
+        static_cast<GSpawnFlags>(G_SPAWN_SEARCH_PATH | G_SPAWN_STDERR_TO_DEV_NULL), nullptr,
+        nullptr, &output, nullptr, &status, nullptr);
+    int value = 0;
+    if (ran && output != nullptr) {
+      const char* key = std::strstr(output, "\"int\":");
+      if (key != nullptr) {
+        value = std::atoi(key + 6);
+      }
+    }
+    g_free(output);
+    return std::max(0, value);
+  }();
+  return rounding;
+}
+
+/// The palette as CSS for this module's windows and nothing else, in the language of the
+/// Omarchy shell's own kit (/usr/share/omarchy/shell: Commons/Style.qml, Ui/Button.qml,
+/// Ui/Toggle.qml, Ui/ToggleSwitch.qml, and the [controls] of shell.toml):
+///
+/// - everything is set in the `monospace` alias at 12 px (the shell's base size), a
+///   heading at 16 px, a toggle's label at 13 px bold, dim text at 11 px;
+/// - a control at rest is the foreground at 4 % over the window with a 1 px border at
+///   40 %; under the pointer or the keyboard 8 % and 25 %; pressed 22 %. The chosen one
+///   (the default button) is 18 % with its text in the accent, bold;
+/// - corners follow Hyprland's rounding; a switch is a 42 × 22 track with a 16 px knob,
+///   a pill when corners are round and square when they are not;
+/// - there is no focus ring: the focus state is the control's own fill and border.
+std::string OmarchyStylesheet(const OmarchyPalette& palette) {
+  const std::string& bg = palette.background;
+  const std::string& fg = palette.foreground;
+  const std::string fill_normal = Rgba(fg, 0.04);
+  const std::string fill_hover = Rgba(fg, 0.08);
+  const std::string fill_selected = Rgba(fg, 0.18);
+  const std::string fill_pressed = Rgba(fg, 0.22);
+  const std::string border_normal = Rgba(fg, 0.4);
+  const std::string border_hover = Rgba(fg, 0.25);
+  const std::string hairline = Rgba(fg, 0.12);
+  const std::string knob_off = MixHex(fg, "#000000", 0.2);  // Qt.darker(foreground, 1.25)
+  const int rounding = HyprlandRounding();
+  const std::string radius = std::to_string(rounding) + "px";
+  const std::string switch_radius = rounding > 0 ? "11px" : "0px";
+  const std::string knob_radius = rounding > 0 ? "8px" : "0px";
+  const std::string w = "window.dazzle_updater ";
+  const std::string hover = "{ background-color: " + fill_hover + "; border-color: " + border_hover + "; }\n";
+  std::string css;
+  css += "window.dazzle_updater { background-color: " + bg + "; color: " + fg +
+         "; font-family: monospace; font-size: 12px; }\n";
+  css += w + ".dazzle_updater-heading { color: " + palette.bright_foreground +
+         "; font-size: 16px; font-weight: bold; }\n";
+  css += w + ".dazzle_updater-status { color: " + palette.dark_foreground +
+         "; opacity: 1; font-size: 11px; }\n";
+  css += w + "*:focus-visible { outline: none; }\n";
+  // The notes: a sunken view on dark_background with the control border, the theme's
+  // selection colours inside it.
+  css += w + ".dazzle_updater-notes { background-color: " + palette.dark_background +
+         "; border: 1px solid " + border_normal + "; border-radius: " + radius + "; }\n";
+  css += w + ".dazzle_updater-notes textview, " + w +
+         ".dazzle_updater-notes textview text { background-color: transparent; color: " + fg +
+         "; }\n";
+  css += w + "textview text selection { background-color: " + palette.selection +
+         "; color: " + palette.bright_foreground + "; }\n";
+  // Buttons: 28 px tall (14 of content, 6 of padding and 1 of border each way), 10 px
+  // of padding at the sides.
+  css += w + "button { background-image: none; background-color: " + fill_normal + "; color: " + fg +
+         "; border: 1px solid " + border_normal + "; border-radius: " + radius +
+         "; box-shadow: none; text-shadow: none; padding: 6px 10px; min-height: 14px; "
+         "font-weight: normal; }\n";
+  css += w + "button:hover, " + w + "button:focus-visible " + hover;
+  css += w + "button:active, " + w + "button:checked { background-color: " + fill_pressed + "; }\n";
+  css += w + "button.suggested-action { background-color: " + fill_selected + "; color: " +
+         palette.accent + "; font-weight: bold; }\n";
+  css += w + "button.suggested-action:hover, " + w + "button.suggested-action:focus-visible " + hover;
+  css += w + "button.suggested-action:active { background-color: " + fill_pressed + "; }\n";
+  // The toggle row: a control of its own, the label in bold, the switch at its end.
+  css += w + ".dazzle_updater-toggle { background-color: " + fill_normal + "; border: 1px solid " +
+         border_normal + "; border-radius: " + radius + "; padding: 16px 12px; }\n";
+  css += w + ".dazzle_updater-toggle:hover " + hover;
+  css += w + ".dazzle_updater-toggle label { font-weight: bold; font-size: 13px; color: " + fg + "; }\n";
+  css += w + "switch { background-image: none; background-color: " + fill_normal +
+         "; border: 1px solid " + border_normal + "; border-radius: " + switch_radius +
+         "; min-width: 40px; min-height: 20px; box-shadow: none; }\n";
+  css += w + "switch:hover, " + w + "switch:focus-visible " + hover;
+  css += w + "switch:checked { background-color: " + fill_selected + "; border-color: transparent; }\n";
+  css += w + "switch slider { background-image: none; background-color: " + knob_off +
+         "; border: none; box-shadow: none; border-radius: " + knob_radius +
+         "; min-width: 16px; min-height: 16px; margin: 2px; }\n";
+  css += w + "switch:checked slider { background-color: " + fg + "; }\n";
+  css += w + "switch image { color: transparent; }\n";
+  // Progress: the accent on the hairline track.
+  css += w + "progressbar trough { background-color: " + hairline +
+         "; border-color: transparent; border-radius: " + radius + "; }\n";
+  css += w + "progressbar progress { background-color: " + palette.accent + "; border-color: " +
+         palette.accent + "; border-radius: " + radius + "; }\n";
+  css += w + "scrollbar slider { background-color: " + Rgba(fg, 0.35) + "; }\n";
+  css += w + "scrollbar slider:hover { background-color: " + Rgba(fg, 0.5) + "; }\n";
+  return css;
+}
+
+struct OmarchyStyles {
+  GtkCssProvider* provider = nullptr;
+  std::string css;   // what the provider holds; "" when the palette is not in use
+  std::string link;  // the accent, for the notes' links
+};
+
+OmarchyStyles g_omarchy;
+
+/// The palette file to read, or "" when the windows stay with the GTK theme.
+std::string OmarchyColorsPath() {
+  if (const char* forced = g_getenv("DAZZLE_OMARCHY_COLORS")) {
+    return forced;
+  }
+  if (const char* desktop = g_getenv("XDG_CURRENT_DESKTOP")) {
+    // "GNOME", "ubuntu:GNOME", "GNOME-Classic:GNOME": the theme reaches GTK by itself.
+    std::string name = desktop;
+    for (char& character : name) {
+      character = static_cast<char>(std::toupper(static_cast<unsigned char>(character)));
+    }
+    if (name.find("GNOME") != std::string::npos) {
+      return "";
+    }
+  }
+  std::string state_home;
+  if (const char* xdg_state = g_getenv("XDG_STATE_HOME"); xdg_state != nullptr && *xdg_state) {
+    state_home = xdg_state;
+  } else {
+    state_home = std::string(g_get_home_dir()) + "/.local/state";
+  }
+  const std::string candidates[] = {
+      state_home + "/omarchy/current/theme/colors.toml",
+      std::string(g_get_user_config_dir()) + "/omarchy/current/theme/colors.toml",
+  };
+  for (const std::string& candidate : candidates) {
+    if (g_file_test(candidate.c_str(), G_FILE_TEST_IS_REGULAR)) {
+      return candidate;
+    }
+  }
+  return "";
+}
+
+/// Reads the palette whenever a window is drawn — the file is a few hundred bytes, and
+/// omarchy-theme-set replaces the theme directory in place — and touches GTK only when it
+/// changed, so a theme switched while the application runs reaches the next window.
+void EnsureOmarchyStyles() {
+  OmarchyPalette palette;
+  std::string css;
+  const std::string path = OmarchyColorsPath();
+  if (!path.empty() && LoadOmarchyPalette(path, &palette)) {
+    css = OmarchyStylesheet(palette);
+  }
+  if (css == g_omarchy.css) {
+    return;
+  }
+  g_omarchy.css = css;
+  g_omarchy.link = palette.accent;
+  if (g_omarchy.provider == nullptr) {
+    if (css.empty()) {
+      return;
+    }
+    g_omarchy.provider = gtk_css_provider_new();
+    // Above the module's own sheet, which sits at the application priority.
+    gtk_style_context_add_provider_for_display(gdk_display_get_default(),
+                                               GTK_STYLE_PROVIDER(g_omarchy.provider),
+                                               GTK_STYLE_PROVIDER_PRIORITY_APPLICATION + 1);
+  }
+#if GTK_CHECK_VERSION(4, 12, 0)
+  gtk_css_provider_load_from_string(g_omarchy.provider, css.c_str());
+#else
+  gtk_css_provider_load_from_data(g_omarchy.provider, css.c_str(), -1);
+#endif
+}
+
+/// Whether the windows are dressed from an Omarchy palette right now.
+bool OmarchyActive() { return !g_omarchy.css.empty(); }
+
+/// The colour the notes draw their links in, or nullptr for GTK's own.
+const char* OmarchyLinkColor() { return g_omarchy.css.empty() ? nullptr : g_omarchy.link.c_str(); }
+
 /// The application's own icon, as the icon theme knows it: the application id, then the
 /// update icon the desktop themes carry, then a last generic one. The other two platforms
 /// take the icon from the bundle or the executable; on Linux it lives in the theme.
@@ -285,7 +640,8 @@ GtkWidget* MakeNotesBox(const UiContent& content) {
 
   g_window.notes_urls.clear();
   dazzle_updater::internal::RenderNotesInto(gtk_text_view_get_buffer(GTK_TEXT_VIEW(view)),
-                                    content.notes_markdown, &g_window.notes_urls);
+                                    content.notes_markdown, &g_window.notes_urls,
+                                    OmarchyLinkColor());
 
   GtkGesture* click = gtk_gesture_click_new();
   gtk_gesture_single_set_button(GTK_GESTURE_SINGLE(click), GDK_BUTTON_PRIMARY);
@@ -310,11 +666,76 @@ void OnCheckboxToggled(GtkCheckButton* checkbox, gpointer user_data) {
   ReportEvent(UiEventKind::kCheckboxChanged, gtk_check_button_get_active(checkbox) == TRUE);
 }
 
-GtkWidget* MakeCheckbox(const UiCheckbox& checkbox) {
-  GtkWidget* widget = gtk_check_button_new_with_label(checkbox.label.c_str());
+void OnSwitchToggled(GObject* toggle, GParamSpec* property, gpointer user_data) {
+  (void)property;
+  (void)user_data;
+  if (g_window.updating_checkbox) {
+    return;
+  }
+  ReportEvent(UiEventKind::kCheckboxChanged, gtk_switch_get_active(GTK_SWITCH(toggle)) == TRUE);
+}
+
+/// A click anywhere on the toggle row flips its switch, as Omarchy's Toggle does; a
+/// click on the switch itself is the switch's own and is left to it.
+void OnToggleRowReleased(GtkGestureClick* gesture, int press_count, double x, double y,
+                         gpointer user_data) {
+  (void)press_count;
+  (void)user_data;
+  GtkWidget* row = gtk_event_controller_get_widget(GTK_EVENT_CONTROLLER(gesture));
+  GtkWidget* hit = gtk_widget_pick(row, x, y, GTK_PICK_DEFAULT);
+  if (g_window.checkbox == nullptr || !GTK_IS_SWITCH(g_window.checkbox) ||
+      hit == g_window.checkbox ||
+      (hit != nullptr && gtk_widget_is_ancestor(hit, g_window.checkbox))) {
+    return;
+  }
+  gtk_switch_set_active(GTK_SWITCH(g_window.checkbox),
+                        !gtk_switch_get_active(GTK_SWITCH(g_window.checkbox)));
+}
+
+/// Sets the value of whichever control holds it, without reporting it back.
+void SetCheckboxActive(bool active) {
+  if (g_window.checkbox == nullptr) {
+    return;
+  }
   g_window.updating_checkbox = true;
-  gtk_check_button_set_active(GTK_CHECK_BUTTON(widget), checkbox.checked);
+  if (GTK_IS_SWITCH(g_window.checkbox)) {
+    gtk_switch_set_active(GTK_SWITCH(g_window.checkbox), active);
+  } else {
+    gtk_check_button_set_active(GTK_CHECK_BUTTON(g_window.checkbox), active);
+  }
   g_window.updating_checkbox = false;
+}
+
+/// The boolean option of the Available window and the permission prompt. Returns the
+/// widget to place and leaves the control that holds the value in g_window.checkbox:
+/// GTK's own check button, or — under an Omarchy palette, whose kit has no check box —
+/// a Toggle row (shell/Ui/Toggle.qml): the label in bold at the left, a switch at the
+/// right, the row drawn as a control and clickable anywhere.
+GtkWidget* MakeCheckbox(const UiCheckbox& checkbox) {
+  if (OmarchyActive()) {
+    GtkWidget* row = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, kGap);
+    gtk_widget_add_css_class(row, "dazzle_updater-toggle");
+    GtkWidget* label = gtk_label_new(checkbox.label.c_str());
+    gtk_label_set_xalign(GTK_LABEL(label), 0.0f);
+    gtk_label_set_wrap(GTK_LABEL(label), TRUE);
+    gtk_widget_set_hexpand(label, TRUE);
+    gtk_widget_set_valign(label, GTK_ALIGN_CENTER);
+    gtk_box_append(GTK_BOX(row), label);
+    GtkWidget* toggle = gtk_switch_new();
+    gtk_widget_set_valign(toggle, GTK_ALIGN_CENTER);
+    g_window.checkbox = toggle;
+    SetCheckboxActive(checkbox.checked);
+    g_signal_connect(toggle, "notify::active", G_CALLBACK(OnSwitchToggled), nullptr);
+    gtk_box_append(GTK_BOX(row), toggle);
+    GtkGesture* click = gtk_gesture_click_new();
+    gtk_gesture_single_set_button(GTK_GESTURE_SINGLE(click), GDK_BUTTON_PRIMARY);
+    g_signal_connect(click, "released", G_CALLBACK(OnToggleRowReleased), nullptr);
+    gtk_widget_add_controller(row, GTK_EVENT_CONTROLLER(click));
+    return row;
+  }
+  GtkWidget* widget = gtk_check_button_new_with_label(checkbox.label.c_str());
+  g_window.checkbox = widget;
+  SetCheckboxActive(checkbox.checked);
   g_signal_connect(widget, "toggled", G_CALLBACK(OnCheckboxToggled), nullptr);
   gtk_widget_set_halign(widget, GTK_ALIGN_START);
   return widget;
@@ -425,9 +846,9 @@ GtkWidget* MakeAvailableBody(const UiContent& content) {
   }
 
   if (content.checkbox.visible) {
-    g_window.checkbox = MakeCheckbox(content.checkbox);
-    gtk_widget_set_margin_top(g_window.checkbox, kGap);
-    gtk_box_append(GTK_BOX(root), g_window.checkbox);
+    GtkWidget* option = MakeCheckbox(content.checkbox);
+    gtk_widget_set_margin_top(option, kGap);
+    gtk_box_append(GTK_BOX(root), option);
   }
 
   GtkWidget* buttons = MakeButtons(content);
@@ -513,8 +934,7 @@ GtkWidget* MakePermissionBody(const UiContent& content) {
   gtk_box_append(GTK_BOX(root), title_row);
 
   if (content.checkbox.visible) {
-    g_window.checkbox = MakeCheckbox(content.checkbox);
-    gtk_box_append(GTK_BOX(root), g_window.checkbox);
+    gtk_box_append(GTK_BOX(root), MakeCheckbox(content.checkbox));
   }
 
   gtk_box_append(GTK_BOX(root), MakeButtons(content));
@@ -557,11 +977,7 @@ void SyncContent(const UiContent& content) {
   if (g_window.progress != nullptr) {
     SyncProgress(content.progress);
   }
-  if (g_window.checkbox != nullptr) {
-    g_window.updating_checkbox = true;
-    gtk_check_button_set_active(GTK_CHECK_BUTTON(g_window.checkbox), content.checkbox.checked);
-    g_window.updating_checkbox = false;
-  }
+  SetCheckboxActive(content.checkbox.checked);
 }
 
 void ForgetWidgets() {
@@ -624,6 +1040,7 @@ GtkWidget* BuildBody(const UiContent& content) {
 /// Draws `content`; runs on the main thread.
 void DrawOnMain(const UiContent& content) {
   EnsureStyles();
+  EnsureOmarchyStyles();
 
   const bool have_window = g_window.window != nullptr;
   const bool same_window =
@@ -657,18 +1074,30 @@ void DrawOnMain(const UiContent& content) {
   // A different window: the old one stays until the new one is up, so the flow moves
   // without a moment with nothing on screen.
   GtkWidget* window = gtk_window_new();
+  // The class the module's own CSS is scoped to, so it never reaches the host's windows.
+  gtk_widget_add_css_class(window, "dazzle_updater");
   gtk_window_set_title(GTK_WINDOW(window), content.window_title.c_str());
-  GtkWidget* header = gtk_header_bar_new();
-  gtk_window_set_titlebar(GTK_WINDOW(window), header);
-  if (content.window != UiWindow::kUpdateStatus) {
-    // The update and permission windows keep their title for the window list, but do not
-    // draw it — the prototype hides it for exactly these two.
-    gtk_header_bar_set_title_widget(GTK_HEADER_BAR(header), gtk_label_new(""));
+  if (OmarchyActive()) {
+    // Omarchy's windows have no title bars: Hyprland draws a border and nothing else, and
+    // GTK gives its header bar up when the compositor asks for server-side decorations —
+    // unless a title bar widget is forced onto the window. So none is: the window is a
+    // bare panel like every other window on that desktop, closed with the compositor's
+    // own key, and the title stays with the window for the window list.
+  } else {
+    GtkWidget* header = gtk_header_bar_new();
+    gtk_window_set_titlebar(GTK_WINDOW(window), header);
+    if (content.window != UiWindow::kUpdateStatus) {
+      // The update and permission windows keep their title for the window list, but do
+      // not draw it — the prototype hides it for exactly these two.
+      gtk_header_bar_set_title_widget(GTK_HEADER_BAR(header), gtk_label_new(""));
+    }
+    if (content.window == UiWindow::kUpdatePermission) {
+      // The question must be answered: no close button.
+      gtk_header_bar_set_show_title_buttons(GTK_HEADER_BAR(header), FALSE);
+    }
   }
   if (content.window == UiWindow::kUpdatePermission) {
-    // The question must be answered: no close button, and no way to dismiss it.
-    gtk_header_bar_set_show_title_buttons(GTK_HEADER_BAR(header), FALSE);
-    gtk_window_set_deletable(GTK_WINDOW(window), FALSE);
+    gtk_window_set_deletable(GTK_WINDOW(window), FALSE);  // and no way to dismiss it
   }
   gtk_window_set_resizable(GTK_WINDOW(window), content.resizable);
   if (content.window == UiWindow::kUpdateAvailable && content.resizable) {
@@ -683,9 +1112,24 @@ void DrawOnMain(const UiContent& content) {
   g_signal_connect(keys, "key-pressed", G_CALLBACK(OnKeyPressed), nullptr);
   gtk_widget_add_controller(window, keys);
 
+  // A dialog of the application's own window where there is one: it stays above that
+  // window, and a tiling compositor (Hyprland, which Omarchy runs) floats it instead of
+  // tiling it into a screen's worth of release notes. The window being replaced is not a
+  // parent: the new one inherits its parent instead.
+  GtkWidget* previous = g_window.window;
+  if (GApplication* application = g_application_get_default();
+      application != nullptr && GTK_IS_APPLICATION(application)) {
+    GtkWindow* parent = gtk_application_get_active_window(GTK_APPLICATION(application));
+    if (previous != nullptr && parent == GTK_WINDOW(previous)) {
+      parent = gtk_window_get_transient_for(GTK_WINDOW(previous));
+    }
+    if (parent != nullptr) {
+      gtk_window_set_transient_for(GTK_WINDOW(window), parent);
+    }
+  }
+
   // The window is set before its content is built: the default button is registered on
   // it as it is created.
-  GtkWidget* previous = g_window.window;
   g_window.window = window;
   g_window.kind = content.window;
   g_window.state = content.state;

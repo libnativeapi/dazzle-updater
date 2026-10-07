@@ -184,8 +184,15 @@ media::Brush ThemeBrush(const wchar_t* key, uint32_t light, uint32_t dark) {
 media::Brush SecondaryText() {
   return ThemeBrush(L"TextFillColorSecondaryBrush", 0x5D5D5D, 0xC5C5C5);
 }
+/// The containers take the system's solid backgrounds, not its layered ones: the window
+/// is the page background (F3F3F3 / 202020) and the notes box the quarternary solid fill
+/// (FFFFFF / 2C2C2C). The layered card and layer fills are translucent by design and read
+/// as a faint wash over whatever is behind them; nothing here is meant to be see-through.
+media::Brush PageBackground() {
+  return ThemeBrush(L"ApplicationPageBackgroundThemeBrush", 0xF3F3F3, 0x202020);
+}
 media::Brush CardBackground() {
-  return ThemeBrush(L"CardBackgroundFillColorDefaultBrush", 0xFFFFFF, 0x2B2B2B);
+  return ThemeBrush(L"SolidBackgroundFillColorQuarternaryBrush", 0xFFFFFF, 0x2C2C2C);
 }
 media::Brush CardStroke() { return ThemeBrush(L"CardStrokeColorDefaultBrush", 0xE5E5E5, 0x3D3D3D); }
 
@@ -943,13 +950,11 @@ class WinUi3Backend final : public UiBackend {
     state.kind = kind;
     state.window = xaml::Window();
     state.window.Title(winrt::to_hstring(content.window_title));
-    try {
-      state.window.SystemBackdrop(media::MicaBackdrop());
-    } catch (...) {
-    }
+    // No Mica or other backdrop: the window is the system's solid page background, like
+    // a dialog, not a tinted sheet of the wallpaper.
 
-    // The update and status windows draw their own 32 pt title bar so Mica runs behind it,
-    // which is also how Sparkle's transparent title bars work. The permission prompt has no
+    // The update and status windows draw their own 32 pt title bar on that background,
+    // which is how Sparkle's transparent title bars read. The permission prompt has no
     // title at all: its caption is hidden, and Sparkle's prompt is untitled.
     const bool draws_title_bar = kind != WindowKind::kPermission;
     auto bar = controls::Grid();
@@ -970,6 +975,7 @@ class WinUi3Backend final : public UiBackend {
     }
 
     auto root = controls::Grid();
+    root.Background(PageBackground());
     root.RowDefinitions().Append(controls::RowDefinition());
     root.RowDefinitions().Append(controls::RowDefinition());
     root.RowDefinitions().GetAt(0).Height(

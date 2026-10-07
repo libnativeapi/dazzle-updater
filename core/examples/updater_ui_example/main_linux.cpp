@@ -31,6 +31,11 @@ namespace {
 
 constexpr const char* kApplicationId = "com.example.dazzle-demo";
 
+/// The version the demo started with (dazzle-demo.conf: resetVersion), and the heading
+/// that shows the current one.
+std::string g_reset_version;
+GtkWidget* g_heading = nullptr;
+
 std::string ToUtf8(const char* value) {
   return value != nullptr ? std::string(value) : std::string();
 }
@@ -116,6 +121,24 @@ void OnCheckInBackground(GtkButton* button, gpointer user_data) {
   dazzle_updater::UpdaterUI::GetInstance().CheckForUpdatesInBackground();
 }
 
+/// Back to the first run: the answers UpdaterUI stored are forgotten, and the version this
+/// copy reports goes back to the one the demo started with, so the next check finds the
+/// 2.0.0 release again — whether or not it was installed in between.
+void OnResetDemo(GtkButton* button, gpointer user_data) {
+  (void)button;
+  (void)user_data;
+  std::printf("reset demo state\n");
+  std::fflush(stdout);
+  dazzle_updater::UpdaterUI::GetInstance().ResetPreferences();
+  if (!g_reset_version.empty()) {
+    dazzle_updater::Updater::GetInstance().SetCurrentVersion(g_reset_version);
+  }
+  if (g_heading != nullptr) {
+    const std::string version = dazzle_updater::Updater::GetInstance().GetCurrentVersion();
+    gtk_label_set_text(GTK_LABEL(g_heading), ("Dazzle Demo " + version).c_str());
+  }
+}
+
 void BuildHostWindow(GtkApplication* application) {
   // Linux has no application metadata for UpdaterUI to read a name from — it would use
   // the executable's own name — so this application names itself, the way any desktop
@@ -137,9 +160,10 @@ void BuildHostWindow(GtkApplication* application) {
   gtk_label_set_xalign(GTK_LABEL(heading), 0.0f);
   gtk_widget_add_css_class(heading, "title-3");
   gtk_box_append(GTK_BOX(box), heading);
+  g_heading = heading;
 
   GtkWidget* detail =
-      gtk_label_new("A host application: the update windows on top are UpdaterUI's.");
+      gtk_label_new("This window is the demo's own; what opens on top is UpdaterUI.");
   gtk_label_set_xalign(GTK_LABEL(detail), 0.0f);
   gtk_label_set_wrap(GTK_LABEL(detail), TRUE);
   gtk_widget_add_css_class(detail, "dim-label");
@@ -147,6 +171,9 @@ void BuildHostWindow(GtkApplication* application) {
 
   GtkWidget* buttons = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 12);
   gtk_widget_set_halign(buttons, GTK_ALIGN_END);
+  GtkWidget* reset = gtk_button_new_with_label("Reset Demo");
+  g_signal_connect(reset, "clicked", G_CALLBACK(OnResetDemo), nullptr);
+  gtk_box_append(GTK_BOX(buttons), reset);
   GtkWidget* background = gtk_button_new_with_label("Check in Background");
   g_signal_connect(background, "clicked", G_CALLBACK(OnCheckInBackground), nullptr);
   gtk_box_append(GTK_BOX(buttons), background);
@@ -188,6 +215,7 @@ int main(int argc, char** argv) {
                            : Trim(directory.empty() ? std::string()
                                                     : ReadFile(directory + "/version"));
   PrintConfiguration(feed, key, version);
+  g_reset_version = ConfigValue(config, "resetVersion");
 
   if (feed.empty() || key.empty()) {
     std::fprintf(stderr,

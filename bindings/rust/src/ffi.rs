@@ -52,4 +52,5 @@ extern "C" {
     pub fn dazzle_updater_ui_is_automatic_downloads_enabled() -> bool;
     pub fn dazzle_updater_ui_set_automatic_downloads_allowed(allowed: bool);
     pub fn dazzle_updater_ui_is_automatic_downloads_allowed() -> bool;
+    pub fn dazzle_updater_ui_reset_preferences();
 }

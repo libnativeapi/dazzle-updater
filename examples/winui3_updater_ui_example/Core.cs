@@ -26,6 +26,20 @@ internal static class Core
     internal static void SetAppName(string name) => UpdaterUI.Instance.AppName = name;
 
     /// <summary>
+    /// Back to the first run: the answers UpdaterUI stored (the automatic-checks question,
+    /// the skipped version) are forgotten, and the version this process reports goes back
+    /// to the one the environment declared, so the next check finds the update again.
+    /// </summary>
+    internal static void ResetDemo()
+    {
+        UpdaterUI.Instance.ResetPreferences();
+        if (Environment.GetEnvironmentVariable("DAZZLE_DEMO_VERSION") is { Length: > 0 } version)
+        {
+            Updater.Instance.CurrentVersion = version;
+        }
+    }
+
+    /// <summary>
     /// Points the updater at a release index, when the environment names one: the feed and
     /// key a run against a local signed index needs (see README, "Against a local feed").
     /// Without them the application has no source, and a check ends in the Error window.

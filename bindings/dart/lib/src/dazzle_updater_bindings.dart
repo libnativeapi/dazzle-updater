@@ -119,3 +119,6 @@ external void dazzle_updater_ui_set_automatic_downloads_allowed(bool allowed);
 
 @Native<Bool Function()>()
 external bool dazzle_updater_ui_is_automatic_downloads_allowed();
+
+@Native<Void Function()>()
+external void dazzle_updater_ui_reset_preferences();

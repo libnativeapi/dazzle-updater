@@ -131,4 +131,7 @@ internal static partial class NativeMethods
     [LibraryImport(Library)]
     [return: MarshalAs(UnmanagedType.U1)]
     internal static partial bool dazzle_updater_ui_is_automatic_downloads_allowed();
+
+    [LibraryImport(Library)]
+    internal static partial void dazzle_updater_ui_reset_preferences();
 }

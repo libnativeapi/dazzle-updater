@@ -102,3 +102,11 @@ bool dazzle_updater_ui_is_automatic_downloads_allowed(void) {
     return false;
   }
 }
+
+void dazzle_updater_ui_reset_preferences(void) {
+  try {
+    dazzle_updater::UpdaterUI::GetInstance().ResetPreferences();
+  } catch (...) {
+    fprintf(stderr, "[dazzle_updater] %s: unexpected exception\n", "dazzle_updater_ui_reset_preferences");
+  }
+}
