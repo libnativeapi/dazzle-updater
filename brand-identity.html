@@ -1,0 +1,710 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#07111f">
+  <title>dazzle updater — Brand Identity</title>
+  <style>
+    :root {
+      --ink: #07111f;
+      --muted: #64748b;
+      --line: rgba(15, 23, 42, .09);
+      --paper: #f5f7fb;
+      --blue: #2563eb;
+      --cyan: #22d3ee;
+      --radius: 28px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 8% -10%, rgba(37, 99, 235, .10), transparent 29rem),
+        radial-gradient(circle at 94% 2%, rgba(34, 211, 238, .10), transparent 26rem),
+        var(--paper);
+      font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    button { font: inherit; }
+
+    .shell {
+      width: min(1160px, calc(100% - 40px));
+      margin: 0 auto;
+    }
+
+    .topbar {
+      height: 76px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .brand-svg {
+      height: 30px;
+      width: auto;
+      display: block;
+    }
+
+    .tag {
+      padding: 7px 11px;
+      color: #475569;
+      background: rgba(255,255,255,.62);
+      border: 1px solid rgba(255,255,255,.9);
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .11em;
+      text-transform: uppercase;
+      box-shadow: 0 1px 2px rgba(15,23,42,.04);
+    }
+
+    .hero {
+      min-height: 680px;
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(380px, .8fr);
+      gap: 72px;
+      align-items: center;
+      padding: 70px 0 84px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      margin-bottom: 23px;
+      color: #0f6fc6;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .15em;
+      text-transform: uppercase;
+    }
+
+    .eyebrow::before {
+      content: "";
+      width: 28px;
+      height: 2px;
+      border-radius: 2px;
+      background: linear-gradient(90deg, var(--blue), var(--cyan));
+    }
+
+    h1 {
+      margin: 0;
+      max-width: 650px;
+      font-size: clamp(48px, 6.2vw, 82px);
+      line-height: .98;
+      letter-spacing: -.064em;
+      font-weight: 820;
+    }
+
+    h1 .accent {
+      color: transparent;
+      background: linear-gradient(100deg, #1d4ed8 8%, #2563eb 42%, #06b6d4 95%);
+      -webkit-background-clip: text;
+      background-clip: text;
+    }
+
+    .lede {
+      max-width: 590px;
+      margin: 27px 0 0;
+      color: #526174;
+      font-size: clamp(17px, 1.8vw, 20px);
+      line-height: 1.72;
+      letter-spacing: -.012em;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 34px;
+    }
+
+    .btn {
+      min-height: 46px;
+      padding: 0 18px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      border: 0;
+      border-radius: 13px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 750;
+      transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
+    }
+
+    .btn:hover { transform: translateY(-2px); }
+    .btn:active { transform: translateY(0); }
+
+    .btn-primary {
+      color: white;
+      background: #0b1627;
+      box-shadow: 0 10px 24px rgba(7,17,31,.18);
+    }
+
+    .btn-secondary {
+      color: #243247;
+      background: rgba(255,255,255,.82);
+      border: 1px solid rgba(15,23,42,.09);
+      box-shadow: 0 4px 12px rgba(15,23,42,.04);
+    }
+
+    .btn svg { width: 15px; height: 15px; }
+
+    .app-icon {
+      width: 100%;
+      max-width: 340px;
+      aspect-ratio: 1;
+      position: relative;
+      display: grid;
+      place-items: center;
+      justify-self: end;
+      border-radius: 30%;
+      background: #fff;
+      border: 1px solid rgba(15,23,42,.08);
+      box-shadow:
+        0 30px 58px rgba(37,99,235,.12),
+        inset 0 1px 0 rgba(255,255,255,.7);
+    }
+
+    .app-icon::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background: linear-gradient(150deg, rgba(255,255,255,.055), transparent 40%);
+      pointer-events: none;
+    }
+
+    .app-icon > svg { width: 73%; height: 73%; filter: drop-shadow(0 10px 18px rgba(20,140,255,.28)); }
+
+    .section {
+      padding: 92px 0;
+      border-top: 1px solid var(--line);
+    }
+
+    .section-head {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 40px;
+      margin-bottom: 34px;
+    }
+
+    .kicker {
+      margin: 0 0 10px;
+      color: #0284c7;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .15em;
+      text-transform: uppercase;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: clamp(30px, 4vw, 45px);
+      line-height: 1.08;
+      letter-spacing: -.045em;
+    }
+
+    .section-note {
+      max-width: 410px;
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.65;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr 1fr;
+      gap: 16px;
+    }
+
+    .card {
+      min-height: 318px;
+      padding: 28px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow: hidden;
+      border-radius: var(--radius);
+      border: 1px solid rgba(15,23,42,.08);
+      background: rgba(255,255,255,.82);
+      box-shadow: 0 8px 28px rgba(15,23,42,.045);
+    }
+
+    .card.dark {
+      color: white;
+      background: #07111f;
+      border-color: rgba(255,255,255,.08);
+    }
+
+    .card.cyan {
+      color: #04111f;
+      background: linear-gradient(145deg, #d9faff, #eefcff 65%, #dce8ff);
+    }
+
+    .card-label {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      opacity: .68;
+    }
+
+    .swatch { width: 9px; height: 9px; border-radius: 50%; background: currentColor; }
+
+    .display-mark {
+      width: 84%;
+      max-width: 268px;
+      margin: auto;
+      display: block;
+    }
+
+    .card:first-child .display-mark { width: 73%; }
+
+    .card-foot {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: 12px;
+      opacity: .68;
+    }
+
+    .wordmark-board {
+      padding: clamp(32px, 7vw, 72px);
+      display: grid;
+      place-items: center;
+      min-height: 310px;
+      position: relative;
+      overflow: hidden;
+      border-radius: 32px;
+      background: #fff;
+      border: 1px solid var(--line);
+      box-shadow: 0 14px 45px rgba(15,23,42,.05);
+    }
+
+    .wordmark-board::before {
+      content: "";
+      position: absolute;
+      width: 420px;
+      height: 220px;
+      left: -120px;
+      bottom: -150px;
+      border-radius: 50%;
+      filter: blur(16px);
+      background: rgba(37,99,235,.07);
+    }
+
+    .lockup-svg {
+      max-width: 660px;
+      height: auto;
+      display: block;
+      margin: 0 auto;
+    }
+
+    .sizes {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 12px;
+    }
+
+    .size-cell {
+      min-height: 200px;
+      padding: 20px 12px;
+      display: grid;
+      grid-template-rows: 1fr auto;
+      place-items: center;
+      gap: 18px;
+      border-radius: 22px;
+      background: rgba(255,255,255,.76);
+      border: 1px solid rgba(15,23,42,.08);
+    }
+
+    .size-cell .mini-tile {
+      display: grid;
+      place-items: center;
+      flex: none;
+      border-radius: 24%;
+      background: #fff;
+      border: 1px solid rgba(15,23,42,.07);
+      box-shadow: 0 4px 12px rgba(7,17,31,.08);
+    }
+
+    .mini-tile svg { width: 70%; height: 70%; }
+
+    .size-cell span {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .08em;
+    }
+
+    .size-cell .mini-tile {
+      display: grid;
+      place-items: center;
+      border-radius: 24%;
+      box-shadow: 0 4px 12px rgba(7,17,31,.12);
+    }
+
+    .size-cell .mini-tile.dark {
+      background: #07111f;
+    }
+
+    .size-cell .mini-tile.light {
+      background: #fff;
+      border: 1px solid rgba(15,23,42,.08);
+    }
+
+    .mini-tile svg { width: 65%; height: 65%; }
+
+    .size-cell .size-label {
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .06em;
+    }
+
+    .spec-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .spec {
+      padding: 30px;
+      border-radius: 24px;
+      background: rgba(255,255,255,.78);
+      border: 1px solid var(--line);
+    }
+
+    .spec h3 { margin: 0 0 18px; font-size: 15px; letter-spacing: -.02em; }
+
+    .palette {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .color {
+      min-height: 118px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      border-radius: 16px;
+      color: white;
+      font-size: 10px;
+      line-height: 1.55;
+      font-weight: 700;
+      letter-spacing: .04em;
+    }
+
+    .geometry {
+      display: grid;
+      grid-template-columns: 110px 1fr;
+      gap: 26px;
+      align-items: center;
+    }
+
+    .geometry svg { width: 110px; }
+
+    .geometry p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.7; }
+
+    footer {
+      padding: 32px 0 46px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      border-top: 1px solid var(--line);
+      color: #7c899b;
+      font-size: 11px;
+    }
+
+    .toast {
+      position: fixed;
+      z-index: 20;
+      left: 50%;
+      bottom: 26px;
+      padding: 11px 16px;
+      color: white;
+      background: rgba(7,17,31,.92);
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 12px;
+      box-shadow: 0 14px 40px rgba(0,0,0,.24);
+      font-size: 12px;
+      font-weight: 700;
+      transform: translate(-50%, 20px);
+      opacity: 0;
+      pointer-events: none;
+      transition: .24s ease;
+    }
+
+    .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+    @media (max-width: 900px) {
+      .hero { grid-template-columns: 1fr; gap: 52px; padding-top: 58px; }
+      .hero-copy { text-align: center; }
+      .eyebrow, .actions { justify-content: center; }
+      .lede { margin-left: auto; margin-right: auto; }
+      .stage-wrap { width: min(520px, 100%); margin: auto; }
+      .cards { grid-template-columns: 1fr 1fr; }
+      .cards .card:first-child { grid-column: 1 / -1; }
+      .sizes { grid-template-columns: repeat(3, 1fr); }
+      .spec-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 620px) {
+      .shell { width: min(100% - 28px, 1160px); }
+      .topbar { height: 66px; }
+      .tag { display: none; }
+      .hero { min-height: 0; padding: 54px 0 68px; }
+      h1 { font-size: 48px; }
+      .stage { border-radius: 30px; }
+      .section { padding: 68px 0; }
+      .section-head { align-items: start; flex-direction: column; gap: 14px; }
+      .cards { grid-template-columns: 1fr; }
+      .cards .card:first-child { grid-column: auto; }
+      .card { min-height: 290px; }
+      .lockup-svg { max-width: 380px; }
+      .sizes { grid-template-columns: repeat(2, 1fr); }
+      .sizes .size-cell:first-child { grid-column: 1 / -1; }
+      .palette { grid-template-columns: 1fr; }
+      .color { min-height: 86px; }
+      .geometry { grid-template-columns: 1fr; }
+      footer { align-items: flex-start; flex-direction: column; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Reusable master mark: a four-point star (dazzle) held by two arc arrows chasing each other (update). -->
+  <svg width="0" height="0" aria-hidden="true" style="position:absolute">
+    <defs>
+      <linearGradient id="dazzle-gradient" gradientUnits="userSpaceOnUse" x1="20" y1="108" x2="104" y2="12">
+        <stop offset="0" stop-color="#1E40B0"/>
+        <stop offset=".35" stop-color="#2563EB"/>
+        <stop offset=".7" stop-color="#1688F5"/>
+        <stop offset="1" stop-color="#22D3EE"/>
+      </linearGradient>
+      <linearGradient id="dazzle-gradient-soft" gradientUnits="userSpaceOnUse" x1="20" y1="108" x2="104" y2="12">
+        <stop offset="0" stop-color="#5599F5"/>
+        <stop offset=".55" stop-color="#67E8F9"/>
+        <stop offset="1" stop-color="#A5F3FC"/>
+      </linearGradient>
+      <symbol id="dazzle-mark" viewBox="0 0 128 128">
+        <!-- Two arc arrows, head to tail -->
+        <path d="M111.32 29.6 A58.5 58.5 0 0 1 43.97 118.96 Q43.04 118.61 42.68 119.55 L41.37 122.96 Q40.71 124.68 39.62 123.19 L27.6 106.62 Q26.69 105.38 28.2 105.06 L48.22 100.79 Q50.02 100.41 49.36 102.13 L48.05 105.54 Q47.69 106.48 48.63 106.83 A45.5 45.5 0 0 0 100.93 37.42 Q100.34 36.62 101.14 36.02 L109.92 29.4 Q110.72 28.79 111.32 29.6 Z"/>
+        <path d="M16.68 98.4 A58.5 58.5 0 0 1 84.03 9.04 Q84.96 9.39 85.32 8.45 L86.63 5.04 Q87.29 3.32 88.38 4.81 L100.4 21.38 Q101.31 22.62 99.8 22.94 L79.78 27.21 Q77.98 27.59 78.64 25.87 L79.95 22.46 Q80.31 21.52 79.37 21.17 A45.5 45.5 0 0 0 27.07 90.58 Q27.66 91.38 26.86 91.98 L18.08 98.6 Q17.28 99.21 16.68 98.4 Z"/>
+        <!-- Four-point star -->
+        <path d="M64 33 Q68 60 95 64 Q68 68 64 95 Q60 68 33 64 Q60 60 64 33 Z"/>
+      </symbol>
+    </defs>
+  </svg>
+
+  <header class="shell topbar">
+    <svg class="brand-svg" viewBox="0 0 700 128" aria-label="dazzle updater" role="img">
+      <title>dazzle updater</title>
+      <use href="#dazzle-mark" width="128" height="128" fill="url(#dazzle-gradient)"/>
+      <text x="142" y="96" font-family="Inter, system-ui, -apple-system, sans-serif" font-weight="800" font-size="88" letter-spacing="-0.05em" fill="#07111f">dazzle<tspan dx="18" font-weight="500" fill="#64748b">updater</tspan></text>
+    </svg>
+    <div class="tag">Brand Identity · 2026</div>
+  </header>
+
+  <main>
+    <section class="shell hero">
+      <div class="hero-copy">
+
+        <h1>让每一次更新<br><span class="accent">都闪闪发光</span></h1>
+        <p class="lede">中心是一颗四角星，外围是两道首尾呼应的弧形箭头。星光代表 dazzle，循环代表更新——不需要解释，一眼就是焕新。</p>
+        <div class="actions">
+          <button class="btn btn-primary" id="downloadSvg" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 21h14"/></svg>
+            下载 SVG
+          </button>
+          <button class="btn btn-secondary" id="copySvg" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="8" width="11" height="11" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/></svg>
+            复制 SVG
+          </button>
+        </div>
+      </div>
+
+      <div class="app-icon" aria-label="dazzle updater app icon">
+        <svg viewBox="0 0 128 128" role="img"><title>dazzle updater mark</title><use href="#dazzle-mark" fill="url(#dazzle-gradient)"/></svg>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="shell">
+        <div class="section-head">
+          <div>
+            <p class="kicker">One mark, every surface</p>
+            <h2>同一轮廓，适配所有场景</h2>
+          </div>
+          <p class="section-note">主标只由两道弧形箭头与一颗四角星构成，全部是填充路径。渐变负责闪耀感，单色轮廓负责极小尺寸与印刷稳定性。</p>
+        </div>
+
+        <div class="cards">
+          <article class="card">
+            <div class="card-label"><span>Primary</span><span class="swatch"></span></div>
+            <svg class="display-mark" viewBox="0 0 128 128" aria-label="浅色背景主标"><use href="#dazzle-mark" fill="url(#dazzle-gradient)"/></svg>
+            <div class="card-foot"><span>网站 / 文档</span><span>Gradient</span></div>
+          </article>
+          <article class="card dark">
+            <div class="card-label"><span>Dark</span><span class="swatch"></span></div>
+            <svg class="display-mark" viewBox="0 0 128 128" aria-label="深色背景主标"><use href="#dazzle-mark" fill="url(#dazzle-gradient-soft)"/></svg>
+            <div class="card-foot"><span>深色界面 / App icon</span><span>Gradient</span></div>
+          </article>
+          <article class="card cyan">
+            <div class="card-label"><span>Mono</span><span class="swatch"></span></div>
+            <svg class="display-mark" viewBox="0 0 128 128" aria-label="单色主标"><use href="#dazzle-mark" fill="#07111f"/></svg>
+            <div class="card-foot"><span>单色 / 印刷</span><span>1 color</span></div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="shell">
+        <div class="section-head">
+          <div>
+            <p class="kicker">Signature lockup</p>
+            <h2>图形与字标</h2>
+          </div>
+          <p class="section-note">品牌名始终以「dazzle updater」完整出现：dazzle 为主字标，updater 为功能描述。圆润的字形延续星光的动势。</p>
+        </div>
+        <div class="wordmark-board">
+          <svg class="lockup-svg" viewBox="0 0 700 128" aria-label="dazzle updater signature lockup" role="img">
+            <title>dazzle updater signature lockup</title>
+            <use href="#dazzle-mark" width="128" height="128" fill="url(#dazzle-gradient)"/>
+            <text x="142" y="93" font-family="Inter, system-ui, -apple-system, sans-serif" font-weight="800" font-size="80" letter-spacing="-0.05em" fill="#07111f">dazzle<tspan dx="16" font-weight="500" fill="#64748b">updater</tspan></text>
+          </svg>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="shell">
+        <div class="section-head">
+          <div>
+            <p class="kicker">Optical size test</p>
+            <h2>从 16 到 128 px 都清晰</h2>
+          </div>
+          <p class="section-note">外环与星之间留足空隙，缩小时不会粘连。16 px 使用纯蓝色，避免渐变削弱对比度。</p>
+        </div>
+        <div class="sizes">
+          <div class="size-cell"><div class="mini-tile" style="width:128px;height:128px"><svg viewBox="0 0 128 128"><use href="#dazzle-mark" fill="url(#dazzle-gradient)"/></svg></div><span>128 PX</span></div>
+          <div class="size-cell"><div class="mini-tile" style="width:96px;height:96px"><svg viewBox="0 0 128 128"><use href="#dazzle-mark" fill="url(#dazzle-gradient)"/></svg></div><span>96 PX</span></div>
+          <div class="size-cell"><div class="mini-tile" style="width:64px;height:64px"><svg viewBox="0 0 128 128"><use href="#dazzle-mark" fill="url(#dazzle-gradient)"/></svg></div><span>64 PX</span></div>
+          <div class="size-cell"><div class="mini-tile" style="width:32px;height:32px"><svg viewBox="0 0 128 128"><use href="#dazzle-mark" fill="url(#dazzle-gradient)"/></svg></div><span>32 PX</span></div>
+          <div class="size-cell"><div class="mini-tile" style="width:16px;height:16px;border-radius:4px"><svg viewBox="0 0 128 128"><use href="#dazzle-mark" fill="#2563eb"/></svg></div><span>16 PX</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="shell">
+        <div class="section-head">
+          <div>
+            <p class="kicker">Design spec</p>
+            <h2>简单，但不是普通</h2>
+          </div>
+          <p class="section-note">两道弧形箭头互为 180° 旋转，各占约 150°，开口落在对角线上；四角星的四个尖端正对实心弧段，不与开口相撞。</p>
+        </div>
+        <div class="spec-grid">
+          <article class="spec">
+            <h3>品牌色</h3>
+            <div class="palette">
+              <div class="color" style="background:#2563eb"><span>PRIMARY BLUE</span><span>#2563EB</span></div>
+              <div class="color" style="background:#1688f5"><span>MOTION BLUE</span><span>#1688F5</span></div>
+              <div class="color" style="background:#22d3ee;color:#052332"><span>SPARK CYAN</span><span>#22D3EE</span></div>
+            </div>
+          </article>
+          <article class="spec">
+            <h3>几何逻辑</h3>
+            <div class="geometry">
+              <svg viewBox="0 0 128 128" aria-hidden="true"><use href="#dazzle-mark" fill="none" stroke="#2563eb" stroke-width="1.5" stroke-dasharray="4 3"/><path d="M64 6v116M6 64h116" stroke="#cbd5e1" stroke-width="1"/><circle cx="64" cy="64" r="52" fill="none" stroke="#cbd5e1" stroke-width="1" stroke-dasharray="2 3"/></svg>
+              <p>两道弧形箭头 <strong>首尾呼应</strong>，是更新的循环；中心的四角星是 dazzle 的闪耀。两者共用一个圆心，构成一枚「更新中的星」。</p>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="shell">
+    <span>dazzle updater · Brand Identity</span>
+    <span>SVG master · 128 × 128 viewBox</span>
+  </footer>
+
+  <div class="toast" id="toast" role="status" aria-live="polite">SVG 已复制</div>
+
+  <script>
+    const svgSource = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="dazzle updater">
+  <title>dazzle updater</title>
+  <defs>
+    <linearGradient id="g" gradientUnits="userSpaceOnUse" x1="20" y1="108" x2="104" y2="12">
+      <stop offset="0" stop-color="#1E40B0"/><stop offset=".35" stop-color="#2563EB"/><stop offset=".7" stop-color="#1688F5"/><stop offset="1" stop-color="#22D3EE"/>
+    </linearGradient>
+  </defs>
+  <g fill="url(#g)">
+    <path d="M111.32 29.6 A58.5 58.5 0 0 1 43.97 118.96 Q43.04 118.61 42.68 119.55 L41.37 122.96 Q40.71 124.68 39.62 123.19 L27.6 106.62 Q26.69 105.38 28.2 105.06 L48.22 100.79 Q50.02 100.41 49.36 102.13 L48.05 105.54 Q47.69 106.48 48.63 106.83 A45.5 45.5 0 0 0 100.93 37.42 Q100.34 36.62 101.14 36.02 L109.92 29.4 Q110.72 28.79 111.32 29.6 Z"/>
+    <path d="M16.68 98.4 A58.5 58.5 0 0 1 84.03 9.04 Q84.96 9.39 85.32 8.45 L86.63 5.04 Q87.29 3.32 88.38 4.81 L100.4 21.38 Q101.31 22.62 99.8 22.94 L79.78 27.21 Q77.98 27.59 78.64 25.87 L79.95 22.46 Q80.31 21.52 79.37 21.17 A45.5 45.5 0 0 0 27.07 90.58 Q27.66 91.38 26.86 91.98 L18.08 98.6 Q17.28 99.21 16.68 98.4 Z"/>
+    <path d="M64 33 Q68 60 95 64 Q68 68 64 95 Q60 68 33 64 Q60 60 64 33 Z"/>
+  </g>
+</svg>`;
+
+    const toast = document.getElementById('toast');
+    let toastTimer;
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.remove('show'), 1800);
+    }
+
+    document.getElementById('copySvg').addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(svgSource);
+        showToast('SVG 已复制');
+      } catch {
+        const area = document.createElement('textarea');
+        area.value = svgSource;
+        document.body.appendChild(area);
+        area.select();
+        document.execCommand('copy');
+        area.remove();
+        showToast('SVG 已复制');
+      }
+    });
+
+    document.getElementById('downloadSvg').addEventListener('click', () => {
+      const blob = new Blob([svgSource], { type: 'image/svg+xml' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'dazzle-updater-mark.svg';
+      link.click();
+      URL.revokeObjectURL(url);
+      showToast('SVG 下载已开始');
+    });
+  </script>
+</body>
+</html>
