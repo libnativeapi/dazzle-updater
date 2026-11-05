@@ -9,7 +9,7 @@ import sys
 import tempfile
 from pathlib import Path
 
-from . import emit_c, emit_csharp, emit_dart, emit_rust
+from . import emit_c, emit_csharp, emit_dart, emit_go, emit_rust
 from .model import Class
 from .parser import Warnings, parse_header
 
@@ -27,10 +27,11 @@ CORE = ROOT / "core"
 RUST = ROOT / "bindings" / "rust"
 DART = ROOT / "bindings" / "dart"
 CSHARP = ROOT / "bindings" / "csharp"
+GO = ROOT / "bindings" / "go"
 
 # Directories whose generated files (those carrying BANNER) this tool owns.
 OUTPUT_DIRS = [CORE / "src" / "capi", CORE / "include", RUST / "src",
-               DART / "lib", DART / "lib" / "src", CSHARP / "src"]
+               DART / "lib", DART / "lib" / "src", CSHARP / "src", GO]
 
 
 def generate(classes: list[Class]) -> dict[Path, str]:
@@ -41,6 +42,7 @@ def generate(classes: list[Class]) -> dict[Path, str]:
         files[RUST / "src" / f"{cls.module}.rs"] = emit_rust.module(cls)
         files[DART / "lib" / "src" / f"{cls.module}.dart"] = emit_dart.module(cls)
         files[CSHARP / "src" / f"{cls.name}.cs"] = emit_csharp.module(cls)
+        files[GO / f"{cls.module}.go"] = emit_go.module(cls)
     files[RUST / "src" / "ffi.rs"] = emit_rust.ffi(classes)
     files[RUST / "src" / "modules.rs"] = emit_rust.modules(classes)
     files[DART / "lib" / "src" / "dazzle_updater_bindings.dart"] = emit_dart.bindings(classes)
@@ -54,6 +56,8 @@ def _format(files: dict[Path, str]) -> dict[Path, str]:
     for path, content in files.items():
         if path.suffix == ".rs":
             files[path] = _run(["rustfmt", "--edition", "2021"], content)
+        elif path.suffix == ".go":
+            files[path] = _run(["gofmt"], content)
     dart = {p: c for p, c in files.items() if p.suffix == ".dart"}
     if dart:
         with tempfile.TemporaryDirectory() as tmp:

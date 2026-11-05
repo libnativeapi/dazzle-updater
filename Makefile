@@ -1,4 +1,4 @@
-.PHONY: build examples demo demo-linux core-tests rust dart csharp flutter codegen check test clean
+.PHONY: build examples demo demo-linux core-tests rust dart csharp go flutter mygo mygo-smoke codegen check test clean
 
 BUILD_DIR := core/build
 
@@ -38,9 +38,22 @@ dart:
 csharp:
 	cd bindings/csharp && dotnet test DazzleUpdater.slnx && dotnet run --project examples/UpdaterExample
 
+# Build the native library, test the Go binding and run its example
+go:
+	cd bindings/go && go generate ./... && go test -count=1 ./... && go run ./examples/updater_example
+
 # Build the Flutter example app (needs the Flutter SDK; not part of `test`)
 flutter:
 	cd examples/flutter_updater_example && flutter pub get && flutter analyze && flutter build macos --debug
+
+# Build the MyGo desktop example (needs MyGo's Go toolchain; no desktop session)
+mygo:
+	cd bindings/go && go generate ./...
+	cd examples/mygo_updater_example && go build -o build/mygo_updater_example .
+
+# Exercise the live MyGo window against a signed local feed (needs a desktop session)
+mygo-smoke: mygo
+	cd examples/mygo_updater_example && go run . --smoke
 
 # Regenerate the C ABI and the bindings from the C++ headers
 codegen:
@@ -51,9 +64,10 @@ check:
 	./codegen check
 
 # Everything: generated files, core tests, core examples and every binding
-test: check core-tests examples rust dart csharp
+test: check core-tests examples rust dart csharp go
 
 clean:
-	rm -rf $(BUILD_DIR) bindings/rust/target bindings/dart/.dart_tool
+	rm -rf $(BUILD_DIR) bindings/rust/target bindings/dart/.dart_tool bindings/go/build
 	rm -rf examples/flutter_updater_example/build examples/flutter_updater_example/.dart_tool
+	rm -rf examples/mygo_updater_example/build
 	find bindings/csharp -type d \( -name bin -o -name obj \) -prune -exec rm -rf {} +

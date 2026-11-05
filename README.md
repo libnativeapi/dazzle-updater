@@ -5,13 +5,14 @@ reads dazzle updater's own [release index](specs/release-index.md), and an optio
 will read [Sparkle](https://sparkle-project.org) appcasts. This
 workspace holds the C++ core library, its language bindings and the design specs together.
 The C++ namespace, native library and Rust/Dart packages are named `dazzle_updater`;
-the C ABI uses the `dazzle_` prefix, and the C# package and namespace are `DazzleUpdater`.
+the C ABI uses the `dazzle_` prefix, the C# package and namespace are `DazzleUpdater`,
+and the Go package is `dazzleupdater`.
 
 | Directory | Contents |
 | --- | --- |
 | [core/](core) | The C++17 core library and its C ABI — see [core/README.md](core/README.md) |
-| [bindings/](bindings) | Language bindings: Rust, Dart, C# |
-| [examples/](examples) | Complete apps on a UI framework (Flutter) |
+| [bindings/](bindings) | Language bindings: Rust, Dart, C#, Go |
+| [examples/](examples) | Complete apps on a UI framework (Flutter, WinUI 3, MyGo) |
 | [specs/](specs) | Design rules for `core/` |
 
 ```bash
