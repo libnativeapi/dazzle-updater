@@ -18,9 +18,9 @@ public struct Configuration: Equatable, Sendable {
             environment[environmentKey] ?? bundle.object(forInfoDictionaryKey: bundleKey) as? String ?? fallback
         }
         return Self(
-            feed: value("DAZZLE_DEMO_FEED", "DazzleDemoFeedURL", "http://127.0.0.1:8765/releases.json"),
+            feed: value("DAZZLE_DEMO_FEED", "DazzleUpdaterDemoFeedURL", "http://127.0.0.1:8765/releases.json"),
             version: value("DAZZLE_DEMO_VERSION", "CFBundleShortVersionString", "1.0.0"),
-            publicKey: value("DAZZLE_DEMO_PUBLIC_KEY", "DazzleDemoPublicKey")
+            publicKey: value("DAZZLE_DEMO_PUBLIC_KEY", "DazzleUpdaterDemoPublicKey")
         )
     }
 }
@@ -43,7 +43,7 @@ public struct NativeUpdaterUIClient: UpdaterUIClient {
         Updater.shared.source = "release-index"
         Updater.shared.currentVersion = configuration.version.trimmingCharacters(in: .whitespacesAndNewlines)
         Updater.shared.publicKey = configuration.publicKey.trimmingCharacters(in: .whitespacesAndNewlines)
-        UpdaterUI.shared.appName = "Dazzle SwiftUI"
+        UpdaterUI.shared.appName = "DazzleUpdater SwiftUI"
     }
 
     public func check(background: Bool) -> Bool {

@@ -203,7 +203,7 @@ UiRunner* NewRunner() {
   UiRunner* runner = new UiRunner(dazzle_updater::internal::GetUiBackend(), g_port, g_store,
                                   dazzle_updater::internal::UiStringsFor({PreviewChinese() ? "zh-Hans"
                                                                                   : "en"}));
-  runner->SetAppName("Dazzle Demo");
+  runner->SetAppName("DazzleUpdater Demo");
   return runner;
 }
 
@@ -366,7 +366,7 @@ int main() {
   if (PreviewDark()) {
     g_object_set(gtk_settings_get_default(), "gtk-application-prefer-dark-theme", TRUE, nullptr);
   }
-  g_set_application_name("Dazzle Demo");
+  g_set_application_name("DazzleUpdater Demo");
 
   const std::string directory = OutputDirectory();
   g_mkdir_with_parents(directory.c_str(), 0755);

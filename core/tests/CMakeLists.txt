@@ -20,6 +20,10 @@ set(DAZZLE_TEST_SOURCES
 if(DAZZLE_WITH_UPDATER_UI)
   list(APPEND DAZZLE_TEST_SOURCES markdown_test.cpp)
 endif()
+if(CMAKE_SYSTEM_NAME STREQUAL "Darwin" AND DAZZLE_WITH_UPDATER_UI)
+  enable_language(OBJCXX)
+  list(APPEND DAZZLE_TEST_SOURCES updater_ui_preferences_macos_test.mm)
+endif()
 
 add_executable(dazzle_updater_tests ${DAZZLE_TEST_SOURCES})
 

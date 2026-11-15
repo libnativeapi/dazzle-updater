@@ -14,7 +14,7 @@ struct ContentView: View {
                 Image(systemName: "arrow.down.app.fill")
                     .font(.system(size: 42)).foregroundStyle(.tint)
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Dazzle SwiftUI").font(.largeTitle.bold())
+                    Text("DazzleUpdater SwiftUI").font(.largeTitle.bold())
                     Text("Native UpdaterUI example").foregroundStyle(.secondary)
                 }
                 Spacer()

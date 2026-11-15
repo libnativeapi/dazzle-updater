@@ -39,7 +39,7 @@ cleanup() {
     kill "$server_pid" 2>/dev/null || true
   fi
   rm -rf "$work"
-  rm -f "${XDG_CONFIG_HOME:-$HOME/.config}/dazzle/DazzleDemo.conf"
+  rm -f "${XDG_CONFIG_HOME:-$HOME/.config}/dazzle/DazzleUpdaterDemo.conf"
 }
 trap cleanup EXIT INT TERM
 
@@ -55,7 +55,7 @@ feed="http://127.0.0.1:${port}/releases.json"
 # running executable.
 make_app() {
   mkdir -p "$1"
-  cp "$app" "$1/DazzleDemo"
+  cp "$app" "$1/DazzleUpdaterDemo"
   cp -R "$here/icons" "$1/icons"  # the brand icon, found through the application id
   printf '%s\n' "$2" > "$1/version"
   cat > "$1/dazzle-demo.conf" <<CONF
@@ -69,14 +69,14 @@ CONF
 }
 
 # 1. The application the user runs: 1.0.0, carrying its feed and key beside its binary.
-make_app "$work/DazzleDemo" "1.0.0"
+make_app "$work/DazzleUpdaterDemo" "1.0.0"
 
 # 2. The release: the same directory at 2.0.0, zipped the way a release ships it (one
 #    top-level directory, the application's own name) and signed with that key.
-make_app "$work/staging/DazzleDemo" "2.0.0" "installed by the demo"
-(cd "$work/staging" && zip -q -r "$work/DazzleDemo-2.0.0.zip" "DazzleDemo")
-signature="$("$signer" sign "$secret_key" "$work/DazzleDemo-2.0.0.zip")"
-size="$(wc -c < "$work/DazzleDemo-2.0.0.zip" | tr -d ' ')"
+make_app "$work/staging/DazzleUpdaterDemo" "2.0.0" "installed by the demo"
+(cd "$work/staging" && zip -q -r "$work/DazzleUpdaterDemo-2.0.0.zip" "DazzleUpdaterDemo")
+signature="$("$signer" sign "$secret_key" "$work/DazzleUpdaterDemo-2.0.0.zip")"
+size="$(wc -c < "$work/DazzleUpdaterDemo-2.0.0.zip" | tr -d ' ')"
 arch="$(uname -m | sed -e 's/x86_64/x64/' -e 's/aarch64/arm64/')"
 
 cat > "$work/releases.json" <<JSON
@@ -86,12 +86,12 @@ cat > "$work/releases.json" <<JSON
     {
       "version": "2.0.0",
       "displayVersion": "2.0",
-      "releaseNotes": "## What's new in 2.0\n\n- **Faster startup.** The main window now opens in about half the time.\n- **Fixed** a crash when the last document was closed twice.\n- The update window now shows the version you are updating *from*.\n\n### Under the hood\n\nEvery release is signed, and the signature is checked before anything is installed. The [full changelog](https://example.com/releases/2.0) lists the smaller fixes.\n\n\`\`\`\n$ dazzle-demo --version\nDazzle Demo 2.0.0\n\`\`\`\n",
+      "releaseNotes": "## What's new in 2.0\n\n- **Faster startup.** The main window now opens in about half the time.\n- **Fixed** a crash when the last document was closed twice.\n- The update window now shows the version you are updating *from*.\n\n### Under the hood\n\nEvery release is signed, and the signature is checked before anything is installed. The [full changelog](https://example.com/releases/2.0) lists the smaller fixes.\n\n\`\`\`\n$ dazzle-demo --version\nDazzleUpdater Demo 2.0.0\n\`\`\`\n",
       "assets": [
         {
           "platform": "linux",
           "arch": "$arch",
-          "url": "http://127.0.0.1:$port/DazzleDemo-2.0.0.zip",
+          "url": "http://127.0.0.1:$port/DazzleUpdaterDemo-2.0.0.zip",
           "size": $size,
           "format": "zip",
           "signature": "$signature"
@@ -121,7 +121,7 @@ done
   exit 1
 }
 
-echo "demo application: $work/DazzleDemo   (version 1.0.0)"
+echo "demo application: $work/DazzleUpdaterDemo   (version 1.0.0)"
 echo "release index:    $feed   (offers 2.0.0, signed)"
 echo "test console:     http://127.0.0.1:$port/   (scenario: ${DAZZLE_DEMO_SCENARIO:-update})"
 echo
@@ -134,7 +134,7 @@ echo "when you are done; this script waits for it and then cleans up."
 # 4. Run it, and wait for it to be quit — including the copy the installer restarts, so
 #    the wait covers the whole round. Nothing is passed in: the application reads its own
 #    configuration file, which is how the restarted copy finds the feed again.
-"$work/DazzleDemo/DazzleDemo" > "$work/app.log" 2>&1 &
+"$work/DazzleUpdaterDemo/DazzleUpdaterDemo" > "$work/app.log" 2>&1 &
 app_pid=$!
 wait "$app_pid" || true
 
@@ -145,7 +145,7 @@ echo "The application quit."
 # the replacement lands a moment after the application is gone.
 replaced=""
 for _ in $(seq 1 100); do
-  if [ -f "$work/DazzleDemo/version-marker" ]; then
+  if [ -f "$work/DazzleUpdaterDemo/version-marker" ]; then
     replaced=yes
     break
   fi
@@ -156,13 +156,13 @@ done
 # directory as it starts: the cleanup below has to wait for the user to quit it, or it
 # would delete the files the restarted application is in the middle of reading.
 if [ -n "$replaced" ]; then
-  while pgrep -f "$work/DazzleDemo/DazzleDemo" > /dev/null 2>&1; do
+  while pgrep -f "$work/DazzleUpdaterDemo/DazzleUpdaterDemo" > /dev/null 2>&1; do
     sleep 0.5
   done
 fi
 
 if [ -n "$replaced" ]; then
-  echo "The update went through: the application directory was replaced in place and now reports version $(cat "$work/DazzleDemo/version")."
+  echo "The update went through: the application directory was replaced in place and now reports version $(cat "$work/DazzleUpdaterDemo/version")."
 else
   echo "The update was not installed: the application directory is unchanged."
 fi

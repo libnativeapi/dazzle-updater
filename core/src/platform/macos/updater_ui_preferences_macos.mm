@@ -24,14 +24,35 @@ NSString* ToNSString(const std::string& value) {
   return [NSString stringWithUTF8String:value.c_str()];
 }
 
-NSString* const kAutomaticChecksKey = @"DazzleAutomaticChecks";
-NSString* const kAutomaticDownloadsKey = @"DazzleAutomaticDownloads";
-NSString* const kSkippedVersionKey = @"DazzleSkippedVersion";
+NSString* const kAutomaticChecksKey = @"DazzleUpdaterAutomaticChecks";
+NSString* const kAutomaticDownloadsKey = @"DazzleUpdaterAutomaticDownloads";
+NSString* const kSkippedVersionKey = @"DazzleUpdaterSkippedVersion";
+
+// Legacy names are retained only to migrate existing preferences. New values win;
+// remove old keys even when both exist so clearing a setting cannot resurrect it.
+void MigratePreferences(NSUserDefaults* defaults) {
+  NSDictionary<NSString*, NSString*>* keys = @{
+    @"DazzleAutomaticChecks": kAutomaticChecksKey,
+    @"DazzleAutomaticDownloads": kAutomaticDownloadsKey,
+    @"DazzleSkippedVersion": kSkippedVersionKey,
+  };
+  for (NSString* oldKey in keys) {
+    id value = [defaults objectForKey:oldKey];
+    if (value != nil) {
+      NSString* newKey = keys[oldKey];
+      if ([defaults objectForKey:newKey] == nil) {
+        [defaults setObject:value forKey:newKey];
+      }
+      [defaults removeObjectForKey:oldKey];
+    }
+  }
+}
 
 class DefaultsPreferencesStore final : public UiPreferencesStore {
  public:
   UiPreferences Read() override {
     NSUserDefaults* defaults = [NSUserDefaults standardUserDefaults];
+    MigratePreferences(defaults);
     UiPreferences preferences;
     if ([defaults objectForKey:kAutomaticChecksKey] != nil) {
       preferences.automatic_checks_answered = true;
@@ -44,6 +65,7 @@ class DefaultsPreferencesStore final : public UiPreferencesStore {
 
   void Write(const UiPreferences& preferences) override {
     NSUserDefaults* defaults = [NSUserDefaults standardUserDefaults];
+    MigratePreferences(defaults);
     if (preferences.automatic_checks_answered) {
       [defaults setBool:preferences.automatic_checks forKey:kAutomaticChecksKey];
     } else {

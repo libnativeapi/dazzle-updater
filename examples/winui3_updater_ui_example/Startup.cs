@@ -7,7 +7,7 @@ namespace DazzleUpdater.WinUI3UpdaterUiExample;
 public static class Startup
 {
     /// <summary>The host application's own name, which core is told and the windows show.</summary>
-    internal const string HostApplicationName = "Dazzle Demo";
+    internal const string HostApplicationName = "DazzleUpdater Demo";
 
     /// <summary>What the app did, for runs started without a console.</summary>
     internal static readonly string LogPath =

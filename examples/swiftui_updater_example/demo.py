@@ -38,7 +38,7 @@ def main():
     parser.add_argument("--smoke", action="store_true", help="open native windows and verify installation after you click through them")
     parser.add_argument("--scenario", choices=server_module.SCENARIOS, default="update")
     args = parser.parse_args()
-    app = HERE / "build/DazzleSwiftUI.app"
+    app = HERE / "build/DazzleUpdaterSwiftUI.app"
     signer = ROOT / "core/build/tests/fixture_signer"
     if not app.is_dir() or not signer.is_file():
         parser.error("run make swiftui and build core's fixture_signer first (or use make swiftui-demo)")
@@ -47,7 +47,7 @@ def main():
         work = Path(temporary)
         identifier = "com.example.dazzle-swiftui-demo." + uuid.uuid4().hex
         server = server_module.TestServer(("127.0.0.1", 0), server_module.Fixture({}, {}), args.scenario)
-        running_app = work / "DazzleSwiftUI.app"
+        running_app = work / "DazzleUpdaterSwiftUI.app"
         report = work / "smoke.json"
         try:
             keys = dict(line.split(" ", 1) for line in subprocess.check_output(
@@ -55,17 +55,17 @@ def main():
             shutil.copytree(app, running_app)
             settings = {
                 "CFBundleIdentifier": identifier,
-                "DazzleDemoFeedURL": server.base_url + "/releases.json",
-                "DazzleDemoPublicKey": keys["public"],
-                "DazzleDemoAutoCheck": True,
+                "DazzleUpdaterDemoFeedURL": server.base_url + "/releases.json",
+                "DazzleUpdaterDemoPublicKey": keys["public"],
+                "DazzleUpdaterDemoAutoCheck": True,
             }
             if args.smoke:
-                settings["DazzleDemoSmokeReport"] = str(report)
+                settings["DazzleUpdaterDemoSmokeReport"] = str(report)
             configure(running_app, **settings)
-            replacement = work / "staging/DazzleSwiftUI.app"
+            replacement = work / "staging/DazzleUpdaterSwiftUI.app"
             shutil.copytree(running_app, replacement)
             configure(replacement, CFBundleShortVersionString="2.0.0", CFBundleVersion="2.0.0")
-            package = work / "DazzleSwiftUI-2.0.0.zip"
+            package = work / "DazzleUpdaterSwiftUI-2.0.0.zip"
             subprocess.run(["ditto", "-c", "-k", "--sequesterRsrc", "--keepParent", str(replacement), str(package)], check=True)
             signature = subprocess.check_output([str(signer), "sign", keys["secret"], str(package)], text=True).strip()
             feed = work / "releases.json"
@@ -83,7 +83,7 @@ def main():
             thread = threading.Thread(target=server.serve_forever, daemon=True)
             thread.start()
             print(f"Application: {running_app}\nTest console: {server.base_url}/\n"
-                  f"Release index: {settings['DazzleDemoFeedURL']}\nPublic key: {keys['public']}", flush=True)
+                  f"Release index: {settings['DazzleUpdaterDemoFeedURL']}\nPublic key: {keys['public']}", flush=True)
             # Launch the executable directly so shell environment overrides cannot
             # replace the signed demo's feed, version or key. Relaunch uses LaunchServices.
             environment = {key: value for key, value in os.environ.items() if not key.startswith("DAZZLE_DEMO_")}

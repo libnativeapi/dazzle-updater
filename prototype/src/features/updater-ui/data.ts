@@ -1,6 +1,6 @@
 import { updaterError, type Release, type UpdaterUIPreferences } from './types'
 
-export const appName = 'Dazzle Demo'
+export const appName = 'DazzleUpdater Demo'
 
 export const currentVersion = '1.3.2'
 
@@ -57,7 +57,7 @@ export const signatureFailure = updaterError('signature', 'the update package si
 export const installFailure = updaterError('installer', 'the installer could not be launched')
 
 /** An app running from a read-only disk image. */
-export const appLocationFailure = updaterError('app-location', 'the application is on a read-only volume: /Volumes/Dazzle Demo')
+export const appLocationFailure = updaterError('app-location', 'the application is on a read-only volume: /Volumes/DazzleUpdater Demo')
 
 /** An app the user may not replace. */
-export const permissionFailure = updaterError('permission', 'permission denied: /Applications/Dazzle Demo.app')
+export const permissionFailure = updaterError('permission', 'permission denied: /Applications/DazzleUpdater Demo.app')

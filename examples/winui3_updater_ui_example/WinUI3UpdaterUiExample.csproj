@@ -9,7 +9,7 @@
     <TargetFramework>net9.0-windows10.0.26100.0</TargetFramework>
     <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
     <RootNamespace>DazzleUpdater.WinUI3UpdaterUiExample</RootNamespace>
-    <AssemblyName>DazzleUiExample</AssemblyName>
+    <AssemblyName>DazzleUpdaterUiExample</AssemblyName>
     <Nullable>enable</Nullable>
     <!-- [LibraryImport] generates unsafe code. -->
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -20,7 +20,7 @@
     <WindowsPackageType>None</WindowsPackageType>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <!-- The brand mark on its tile (branding/dazzle); UpdaterUI shows the executable's icon. -->
-    <ApplicationIcon>DazzleDemo.ico</ApplicationIcon>
+    <ApplicationIcon>DazzleUpdaterDemo.ico</ApplicationIcon>
     <EnableMsixTooling>false</EnableMsixTooling>
     <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>

@@ -8,9 +8,9 @@ mark in one solid colour, as the brand's optical-size test asks:
 
   macOS    1024 canvas, 824 rounded square centred (Apple's icon grid: 100 px margins,
            continuous ~22.4 % corners); the system adds the shadow and, on macOS 26,
-           its own mask and glass. -> DazzleDemo.icns
+           its own mask and glass. -> DazzleUpdaterDemo.icns
   Windows  square, full bleed, 20 % corners (no system mask, no margins); the sizes
-           Windows and the WinUI backend ask for, 16 to 256. -> DazzleDemo.ico
+           Windows and the WinUI backend ask for, 16 to 256. -> DazzleUpdaterDemo.ico
   Linux    the GNOME grid: 128 canvas, 112 tile with 8 px margins, 20 % corners;
            hicolor PNGs 16..512, a scalable SVG, and a -symbolic SVG (one colour,
            currentColor) for the places GNOME recolours icons for light and dark.
@@ -83,7 +83,7 @@ def main():
     (HERE / "app-icon-symbolic.svg").write_text(symbolic_svg())
 
     # macOS: the iconset, 16 to 1024; 16 and 32@1x in one colour.
-    iconset = work / "DazzleDemo.iconset"
+    iconset = work / "DazzleUpdaterDemo.iconset"
     iconset.mkdir()
     for size in (16, 32, 128, 256, 512):
         for scale in (1, 2):
@@ -92,7 +92,7 @@ def main():
             svg = tile_svg(1024, 824, 824 * 0.2237, solid=solid) if not solid else tile_svg(1024, 824, 824 * 0.2237, mark_ratio=0.72, solid=True)
             name = f"icon_{size}x{size}{'@2x' if scale == 2 else ''}.png"
             render(svg, px, iconset / name, work)
-    icns = ROOT / "core/examples/updater_ui_example/DazzleDemo.icns"
+    icns = ROOT / "core/examples/updater_ui_example/DazzleUpdaterDemo.icns"
     subprocess.run(["iconutil", "--convert", "icns", "--output", str(icns), str(iconset)], check=True)
 
     # Windows: every size the shell and the WinUI backend (64 px at the DPI) pull.
@@ -103,7 +103,7 @@ def main():
         out = work / f"ico-{px}.png"
         render(svg, px, out, work)
         ico_pngs.append(str(out))
-    ico = ROOT / "examples/winui3_updater_ui_example/DazzleDemo.ico"
+    ico = ROOT / "examples/winui3_updater_ui_example/DazzleUpdaterDemo.ico"
     subprocess.run(["magick", *ico_pngs, str(ico)], check=True)
 
     # Linux: hicolor, plus the scalable and symbolic SVGs.

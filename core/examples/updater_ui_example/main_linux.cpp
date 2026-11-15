@@ -135,7 +135,7 @@ void OnResetDemo(GtkButton* button, gpointer user_data) {
   }
   if (g_heading != nullptr) {
     const std::string version = dazzle_updater::Updater::GetInstance().GetCurrentVersion();
-    gtk_label_set_text(GTK_LABEL(g_heading), ("Dazzle Demo " + version).c_str());
+    gtk_label_set_text(GTK_LABEL(g_heading), ("DazzleUpdater Demo " + version).c_str());
   }
 }
 
@@ -143,7 +143,7 @@ void BuildHostWindow(GtkApplication* application) {
   // Linux has no application metadata for UpdaterUI to read a name from — it would use
   // the executable's own name — so this application names itself, the way any desktop
   // application does.
-  const std::string name = "Dazzle Demo";
+  const std::string name = "DazzleUpdater Demo";
   const std::string version = dazzle_updater::Updater::GetInstance().GetCurrentVersion();
 
   GtkWidget* window = gtk_application_window_new(application);
@@ -242,9 +242,9 @@ int main(int argc, char** argv) {
     // fetched; the check box in the window can turn them on.
     ui.SetAutomaticDownloadsEnabled(false);
   }
-  ui.SetAppName("Dazzle Demo");
+  ui.SetAppName("DazzleUpdater Demo");
 
-  g_set_application_name("Dazzle Demo");
+  g_set_application_name("DazzleUpdater Demo");
   GtkApplication* application = gtk_application_new(kApplicationId, G_APPLICATION_DEFAULT_FLAGS);
   g_signal_connect(application, "activate", G_CALLBACK(OnActivate), nullptr);
   const int status = g_application_run(G_APPLICATION(application), argc, argv);

@@ -7,7 +7,7 @@ struct SwiftUIUpdaterExample: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var delegate
 
     var body: some Scene {
-        Window("Dazzle Updater · SwiftUI", id: "updater") {
+        Window("DazzleUpdater · SwiftUI", id: "updater") {
             ContentView(model: delegate.model)
                 .task { delegate.startDemoIfNeeded() }
         }
@@ -38,7 +38,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         started = true
         // The interactive smoke test observes the new process after UpdaterUI's
         // own installer has quit the app, replaced its bundle and relaunched it.
-        if let report = Bundle.main.object(forInfoDictionaryKey: "DazzleDemoSmokeReport") as? String {
+        if let report = Bundle.main.object(forInfoDictionaryKey: "DazzleUpdaterDemoSmokeReport") as? String {
             let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? ""
             if let data = try? JSONSerialization.data(withJSONObject: [
                 "phase": version == "2.0.0" ? "passed" : "running",
@@ -48,7 +48,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 try? data.write(to: URL(fileURLWithPath: report), options: .atomic)
             }
         }
-        if Bundle.main.object(forInfoDictionaryKey: "DazzleDemoAutoCheck") as? Bool == true {
+        if Bundle.main.object(forInfoDictionaryKey: "DazzleUpdaterDemoAutoCheck") as? Bool == true {
             model.check()
         }
     }

@@ -38,13 +38,13 @@ struct HttpTransferState {
 
 }  // namespace dazzle_updater
 
-@interface DazzleHttpDelegate : NSObject <NSURLSessionDataDelegate> {
+@interface DazzleUpdaterHttpDelegate : NSObject <NSURLSessionDataDelegate> {
  @public
   dazzle_updater::HttpTransferState* state;
 }
 @end
 
-@implementation DazzleHttpDelegate
+@implementation DazzleUpdaterHttpDelegate
 
 - (void)URLSession:(NSURLSession*)session
                  dataTask:(NSURLSessionDataTask*)task
@@ -131,7 +131,7 @@ class MacosHttpImpl final : public HttpClient::Impl {
           [NSURLSessionConfiguration ephemeralSessionConfiguration];
       configuration.timeoutIntervalForRequest = 30;
       configuration.timeoutIntervalForResource = 3600;
-      DazzleHttpDelegate* delegate = [[[DazzleHttpDelegate alloc] init] autorelease];
+      DazzleUpdaterHttpDelegate* delegate = [[[DazzleUpdaterHttpDelegate alloc] init] autorelease];
       delegate->state = &state;
       NSURLSession* session = [NSURLSession sessionWithConfiguration:configuration
                                                            delegate:delegate

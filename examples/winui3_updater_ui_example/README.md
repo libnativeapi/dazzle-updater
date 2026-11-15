@@ -28,7 +28,7 @@ Windows App Runtime travels in the output.
 
 ```powershell
 dotnet build WinUI3UpdaterUiExample.csproj -c Release
-.\bin\Release\net9.0-windows10.0.26100.0\win-x64\DazzleUiExample.exe
+.\bin\Release\net9.0-windows10.0.26100.0\win-x64\DazzleUpdaterUiExample.exe
 ```
 
 `DAZZLE_DEMO_CHECK=1` makes the host check on launch, `DAZZLE_DEMO_CHECK=background` makes it

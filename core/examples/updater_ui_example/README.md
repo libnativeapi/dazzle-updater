@@ -12,7 +12,7 @@ directory on Linux (`main_linux.cpp`).
 | `main_linux.cpp` | Linux: a `GtkApplication`, and its own window |
 | `demo.sh` | macOS: a local signed feed, run end to end |
 | `demo_linux.sh` | Linux: the same, around an application directory |
-| `DazzleDemo.icns` | the macOS icon: the brand mark on its dark tile, on Apple's icon grid |
+| `DazzleUpdaterDemo.icns` | the macOS icon: the brand mark on its dark tile, on Apple's icon grid |
 | `icons/` | the Linux icon on the GNOME grid, in hicolor layout (PNGs, scalable, symbolic), copied beside the binary by the demo |
 
 ## Run it
@@ -40,7 +40,7 @@ no update, index errors, slow or interrupted downloads, invalid signatures, redi
 and release-note layouts. To start in a particular case, run e.g.
 `make demo SCENARIO=bad-signature` or `make demo-linux SCENARIO=slow-download`.
 
-The icons (and the WinUI example's `DazzleDemo.ico`) are generated from the brand mark by
+The icons (and the WinUI example's `DazzleUpdaterDemo.ico`) are generated from the brand mark by
 `branding/dazzle/make-icons.py`, one per platform's icon grid; rerun it after changing the mark.
 
 On Linux the application is a directory (the executable plus whatever sits beside it), so

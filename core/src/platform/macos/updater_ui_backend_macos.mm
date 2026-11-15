@@ -133,10 +133,10 @@ void ForgetViews() {
 
 // --- the window and its events --------------------------------------------------------
 
-@interface DazzleWindowDelegate : NSObject <NSWindowDelegate, NSTextViewDelegate>
+@interface DazzleUpdaterWindowDelegate : NSObject <NSWindowDelegate, NSTextViewDelegate>
 @end
 
-@implementation DazzleWindowDelegate
+@implementation DazzleUpdaterWindowDelegate
 
 - (void)windowWillClose:(NSNotification*)notification {
   if (g_ignoring_close) {
@@ -174,10 +174,10 @@ void ForgetViews() {
 /// Sparkle's constraints do (top to bottom). The return and escape keys are AppKit's own
 /// business: the default button carries "\r" and the state's way out "\033" as their key
 /// equivalents, and the window presses them.
-@interface DazzleFlippedView : NSView
+@interface DazzleUpdaterFlippedView : NSView
 @end
 
-@implementation DazzleFlippedView
+@implementation DazzleUpdaterFlippedView
 - (BOOL)isFlipped {
   return YES;
 }
@@ -185,8 +185,8 @@ void ForgetViews() {
 
 namespace {
 
-DazzleWindowDelegate* Delegate() {
-  static DazzleWindowDelegate* delegate = [[DazzleWindowDelegate alloc] init];
+DazzleUpdaterWindowDelegate* Delegate() {
+  static DazzleUpdaterWindowDelegate* delegate = [[DazzleUpdaterWindowDelegate alloc] init];
   return delegate;
 }
 
@@ -775,8 +775,8 @@ NSView* MakeAvailableView(const UiContent& content, NSSize* size_out) {
   const CGFloat text_x = kMargin + kIconSize + kIconGap;
   const CGFloat text_width = width - text_x - kMargin;
 
-  DazzleFlippedView* root =
-      [[DazzleFlippedView alloc] initWithFrame:NSMakeRect(0, 0, width, kAvailableHeight)];
+  DazzleUpdaterFlippedView* root =
+      [[DazzleUpdaterFlippedView alloc] initWithFrame:NSMakeRect(0, 0, width, kAvailableHeight)];
 
   // The title row: 64 tall, the text block centred on the icon.
   const CGFloat text_height = MeasureHeading(content, text_width);
@@ -887,8 +887,8 @@ NSView* MakeStatusView(const UiContent& content, NSSize* size_out) {
   const CGFloat text_x = kMargin + kIconSize + kIconGap;
   const CGFloat text_width = width - text_x - kMargin;
 
-  DazzleFlippedView* root =
-      [[DazzleFlippedView alloc] initWithFrame:NSMakeRect(0, 0, width, kStatusMinHeight)];
+  DazzleUpdaterFlippedView* root =
+      [[DazzleUpdaterFlippedView alloc] initWithFrame:NSMakeRect(0, 0, width, kStatusMinHeight)];
 
   NSImageView* icon = MakeAppIcon();
   PlaceAligned(icon, NSMakeRect(kMargin, kStatusIconTop, kIconSize, kIconSize),
@@ -967,8 +967,8 @@ NSView* MakePermissionView(const UiContent& content, NSSize* size_out) {
   const CGFloat text_x = kPermissionTextLeft;
   const CGFloat text_width = width - text_x - kMargin;
 
-  DazzleFlippedView* root =
-      [[DazzleFlippedView alloc] initWithFrame:NSMakeRect(0, 0, width, kStatusMinHeight)];
+  DazzleUpdaterFlippedView* root =
+      [[DazzleUpdaterFlippedView alloc] initWithFrame:NSMakeRect(0, 0, width, kStatusMinHeight)];
 
   NSImageView* icon = MakeAppIcon();
   PlaceAligned(icon, NSMakeRect(kPermissionIconLeft, kPermissionIconTop, kIconSize, kIconSize),

@@ -10,8 +10,8 @@
 // `--dark` and `--light` pin the appearance, so both can be looked at without changing
 // the system's own; without either, the windows follow the system.
 //
-// Without arguments the three come from this bundle's Info.plist (DazzleDemoFeedURL,
-// DazzleDemoPublicKey and CFBundleShortVersionString), which is what demo.sh writes: the
+// Without arguments the three come from this bundle's Info.plist (DazzleUpdaterDemoFeedURL,
+// DazzleUpdaterDemoPublicKey and CFBundleShortVersionString), which is what demo.sh writes: the
 // feed survives the update, because the package the installer puts in place is a copy of
 // this bundle with a higher version.
 //
@@ -51,10 +51,10 @@ void PrintConfiguration(const std::string& feed, const std::string& key,
 
 }  // namespace
 
-@interface DazzleDemoHost : NSObject <NSApplicationDelegate>
+@interface DazzleUpdaterDemoHost : NSObject <NSApplicationDelegate>
 @end
 
-@implementation DazzleDemoHost {
+@implementation DazzleUpdaterDemoHost {
   NSWindow* _window;
   NSTextField* _title;
 }
@@ -63,7 +63,7 @@ void PrintConfiguration(const std::string& feed, const std::string& key,
   // The icon straight from this bundle: macOS caches application icons by bundle
   // identifier, and the demo is rebuilt under the same identifier again and again, so a
   // changed icon would otherwise keep showing its predecessor.
-  NSString* icns = [[NSBundle mainBundle] pathForResource:@"DazzleDemo" ofType:@"icns"];
+  NSString* icns = [[NSBundle mainBundle] pathForResource:@"DazzleUpdaterDemo" ofType:@"icns"];
   NSImage* icon = icns != nil ? [[NSImage alloc] initWithContentsOfFile:icns] : nil;
   if (icon != nil) {
     [NSApp setApplicationIconImage:icon];
@@ -91,7 +91,7 @@ void PrintConfiguration(const std::string& feed, const std::string& key,
 /// it was installed in between.
 - (void)resetDemoState:(id)sender {
   dazzle_updater::UpdaterUI::GetInstance().ResetPreferences();
-  const std::string reset = InfoString(@"DazzleDemoResetVersion");
+  const std::string reset = InfoString(@"DazzleUpdaterDemoResetVersion");
   if (!reset.empty()) {
     dazzle_updater::Updater::GetInstance().SetCurrentVersion(reset);
   }
@@ -216,9 +216,9 @@ int main(int argc, char** argv) {
         ++it;
       }
     }
-    const std::string feed = !arguments.empty() ? arguments[0] : InfoString(@"DazzleDemoFeedURL");
+    const std::string feed = !arguments.empty() ? arguments[0] : InfoString(@"DazzleUpdaterDemoFeedURL");
     const std::string key =
-        arguments.size() > 1 ? arguments[1] : InfoString(@"DazzleDemoPublicKey");
+        arguments.size() > 1 ? arguments[1] : InfoString(@"DazzleUpdaterDemoPublicKey");
     const std::string version =
         arguments.size() > 2 ? arguments[2] : InfoString(@"CFBundleShortVersionString");
     PrintConfiguration(feed, key, version);
@@ -245,7 +245,7 @@ int main(int argc, char** argv) {
     if (appearance != nil) {
       [NSApp setAppearance:[NSAppearance appearanceNamed:appearance]];
     }
-    DazzleDemoHost* host = [[DazzleDemoHost alloc] init];
+    DazzleUpdaterDemoHost* host = [[DazzleUpdaterDemoHost alloc] init];
     [NSApp setDelegate:host];
     [NSApp run];
   }

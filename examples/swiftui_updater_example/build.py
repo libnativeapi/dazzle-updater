@@ -20,7 +20,7 @@ def main():
     run("swift", "build", "-c", "release")
     binary_dir = Path(subprocess.check_output(
         ["swift", "build", "-c", "release", "--show-bin-path"], cwd=HERE, text=True).strip())
-    app = HERE / "build/DazzleSwiftUI.app"
+    app = HERE / "build/DazzleUpdaterSwiftUI.app"
     if app.exists():
         shutil.rmtree(app)
     executable = app / "Contents/MacOS/SwiftUIUpdaterExample"
@@ -34,8 +34,8 @@ def main():
     with (app / "Contents/Info.plist").open("wb") as output:
         plistlib.dump({
             "CFBundleIdentifier": "com.example.dazzle-swiftui",
-            "CFBundleName": "Dazzle SwiftUI",
-            "CFBundleDisplayName": "Dazzle SwiftUI",
+            "CFBundleName": "DazzleUpdater SwiftUI",
+            "CFBundleDisplayName": "DazzleUpdater SwiftUI",
             "CFBundleExecutable": executable.name,
             "CFBundlePackageType": "APPL",
             "CFBundleShortVersionString": "1.0.0",

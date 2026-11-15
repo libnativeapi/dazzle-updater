@@ -188,7 +188,7 @@ UiRunner* NewRunner() {
   UiRunner* runner = new UiRunner(dazzle_updater::internal::GetUiBackend(), g_port, g_store,
                                   dazzle_updater::internal::UiStringsFor({PreviewChinese() ? "zh-Hans"
                                                                                   : "en"}));
-  runner->SetAppName("Dazzle Demo");
+  runner->SetAppName("DazzleUpdater Demo");
   return runner;
 }
 
@@ -298,7 +298,7 @@ int main() {
     [NSApplication sharedApplication];
     [NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
     // The demo's icon, as a bundled application would have: the tool itself is no bundle.
-    NSImage* icon = [[NSImage alloc] initWithContentsOfFile:@"examples/updater_ui_example/DazzleDemo.icns"];
+    NSImage* icon = [[NSImage alloc] initWithContentsOfFile:@"examples/updater_ui_example/DazzleUpdaterDemo.icns"];
     if (icon != nil) {
       [NSApp setApplicationIconImage:icon];
     }

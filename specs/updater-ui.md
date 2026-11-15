@@ -90,9 +90,11 @@ Updater 不持久化任何状态；`UpdaterUI` 要记住三件属于用户的事
 
 | 偏好 | 含义 | macOS（`NSUserDefaults` 标准域） | Windows（`HKCU\Software\{公司名}\{应用名}\dazzle_updater`） | Linux（`$XDG_CONFIG_HOME/dazzle/<应用名>.conf`） |
 |---|---|---|---|---|
-| 自动检查 | 未回答 / 是 / 否 | `DazzleAutomaticChecks` | `AutomaticChecks`（DWORD，缺省为未回答） | `AutomaticChecks`（`1`/`0`，缺省为未回答） |
-| 自动下载 | 是 / 否 | `DazzleAutomaticDownloads` | `AutomaticDownloads`（DWORD） | `AutomaticDownloads`（`1`/`0`） |
-| 跳过的版本 | 版本号或无 | `DazzleSkippedVersion` | `SkippedVersion`（字符串） | `SkippedVersion` |
+| 自动检查 | 未回答 / 是 / 否 | `DazzleUpdaterAutomaticChecks` | `AutomaticChecks`（DWORD，缺省为未回答） | `AutomaticChecks`（`1`/`0`，缺省为未回答） |
+| 自动下载 | 是 / 否 | `DazzleUpdaterAutomaticDownloads` | `AutomaticDownloads`（DWORD） | `AutomaticDownloads`（`1`/`0`） |
+| 跳过的版本 | 版本号或无 | `DazzleUpdaterSkippedVersion` | `SkippedVersion`（字符串） | `SkippedVersion` |
+
+macOS 首次读写时会迁移旧前缀的偏好键；新键已存在时以新值为准，并删除旧键，避免清除设置后旧值再次生效。
 
 公司名、应用名取自主程序 VERSIONINFO 的 CompanyName、ProductName；Linux 没有这类应用元数据，
 所以文件名取可执行文件的名字（应用自己的设置放在别处）。三个平台都按应用隔离：回答过一个程序的

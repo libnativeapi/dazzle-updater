@@ -68,27 +68,27 @@ set_version() {
 }
 
 # 1. The application the user runs: 1.0.0, with its feed and key in the bundle.
-cp -R "$app" "$work/DazzleDemo.app"
-plutil -replace CFBundleName -string "Dazzle Demo" "$work/DazzleDemo.app/Contents/Info.plist"
+cp -R "$app" "$work/DazzleUpdaterDemo.app"
+plutil -replace CFBundleName -string "DazzleUpdater Demo" "$work/DazzleUpdaterDemo.app/Contents/Info.plist"
 plutil -replace CFBundleIdentifier -string "$bundle_id" \
-  "$work/DazzleDemo.app/Contents/Info.plist"
-plutil -replace DazzleDemoFeedURL -string "$feed" "$work/DazzleDemo.app/Contents/Info.plist"
-plutil -replace DazzleDemoPublicKey -string "$public_key" \
-  "$work/DazzleDemo.app/Contents/Info.plist"
+  "$work/DazzleUpdaterDemo.app/Contents/Info.plist"
+plutil -replace DazzleUpdaterDemoFeedURL -string "$feed" "$work/DazzleUpdaterDemo.app/Contents/Info.plist"
+plutil -replace DazzleUpdaterDemoPublicKey -string "$public_key" \
+  "$work/DazzleUpdaterDemo.app/Contents/Info.plist"
 # What "Reset Demo" goes back to; the 2.0.0 copy below inherits it, so the demo can be
 # walked again after the update was installed.
-plutil -replace DazzleDemoResetVersion -string "1.0.0" "$work/DazzleDemo.app/Contents/Info.plist"
-set_version "$work/DazzleDemo.app" "1.0.0"
+plutil -replace DazzleUpdaterDemoResetVersion -string "1.0.0" "$work/DazzleUpdaterDemo.app/Contents/Info.plist"
+set_version "$work/DazzleUpdaterDemo.app" "1.0.0"
 
 # 2. The release: the same bundle at 2.0.0, zipped the way a release ships it and signed
 #    with the key the application carries.
 mkdir -p "$work/staging"
-cp -R "$work/DazzleDemo.app" "$work/staging/DazzleDemo.app"
-set_version "$work/staging/DazzleDemo.app" "2.0.0"
-echo "installed by the demo" > "$work/staging/DazzleDemo.app/Contents/version-marker"
-ditto -c -k --sequesterRsrc --keepParent "$work/staging/DazzleDemo.app" "$work/DazzleDemo-2.0.0.zip"
-signature="$("$signer" sign "$secret_key" "$work/DazzleDemo-2.0.0.zip")"
-size="$(wc -c < "$work/DazzleDemo-2.0.0.zip" | tr -d ' ')"
+cp -R "$work/DazzleUpdaterDemo.app" "$work/staging/DazzleUpdaterDemo.app"
+set_version "$work/staging/DazzleUpdaterDemo.app" "2.0.0"
+echo "installed by the demo" > "$work/staging/DazzleUpdaterDemo.app/Contents/version-marker"
+ditto -c -k --sequesterRsrc --keepParent "$work/staging/DazzleUpdaterDemo.app" "$work/DazzleUpdaterDemo-2.0.0.zip"
+signature="$("$signer" sign "$secret_key" "$work/DazzleUpdaterDemo-2.0.0.zip")"
+size="$(wc -c < "$work/DazzleUpdaterDemo-2.0.0.zip" | tr -d ' ')"
 arch="$(uname -m | sed 's/x86_64/x64/')"
 
 cat > "$work/releases.json" <<JSON
@@ -98,12 +98,12 @@ cat > "$work/releases.json" <<JSON
     {
       "version": "2.0.0",
       "displayVersion": "2.0",
-      "releaseNotes": "## What's new in 2.0\n\n- **Faster startup.** The main window now opens in about half the time.\n- **Fixed** a crash when the last document was closed twice.\n- The update window now shows the version you are updating *from*.\n\n### Under the hood\n\nEvery release is signed, and the signature is checked before anything is installed. The [full changelog](https://example.com/releases/2.0) lists the smaller fixes.\n\n\`\`\`\n$ dazzle-demo --version\nDazzle Demo 2.0.0\n\`\`\`\n",
+      "releaseNotes": "## What's new in 2.0\n\n- **Faster startup.** The main window now opens in about half the time.\n- **Fixed** a crash when the last document was closed twice.\n- The update window now shows the version you are updating *from*.\n\n### Under the hood\n\nEvery release is signed, and the signature is checked before anything is installed. The [full changelog](https://example.com/releases/2.0) lists the smaller fixes.\n\n\`\`\`\n$ dazzle-demo --version\nDazzleUpdater Demo 2.0.0\n\`\`\`\n",
       "assets": [
         {
           "platform": "macos",
           "arch": "$arch",
-          "url": "http://127.0.0.1:$port/DazzleDemo-2.0.0.zip",
+          "url": "http://127.0.0.1:$port/DazzleUpdaterDemo-2.0.0.zip",
           "size": $size,
           "format": "zip",
           "signature": "$signature"
@@ -133,7 +133,7 @@ done
   exit 1
 }
 
-echo "demo application: $work/DazzleDemo.app   (version 1.0.0)"
+echo "demo application: $work/DazzleUpdaterDemo.app   (version 1.0.0)"
 echo "release index:    $feed   (offers 2.0.0, signed)"
 echo "test console:     http://127.0.0.1:$port/   (scenario: ${DAZZLE_DEMO_SCENARIO:-update})"
 echo
@@ -146,12 +146,12 @@ echo "you are done; this script waits for it and then cleans up."
 # 4. Launch it as a real application (frontmost, with its own Dock icon), then wait for
 #    the launch to happen and for the application to be quit — including the copy the
 #    installer relaunches, so the wait covers the whole round.
-pattern="DazzleDemo.app/Contents/MacOS/updater_ui_example"
+pattern="DazzleUpdaterDemo.app/Contents/MacOS/updater_ui_example"
 if [ -n "$appearance" ]; then
-  open --stdout "$work/app.log" --stderr "$work/app.log" "$work/DazzleDemo.app" \
+  open --stdout "$work/app.log" --stderr "$work/app.log" "$work/DazzleUpdaterDemo.app" \
     --args "$appearance"
 else
-  open --stdout "$work/app.log" --stderr "$work/app.log" "$work/DazzleDemo.app"
+  open --stdout "$work/app.log" --stderr "$work/app.log" "$work/DazzleUpdaterDemo.app"
 fi
 running=""
 for _ in $(seq 1 100); do
@@ -171,9 +171,9 @@ done
 
 echo
 echo "The application quit."
-if [ -f "$work/DazzleDemo.app/Contents/version-marker" ]; then
+if [ -f "$work/DazzleUpdaterDemo.app/Contents/version-marker" ]; then
   installed="$(plutil -extract CFBundleShortVersionString raw -o - \
-    "$work/DazzleDemo.app/Contents/Info.plist")"
+    "$work/DazzleUpdaterDemo.app/Contents/Info.plist")"
   echo "The update went through: the bundle was replaced in place and now reports version $installed."
 else
   echo "The update was not installed: the bundle is unchanged."

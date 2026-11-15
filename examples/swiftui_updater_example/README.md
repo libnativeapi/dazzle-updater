@@ -12,7 +12,7 @@ repository checkout.
 
 ```sh
 make swiftui
-open examples/swiftui_updater_example/build/DazzleSwiftUI.app
+open examples/swiftui_updater_example/build/DazzleUpdaterSwiftUI.app
 ```
 
 The build explicitly enables `DAZZLE_WITH_UPDATER_UI=ON`, packages the executable and
@@ -59,7 +59,7 @@ server. The native update window opens automatically:
    and the core replaces and relaunches the temporary application.
 4. The SwiftUI host now shows **v2.0.0** and the native check reports it is up to date.
 
-The script writes example-specific `DazzleDemoFeedURL` and `DazzleDemoPublicKey` entries
+The script writes example-specific `DazzleUpdaterDemoFeedURL` and `DazzleUpdaterDemoPublicKey` entries
 into both bundles, preserving configuration across relaunches. These are host settings,
 not core API conventions. The workspace app in `build/` remains at 1.0.0.
 
