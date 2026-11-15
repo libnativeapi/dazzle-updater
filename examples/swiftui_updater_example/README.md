@@ -20,6 +20,13 @@ native dylib in a self-contained `.app`, applies an ad-hoc signature, and runs f
 model tests. This local example is not sandboxed or notarized; distribution requires
 your own signing setup.
 
+The build selects the macOS SDK from the active Xcode (`xcode-select`) for both Swift
+and CMake while keeping the minimum OS at 13.0. It explicitly passes the SDK version
+to the linker and verifies both Mach-O build-version records before packaging, so
+AppKit can adopt the current system appearance instead of treating the host as an
+application linked with the macOS 13 SDK. Select the latest installed Xcode to use
+the latest SDK; the SDK version is not hard-coded in the script.
+
 Enter a release index URL, current version and Ed25519 public key, then click
 **Check for updates…**. The host calls:
 
