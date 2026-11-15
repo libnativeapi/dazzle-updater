@@ -1,0 +1,4 @@
+module CDazzleUpdater [system] {
+    header "shim.h"
+    export *
+}

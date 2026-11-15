@@ -9,7 +9,7 @@ import sys
 import tempfile
 from pathlib import Path
 
-from . import emit_c, emit_csharp, emit_dart, emit_go, emit_rust
+from . import emit_c, emit_csharp, emit_dart, emit_go, emit_rust, emit_swift
 from .model import Class
 from .parser import Warnings, parse_header
 
@@ -28,10 +28,12 @@ RUST = ROOT / "bindings" / "rust"
 DART = ROOT / "bindings" / "dart"
 CSHARP = ROOT / "bindings" / "csharp"
 GO = ROOT / "bindings" / "go"
+SWIFT = ROOT / "bindings" / "swift"
 
 # Directories whose generated files (those carrying BANNER) this tool owns.
 OUTPUT_DIRS = [CORE / "src" / "capi", CORE / "include", RUST / "src",
-               DART / "lib", DART / "lib" / "src", CSHARP / "src", GO]
+               DART / "lib", DART / "lib" / "src", CSHARP / "src", GO,
+               SWIFT / "Sources" / "DazzleUpdater"]
 
 
 def generate(classes: list[Class]) -> dict[Path, str]:
@@ -43,6 +45,7 @@ def generate(classes: list[Class]) -> dict[Path, str]:
         files[DART / "lib" / "src" / f"{cls.module}.dart"] = emit_dart.module(cls)
         files[CSHARP / "src" / f"{cls.name}.cs"] = emit_csharp.module(cls)
         files[GO / f"{cls.module}.go"] = emit_go.module(cls)
+        files[SWIFT / "Sources" / "DazzleUpdater" / f"{cls.name}.swift"] = emit_swift.module(cls)
     files[RUST / "src" / "ffi.rs"] = emit_rust.ffi(classes)
     files[RUST / "src" / "modules.rs"] = emit_rust.modules(classes)
     files[DART / "lib" / "src" / "dazzle_updater_bindings.dart"] = emit_dart.bindings(classes)

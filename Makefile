@@ -1,4 +1,4 @@
-.PHONY: build examples demo demo-linux test-server test-server-test core-tests rust dart csharp go flutter mygo mygo-smoke codegen check test clean
+.PHONY: build examples demo demo-linux test-server test-server-test core-tests rust dart csharp go swift swiftui swiftui-demo swiftui-smoke flutter mygo mygo-smoke codegen check test clean
 
 BUILD_DIR := core/build
 SCENARIO ?= update
@@ -56,6 +56,27 @@ csharp:
 go:
 	cd bindings/go && go generate ./... && go test -count=1 ./... && go run ./examples/updater_example
 
+# Build the native library, test the Swift binding and run its example
+swift:
+	cd bindings/swift && ./build-native.sh && swift test && swift run updater-example
+
+# Build the SwiftUI macOS app bundle and run its model tests (needs the macOS SDK)
+swiftui:
+	python3 examples/swiftui_updater_example/build.py
+	cd examples/swiftui_updater_example && swift test
+
+# Serve an installable 2.0.0 app and open a disposable 1.0.0 copy
+swiftui-demo: swiftui
+	cmake -S core -B $(BUILD_DIR) -DBUILD_TESTING=ON
+	cmake --build $(BUILD_DIR) --target fixture_signer
+	python3 examples/swiftui_updater_example/demo.py --scenario $(SCENARIO)
+
+# Open native windows; click through installation to verify replacement and relaunch
+swiftui-smoke: swiftui
+	cmake -S core -B $(BUILD_DIR) -DBUILD_TESTING=ON
+	cmake --build $(BUILD_DIR) --target fixture_signer
+	python3 examples/swiftui_updater_example/demo.py --smoke
+
 # Build the Flutter example app (needs the Flutter SDK; not part of `test`)
 flutter:
 	cd examples/flutter_updater_example && flutter pub get && flutter analyze && flutter build macos --debug
@@ -78,10 +99,12 @@ check:
 	./codegen check
 
 # Everything: generated files, core tests, core examples and every binding
-test: check core-tests test-server-test examples rust dart csharp go
+test: check core-tests test-server-test examples rust dart csharp go swift
 
 clean:
 	rm -rf $(BUILD_DIR) bindings/rust/target bindings/dart/.dart_tool bindings/go/build
+	rm -rf bindings/swift/build bindings/swift/.build
+	rm -rf examples/swiftui_updater_example/build examples/swiftui_updater_example/.build
 	rm -rf examples/flutter_updater_example/build examples/flutter_updater_example/.dart_tool
 	rm -rf examples/mygo_updater_example/build
 	find bindings/csharp -type d \( -name bin -o -name obj \) -prune -exec rm -rf {} +

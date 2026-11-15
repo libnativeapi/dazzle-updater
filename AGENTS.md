@@ -14,12 +14,12 @@ directories; each can be split into its own repository later
 
 ```
 core/               # the C++ core library (layers described in core/AGENTS.md)
-bindings/           # language bindings: rust/, dart/, csharp/, go/
+bindings/           # language bindings: rust/, dart/, csharp/, go/, swift/
 examples/           # complete apps on a UI framework: <framework>_<module>_example
 prototype/          # Storybook prototypes of UpdaterUI (specs/updater-ui.md); pnpm, standalone
 specs/              # design rules for core/
 tools/codegen/      # the code generator, run through ./codegen
-Makefile            # make build | examples | rust | dart | csharp | go | flutter | mygo | codegen | check | test | clean
+Makefile            # make build | examples | rust | dart | csharp | go | swift | swiftui | flutter | mygo | codegen | check | test | clean
 ```
 
 ## Code generation
@@ -43,7 +43,8 @@ declarations and wrapper classes. See [tools/codegen/README.md](tools/codegen/RE
   `core/include/dazzle_updater.h`.
 - `bindings/*` — each binding wraps the C ABI from `core/` and builds `core/` from source
   with CMake: Rust links the static library; Dart (as a native asset), C# (next to the
-  assembly) and Go (cgo, built with `go generate`) use the shared library
+  assembly), Go (cgo, built with `go generate`) and Swift (SwiftPM, native library built
+  with `build-native.sh`) use the shared library
   (`-DDAZZLE_BUILD_SHARED=ON`). See bindings/README.md.
 
 ## Design specs
@@ -54,8 +55,11 @@ Start at [specs/README.md](specs/README.md) before adding or reshaping public AP
 ## Conventions
 
 - Verify a core change with `make test`: it checks the generated files are current, then
-  builds and runs the core examples and the Rust, Dart, C# and Go tests. The framework apps
-  in `examples/` need their SDK and are built separately (`make flutter`, `make mygo`).
+  builds and runs the core examples and the Rust, Dart, C#, Go and Swift tests. The framework apps
+  in `examples/` need their SDK and are built separately (`make flutter`, `make mygo`,
+  `make swiftui`). `make swiftui-demo` runs an installable macOS SwiftUI demo;
+  `make swiftui-smoke` verifies actual replacement and relaunch after clicking through
+  its native UpdaterUI windows in a desktop session.
 - Linux has its own example and its own end-to-end test: `make demo-linux` starts a local
   signed feed and runs `core/examples/updater_ui_example` around an application directory
   (a Linux application *is* a directory), and `ctest -R dazzle_updater_linux_install_e2e` covers the

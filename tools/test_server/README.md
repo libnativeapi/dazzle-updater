@@ -23,17 +23,20 @@ Release index 地址、公钥填入示例，当前版本用 `1.0.0`，然后检�
 
 ## 完整安装与重启
 
-现有 UpdaterUI demo 已接入此服务器，使用可替换、可重启的临时应用：
+UpdaterUI 和 SwiftUI demo 已接入此服务器，使用可替换、可重启的临时应用：
 
 ```sh
 make demo                             # macOS
 make demo SCENARIO=bad-signature       # macOS，从错误签名开始
 make demo-linux SCENARIO=slow-download # Linux，需 GTK 4 和桌面会话
+make swiftui-demo                     # macOS，SwiftUI 宿主 + UpdaterUI 原生窗口
 ```
 
 demo 会打印自己的控制台地址，端口自动选择。在控制台切换场景后回到 demo 重新检查。
 `update` 可走完 **Install Update → Install and Relaunch**，重启后版本为 `2.0.0`。
-`Reset Demo` 清理跳过版本、自动检查等偏好并将当前版本恢复为 `1.0.0`，可重复测试。
+UpdaterUI 的 `Reset Demo` 清理跳过版本、自动检查等偏好并将当前版本恢复为 `1.0.0`，可重复测试。
+SwiftUI demo 同样使用 UpdaterUI 原生窗口；终端按 Ctrl-C 清理，
+重新运行 `make swiftui-demo` 即可从 `1.0.0` 再次测试。
 
 也可以签名并发布自己的实际安装包：
 
@@ -64,6 +67,8 @@ python3 tools/test_server/server.py \
   （在 `examples/mygo_updater_example` 运行）。`slow-download` 可测试 Cancel 和重新下载。
 - **Flutter**：`flutter run -d macos`，在窗口填写 URL 和公钥。macOS 的调试和发布配置都包含
   网络客户端权限。完整安装需要可分发应用及对应的真实更新包。
+- **SwiftUI**：`make swiftui` 构建 macOS `.app`，在窗口填写 URL 和公钥；`make swiftui-demo`
+  自动准备可安装的签名更新包，`make swiftui-smoke` 在手动点击原生窗口后验证实际替换与重启。
 - **WinUI 3**：启动前设置 `DAZZLE_DEMO_FEED`、`DAZZLE_DEMO_PUBLIC_KEY`、
   `DAZZLE_DEMO_VERSION=1.0.0`，可再设置 `DAZZLE_DEMO_CHECK=1` 自动检查。
 
