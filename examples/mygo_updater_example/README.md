@@ -32,6 +32,11 @@ go run . \
 No server is contacted until you check for updates. In a real application, ship the
 public key in the application rather than accepting it from the release feed.
 
+For local cases, run `make test-server` from the repository root and copy the URL and
+public key printed by the [test server](../../tools/test_server/README.md). Its browser
+console switches between 21 cases; check again after switching. `slow-download` gives
+time to exercise Cancel and retry, and `bad-signature` verifies the rejection path.
+
 The example uses MyGo's native UI and `Updater` directly. It does not start
 `UpdaterUI`, whose GTK 4 and WinUI 3 host requirements differ from MyGo's event loops.
 macOS has been built and smoke-tested locally. Linux needs MyGo's GTK 3 desktop

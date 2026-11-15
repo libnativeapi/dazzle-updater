@@ -34,6 +34,12 @@ a menu item on macOS) calls `UpdaterUI::ResetPreferences()` and sets the version
 1.0.0, so the next check finds 2.0.0 again — after an install, after Skip This Version, or
 after answering the automatic-checks question.
 
+Both demos use the [shared test server](../../../tools/test_server/README.md) and print
+its browser console address. Switch between 21 cases there, then check again in the app:
+no update, index errors, slow or interrupted downloads, invalid signatures, redirects,
+and release-note layouts. To start in a particular case, run e.g.
+`make demo SCENARIO=bad-signature` or `make demo-linux SCENARIO=slow-download`.
+
 The icons (and the WinUI example's `DazzleDemo.ico`) are generated from the brand mark by
 `branding/dazzle/make-icons.py`, one per platform's icon grid; rerun it after changing the mark.
 

@@ -18,3 +18,9 @@ and the Go package is `dazzleupdater`.
 ```bash
 make test
 ```
+
+Run `make test-server` for a local signed release server with a browser console and
+21 success/failure scenarios that every example can use. `make demo` (macOS) and
+`make demo-linux` include an actual application update and restart.
+See [the test server guide](tools/test_server/README.md) for setup and cases;
+`make test-server-test` verifies them against the real core.

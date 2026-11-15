@@ -17,6 +17,11 @@ Requires a Flutter release with build hooks enabled by default (verified with Fl
 flutter run -d macos
 ```
 
+Run `make test-server` from the repository root, then enter the printed release URL and
+public key in the app. The [test server](../../tools/test_server/README.md) console switches
+between 21 success/failure cases; check again after switching. The default package tests
+real download and signature verification. Use an actual application package for installation.
+
 ## Platforms
 
 Only macOS is set up. The Dart binding builds for the host OS only, so iOS and Android

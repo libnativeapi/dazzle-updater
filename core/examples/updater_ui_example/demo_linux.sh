@@ -102,12 +102,15 @@ cat > "$work/releases.json" <<JSON
 }
 JSON
 
-# 3. Serve it, and wait until it answers.
-(cd "$work" && exec python3 -m http.server "$port" --bind 127.0.0.1) > "$work/server.log" 2>&1 &
+# 3. Serve it through the shared scenario server, and wait until its control API answers
+# (the selected scenario may deliberately make the release index return an error).
+python3 "$here/../../../tools/test_server/server.py" --feed "$work/releases.json" \
+  --public-key "$public_key" --port "$port" --scenario "${DAZZLE_DEMO_SCENARIO:-update}" \
+  > "$work/server.log" 2>&1 &
 server_pid=$!
 ready=""
 for _ in $(seq 1 50); do
-  if curl -fsS "$feed" > /dev/null 2>&1; then
+  if curl -fsS "http://127.0.0.1:$port/api/state" > /dev/null 2>&1; then
     ready=yes
     break
   fi
@@ -120,6 +123,7 @@ done
 
 echo "demo application: $work/DazzleDemo   (version 1.0.0)"
 echo "release index:    $feed   (offers 2.0.0, signed)"
+echo "test console:     http://127.0.0.1:$port/   (scenario: ${DAZZLE_DEMO_SCENARIO:-update})"
 echo
 echo "The application checks for updates as it starts, and UpdaterUI shows what it finds."
 echo "Click Install Update, then Install and Relaunch: the application directory is replaced"

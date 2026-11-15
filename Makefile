@@ -1,6 +1,8 @@
-.PHONY: build examples demo demo-linux core-tests rust dart csharp go flutter mygo mygo-smoke codegen check test clean
+.PHONY: build examples demo demo-linux test-server test-server-test core-tests rust dart csharp go flutter mygo mygo-smoke codegen check test clean
 
 BUILD_DIR := core/build
+SCENARIO ?= update
+PORT ?= 8765
 
 # Configure and build the core library and its examples
 build:
@@ -19,12 +21,24 @@ examples: build
 # Walk through the built-in update windows: starts a local signed feed and runs the
 # UpdaterUI example application (macOS; not part of `test`, it needs a desktop session)
 demo: build
-	cd core && ./examples/updater_ui_example/demo.sh
+	cd core && DAZZLE_DEMO_SCENARIO=$(SCENARIO) ./examples/updater_ui_example/demo.sh
 
 # The same walk on Linux, around an application directory rather than a bundle (GTK 4,
 # also needs a desktop session)
 demo-linux: build
-	cd core && ./examples/updater_ui_example/demo_linux.sh
+	cd core && DAZZLE_DEMO_SCENARIO=$(SCENARIO) ./examples/updater_ui_example/demo_linux.sh
+
+# A shared scenario server for every example (Python 3.9+, no pip dependencies).
+test-server:
+	cmake -S core -B $(BUILD_DIR) -DBUILD_TESTING=ON
+	cmake --build $(BUILD_DIR) --target fixture_signer
+	python3 tools/test_server/server.py --port $(PORT) --scenario $(SCENARIO)
+
+# Exercise the HTTP server and the real core check/download/signature/error paths.
+test-server-test:
+	cmake -S core -B $(BUILD_DIR) -DBUILD_TESTING=ON
+	cmake --build $(BUILD_DIR) --target fixture_signer updater_example
+	python3 tools/test_server/test_server.py
 
 # Test the Rust binding and run its example
 rust:
@@ -64,7 +78,7 @@ check:
 	./codegen check
 
 # Everything: generated files, core tests, core examples and every binding
-test: check core-tests examples rust dart csharp go
+test: check core-tests test-server-test examples rust dart csharp go
 
 clean:
 	rm -rf $(BUILD_DIR) bindings/rust/target bindings/dart/.dart_tool bindings/go/build

@@ -40,8 +40,9 @@ Windows backend write what it did to `%TEMP%\dazzle-winui3-backend.log`. The app
 ### Against a local feed
 
 Without a feed a check ends in the Error window. Three variables point the updater at a signed
-release index (`specs/release-index.md`), for instance one served by `python -m http.server`
-on the same machine:
+release index (`specs/release-index.md`). The [shared test server](../../tools/test_server/README.md)
+provides a browser console with 21 scenarios, and can run locally with `--feed` or on another
+machine with `--host` and `--base-url`. Copy its printed URL and public key:
 
 ```powershell
 $env:DAZZLE_DEMO_FEED = "http://127.0.0.1:8765/releases.json"

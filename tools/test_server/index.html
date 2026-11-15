@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>dazzle updater 测试服务器</title>
+<style>
+  :root { color-scheme: light dark; font: 16px/1.6 system-ui, sans-serif; }
+  body { max-width: 960px; margin: 48px auto; padding: 0 24px; }
+  h1 { font-size: 28px; } h2 { font-size: 20px; margin-top: 32px; }
+  code, pre { font: 14px/1.6 ui-monospace, monospace; overflow-wrap: anywhere; }
+  pre { white-space: pre-wrap; padding: 16px; background: #8882; border-radius: 8px; }
+  select, button { font: inherit; padding: 8px; margin: 4px 8px 4px 0; }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { text-align: left; padding: 12px 8px; border-bottom: 1px solid #8885; }
+  th { white-space: nowrap; } a { color: light-dark(#175dba, #9ac3ff); }
+  #message { min-height: 1.6em; } .hint { opacity: .75; }
+</style>
+<h1>dazzle updater 测试服务器</h1>
+<p>在示例中填入以下地址和公钥，当前版本设为 <code>1.0.0</code>。</p>
+<pre id="configuration">正在连接…</pre>
+<p id="package" class="hint"></p>
+<h2>切换测试场景</h2>
+<form id="control">
+  <select id="scenario" aria-label="测试场景"></select>
+  <button type="submit">应用场景</button>
+</form>
+<p id="description"></p>
+<p id="message" role="status"></p>
+<p class="hint">切换后，在示例里重新检查更新。已经检查出的更新会继续使用原场景的下载地址。
+  需要测试跳过版本或自动检查时，先点击 demo 的 Reset Demo 清除偏好。</p>
+<h2>固定场景地址</h2>
+<p>这些地址不随控制台切换而变化，可直接传给任意示例或测试脚本。</p>
+<table><thead><tr><th>场景 / Release index</th><th>预期行为</th></tr></thead><tbody id="scenarios"></tbody></table>
+<script>
+  const select = document.querySelector('#scenario');
+  const message = document.querySelector('#message');
+  let state;
+  function describe() {
+    document.querySelector('#description').textContent =
+      state.scenarios.find(item => item.name === select.value).description;
+  }
+  async function load() {
+    const response = await fetch('/api/state');
+    if (!response.ok) throw new Error('无法读取服务器状态');
+    state = await response.json();
+    document.querySelector('#configuration').textContent =
+      `Release index: ${state.feed}\nPublic key:    ${state.publicKey || '使用原签名索引对应的公钥'}\nCurrent version: 1.0.0`;
+    document.querySelector('#package').textContent = state.packageProvided
+      ? '服务器提供的是传入的安装包；完整安装与重启可使用 make demo 或 make demo-linux 的临时应用。'
+      : '默认文件用于真实下载和签名校验。完整安装与重启请使用 make demo、make demo-linux 或 --package 指定真实安装包。';
+    for (const item of state.scenarios) {
+      const option = document.createElement('option');
+      option.value = option.textContent = item.name;
+      select.append(option);
+      const row = document.createElement('tr');
+      const name = document.createElement('td');
+      const link = document.createElement('a');
+      link.href = item.feed;
+      link.textContent = item.name;
+      name.append(link);
+      const description = document.createElement('td');
+      description.textContent = item.description;
+      row.append(name, description);
+      document.querySelector('#scenarios').append(row);
+    }
+    select.value = state.scenario;
+    describe();
+  }
+  select.addEventListener('change', describe);
+  document.querySelector('#control').addEventListener('submit', async event => {
+    event.preventDefault();
+    try {
+      const response = await fetch('/api/scenario', {
+        method: 'POST', headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({scenario: select.value})
+      });
+      if (!response.ok) throw new Error('场景切换失败');
+      const result = await response.json();
+      message.textContent = `已应用 ${result.scenario}，请在示例中重新检查更新。`;
+    } catch (error) { message.textContent = error.message; }
+  });
+  load().catch(error => { message.textContent = error.message; });
+</script>
+</html>
